@@ -29,17 +29,13 @@ async function readDb(): Promise<ContentDatabase> {
   try {
     const raw = await fs.readFile(DATA_FILE, 'utf8');
     const parsed = JSON.parse(raw) as ContentDatabase;
-    if (!parsed?.siteSettings || !parsed?.homepage) {
-      const seed = getSeedDatabase();
-      await writeDb(seed);
-      return seed;
-    }
-    return parsed;
+    if (parsed?.siteSettings && parsed?.homepage) return parsed;
   } catch {
-    const seed = getSeedDatabase();
-    await writeDb(seed);
-    return seed;
+    // Missing or unreadable local file. Public reads use the compiled seed.
   }
+  // Never write or revalidate on read. This runs during page render and
+  // inside unstable_cache; revalidateTag is only valid from mutations.
+  return getSeedDatabase();
 }
 
 async function writeDb(database: ContentDatabase): Promise<void> {
