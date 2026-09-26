@@ -21,6 +21,7 @@ import {
   serverGetFullDatabase,
   serverUpdate,
 } from '@/lib/cms/server-repository';
+import { getSiteUrl } from '@/lib/seo/site-url';
 import type { Person, PersonCategory } from '@/types/content';
 import type { AuthSession } from '@/types/auth';
 
@@ -29,13 +30,7 @@ function nowIso() {
 }
 
 function siteOrigin(): string {
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
-  }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-  return 'http://localhost:3000';
+  return getSiteUrl();
 }
 
 export async function nextPersonOrder(): Promise<number> {

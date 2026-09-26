@@ -56,6 +56,107 @@ export async function fsGetAll<K extends ContentCollectionKey>(
   return db[collection] as CollectionEntityMap[K][];
 }
 
+export async function fsListResearchProjects(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<import('@/lib/cms/paginated-list').CollectionListResult<
+  import('@/types/content').ResearchProject
+>> {
+  const {
+    buildResearchFacets,
+    buildResearchYears,
+    filterResearchProjects,
+    sortResearchProjects,
+    paginateInMemory,
+  } = await import('@/lib/cms/paginated-list');
+
+  const db = await readDb();
+  const all = db.researchProjects;
+  const publicationsById = new Map(
+    db.publications.map((pub) => [
+      pub.id,
+      { url: pub.url, doi: pub.doi, citation: pub.citation },
+    ]),
+  );
+  const filtered = sortResearchProjects(
+    filterResearchProjects(all, query, publicationsById),
+    query.sort,
+  );
+  const page = paginateInMemory(filtered, query.page, query.pageSize);
+
+  const pubIds = new Set(
+    page.items.flatMap((item) => item.publicationIds ?? []),
+  );
+  const areaIds = new Set(page.items.flatMap((item) => item.areaIds ?? []));
+
+  return {
+    ...page,
+    facets: query.facets
+      ? buildResearchFacets(all, publicationsById)
+      : undefined,
+    options: query.facets
+      ? {
+          years: buildResearchYears(all),
+          areas: [...db.researchAreas]
+            .map((area) => ({ id: area.id, title: area.title }))
+            .sort((a, b) => a.title.localeCompare(b.title)),
+        }
+      : undefined,
+    related: {
+      publications: db.publications
+        .filter((pub) => pubIds.has(pub.id))
+        .map((pub) => ({
+          id: pub.id,
+          url: pub.url,
+          doi: pub.doi,
+          citation: pub.citation,
+        })),
+      researchAreas: db.researchAreas
+        .filter((area) => areaIds.has(area.id))
+        .map((area) => ({ id: area.id, title: area.title })),
+    },
+  };
+}
+
+export async function fsListPublications(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Publication
+  >
+> {
+  const {
+    buildPublicationFacets,
+    buildPublicationYears,
+    filterPublications,
+    sortPublications,
+    paginateInMemory,
+  } = await import('@/lib/cms/paginated-list');
+
+  const db = await readDb();
+  const all = db.publications;
+  const filtered = sortPublications(filterPublications(all, query), query.sort);
+  const page = paginateInMemory(filtered, query.page, query.pageSize);
+  const areaIds = new Set(page.items.flatMap((item) => item.areaIds ?? []));
+
+  return {
+    ...page,
+    facets: query.facets ? buildPublicationFacets(all) : undefined,
+    options: query.facets
+      ? {
+          years: buildPublicationYears(all),
+          areas: [...db.researchAreas]
+            .map((area) => ({ id: area.id, title: area.title }))
+            .sort((a, b) => a.title.localeCompare(b.title)),
+        }
+      : undefined,
+    related: {
+      researchAreas: db.researchAreas
+        .filter((area) => areaIds.has(area.id))
+        .map((area) => ({ id: area.id, title: area.title })),
+    },
+  };
+}
+
 export async function fsGetById<K extends ContentCollectionKey>(
   collection: K,
   id: string,
@@ -132,48 +233,67 @@ export async function fsRemove<K extends ContentCollectionKey>(
   collection: K,
   id: string,
 ): Promise<boolean> {
+  const deleted = await fsRemoveMany(collection, [id]);
+  return deleted > 0;
+}
+
+export async function fsRemoveMany<K extends ContentCollectionKey>(
+  collection: K,
+  ids: string[],
+): Promise<number> {
+  const uniqueIds = new Set(ids.filter(Boolean));
+  if (uniqueIds.size === 0) return 0;
+
   const db = await readDb();
   const list = db[collection] as CollectionEntityMap[K][];
-  const next = list.filter((item) => item.id !== id);
-  if (next.length === list.length) return false;
+  const next = list.filter((item) => !uniqueIds.has(item.id));
+  const deleted = list.length - next.length;
+  if (deleted === 0) return 0;
   (db[collection] as CollectionEntityMap[K][]) = next;
 
   if (collection === 'people') {
-    db.personContentLinks = db.personContentLinks.filter((l) => l.personId !== id);
-    db.roleAssignments = db.roleAssignments.filter((r) => r.personId !== id);
-    db.achievementAssignments = db.achievementAssignments.filter(
-      (r) => r.personId !== id,
+    db.personContentLinks = db.personContentLinks.filter(
+      (l) => !uniqueIds.has(l.personId),
     );
-    db.memberAchievements = db.memberAchievements.filter((r) => r.personId !== id);
+    db.roleAssignments = db.roleAssignments.filter(
+      (r) => !uniqueIds.has(r.personId),
+    );
+    db.achievementAssignments = db.achievementAssignments.filter(
+      (r) => !uniqueIds.has(r.personId),
+    );
+    db.memberAchievements = db.memberAchievements.filter(
+      (r) => !uniqueIds.has(r.personId),
+    );
   } else if (collection === 'events') {
     db.personContentLinks = db.personContentLinks.filter(
-      (l) => !(l.entityType === 'event' && l.entityId === id),
+      (l) => !(l.entityType === 'event' && uniqueIds.has(l.entityId)),
     );
     const formIds = db.registrationForms
-      .filter((f) => f.entityType === 'event' && f.entityId === id)
+      .filter((f) => f.entityType === 'event' && uniqueIds.has(f.entityId))
       .map((f) => f.id);
+    const formIdSet = new Set(formIds);
     db.registrationForms = db.registrationForms.filter(
-      (f) => !(f.entityType === 'event' && f.entityId === id),
+      (f) => !(f.entityType === 'event' && uniqueIds.has(f.entityId)),
     );
     db.registrationEntries = db.registrationEntries.filter(
-      (e) => !formIds.includes(e.formId),
+      (e) => !formIdSet.has(e.formId),
     );
   } else if (collection === 'researchProjects') {
     db.personContentLinks = db.personContentLinks.filter(
-      (l) => !(l.entityType === 'research' && l.entityId === id),
+      (l) => !(l.entityType === 'research' && uniqueIds.has(l.entityId)),
     );
   } else if (collection === 'publications') {
     db.personContentLinks = db.personContentLinks.filter(
-      (l) => !(l.entityType === 'publication' && l.entityId === id),
+      (l) => !(l.entityType === 'publication' && uniqueIds.has(l.entityId)),
     );
   } else if (collection === 'activities') {
     db.personContentLinks = db.personContentLinks.filter(
-      (l) => !(l.entityType === 'activity' && l.entityId === id),
+      (l) => !(l.entityType === 'activity' && uniqueIds.has(l.entityId)),
     );
   }
 
   await writeDb(db);
-  return true;
+  return deleted;
 }
 
 export async function fsDuplicate<K extends ContentCollectionKey>(

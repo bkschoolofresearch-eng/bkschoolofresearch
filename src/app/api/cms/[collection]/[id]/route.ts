@@ -1,17 +1,33 @@
 import { assertCmsAdmin, jsonError, jsonOk } from '@/lib/cms/api-guard';
 import { parseCollectionKey } from '@/lib/cms/collection-param';
+import {
+  CMS_ADMIN_ONLY_COLLECTIONS,
+  isPublishedCmsItem,
+} from '@/lib/cms/public-read';
 
 type RouteContext = { params: Promise<{ collection: string; id: string }> };
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
   const { collection: raw, id } = await context.params;
   const collection = parseCollectionKey(raw);
   if (!collection) return jsonError(`Unknown collection: ${raw}`, 404);
+
+  const url = new URL(request.url);
+  const publishedOnly = url.searchParams.get('published') === '1';
+  const adminOnly = CMS_ADMIN_ONLY_COLLECTIONS.has(collection);
+
+  if (adminOnly || !publishedOnly) {
+    const denied = await assertCmsAdmin(request);
+    if (denied) return denied;
+  }
 
   try {
     const { serverGetById } = await import('@/lib/cms/server-repository');
     const item = await serverGetById(collection, id);
     if (!item) return jsonError('Not found', 404);
+    if (publishedOnly && !isPublishedCmsItem(item)) {
+      return jsonError('Not found', 404);
+    }
     return jsonOk({ item });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Query failed';

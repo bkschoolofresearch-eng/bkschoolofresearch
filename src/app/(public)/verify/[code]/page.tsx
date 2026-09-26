@@ -15,6 +15,7 @@ export async function generateMetadata({ params }: Props) {
     `Verify ${decoded}`,
     'BKSR membership or certificate verification.',
     `/verify/${decoded}`,
+    { noIndex: true },
   );
 }
 

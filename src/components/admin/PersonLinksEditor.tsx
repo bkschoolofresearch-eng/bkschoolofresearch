@@ -17,11 +17,14 @@ export function PersonLinksEditor({
   people,
   value,
   onChange,
+  plain = false,
 }: {
   entityType: PersonLinkEntityType;
   people: Person[];
   value: PersonLinkDraft[];
   onChange: (next: PersonLinkDraft[]) => void;
+  /** Drop outer card chrome when parent already provides a section. */
+  plain?: boolean;
 }) {
   const roles = PERSON_LINK_ROLE_OPTIONS[entityType];
   const used = new Set(value.map((row) => row.personId));
@@ -36,15 +39,28 @@ export function PersonLinksEditor({
   };
 
   return (
-    <div className="sm:col-span-2 space-y-3 rounded-lg border border-[#D9DEE5] bg-white p-3">
+    <div
+      className={
+        plain
+          ? 'space-y-3'
+          : 'sm:col-span-2 space-y-3 rounded-lg border border-[#D9DEE5] bg-white p-3'
+      }
+    >
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-[#0D2745]">People involved</p>
-          <p className="mt-0.5 text-xs text-[#68727D]">
-            Roster members linked here appear on this page and on their profiles.
-            External names can stay in speakers / authors text fields.
-          </p>
-        </div>
+        {plain ? (
+          <span className="text-xs text-[#5F6368]">
+            {value.length === 0 ? 'None linked yet' : `${value.length} linked`}
+          </span>
+        ) : (
+          <div>
+            <p className="text-sm font-medium text-[#0D2745]">People involved</p>
+            <p className="mt-0.5 text-xs text-[#68727D]">
+              Roster members linked here appear on this page and on their
+              profiles. External names can stay in speakers / authors text
+              fields.
+            </p>
+          </div>
+        )}
         <button
           type="button"
           onClick={addEmpty}
@@ -57,7 +73,9 @@ export function PersonLinksEditor({
       </div>
 
       {value.length === 0 ? (
-        <p className="text-xs text-[#9AA3A5]">No roster people linked yet.</p>
+        plain ? null : (
+          <p className="text-xs text-[#9AA3A5]">No roster people linked yet.</p>
+        )
       ) : (
         <ul className="space-y-2">
           {value.map((row, index) => (

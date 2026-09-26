@@ -17,12 +17,11 @@ import {
   X,
 } from 'lucide-react';
 import { cmsApi } from '@/lib/cms/client-api';
-import type { ResearchListSort } from '@/lib/cms/paginated-list';
 import { formatDateShort } from '@/lib/utils';
-import { RESEARCH_STATUS_LABELS } from '@/lib/public/labels';
-import { getResearchProjectCoverUrl } from '@/lib/content/prototype-media';
-import { researchProjectExternalUrl } from '@/lib/content/research-links';
-import type { Publication, ResearchProject, ResearchStatus } from '@/types/content';
+import { PUBLICATION_TYPE_LABELS } from '@/lib/public/labels';
+import { getPublicationCoverUrl } from '@/lib/content/prototype-media';
+import { publicationExternalUrl } from '@/lib/content/research-links';
+import type { Publication, PublicationType } from '@/types/content';
 import { AdminLoading } from './AdminLoading';
 import { ConfirmDialog } from './ConfirmDialog';
 import {
@@ -33,19 +32,21 @@ import {
 import { SITE_VISIBILITY_LABELS } from './StatusBadge';
 import { useCms } from './CmsProvider';
 
-const CATEGORY_ORDER: ResearchStatus[] = [
-  'ongoing',
-  'completed',
-  'planned',
-  'archived',
-];
+const TYPE_ORDER = Object.keys(PUBLICATION_TYPE_LABELS) as PublicationType[];
 
-const FEATURED_HUB_LIMIT = 4;
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 300;
 
-const SORT_OPTIONS: Array<{ value: ResearchListSort; label: string }> = [
-  { value: 'category', label: 'Category (default)' },
+type PublicationListSort =
+  | 'type'
+  | 'updated_desc'
+  | 'updated_asc'
+  | 'year_desc'
+  | 'year_asc'
+  | 'title_asc';
+
+const SORT_OPTIONS: Array<{ value: PublicationListSort; label: string }> = [
+  { value: 'type', label: 'Type (default)' },
   { value: 'updated_desc', label: 'Updated · newest' },
   { value: 'updated_asc', label: 'Updated · oldest' },
   { value: 'year_desc', label: 'Year · newest' },
@@ -56,34 +57,20 @@ const SORT_OPTIONS: Array<{ value: ResearchListSort; label: string }> = [
 const EMPTY_FACETS = {
   total: 0,
   published: 0,
-  featured: 0,
   withLink: 0,
-  byCategory: {
-    ongoing: 0,
-    completed: 0,
-    planned: 0,
-    archived: 0,
-  } as Record<ResearchStatus, number>,
+  byType: {} as Record<string, number>,
   byStatus: { draft: 0, published: 0, archived: 0 },
 };
 
 const selectClass =
   'w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0B1F36] outline-none focus:border-[#0B1F36] focus:bg-white focus:ring-2 focus:ring-[#0B1F36]/10';
 
-
-function resolveResearchHref(
-  item: ResearchProject,
-  publicationsById: Map<string, Publication>,
-): string | null {
-  return researchProjectExternalUrl(item, publicationsById);
-}
-
 function SiteVisibilityToggle({
   item,
   busy,
   onToggle,
 }: {
-  item: ResearchProject;
+  item: Publication;
   busy: boolean;
   onToggle: (published: boolean) => void;
 }) {
@@ -95,8 +82,8 @@ function SiteVisibilityToggle({
       onClick={() => onToggle(!onSite)}
       title={
         onSite
-          ? 'On site — click to hide from /research'
-          : 'Not on site — click to show on /research'
+          ? 'On site — click to hide from /publications'
+          : 'Not on site — click to show on /publications'
       }
       className={
         onSite
@@ -109,15 +96,14 @@ function SiteVisibilityToggle({
   );
 }
 
-function ResearchThumb({
+function PublicationThumb({
   item,
   size = 'md',
 }: {
-  item: ResearchProject;
-  index?: number;
+  item: Publication;
   size?: 'sm' | 'md';
 }) {
-  const src = getResearchProjectCoverUrl(item);
+  const src = getPublicationCoverUrl(item);
   const dim = size === 'sm' ? 'h-12 w-12' : 'h-14 w-14';
   return (
     <div
@@ -143,18 +129,17 @@ function ResearchThumb({
   );
 }
 
-export function ResearchAdminPage() {
+export function PublicationsAdminPage() {
   const { ready, deleteItem, updateItem, apiAuthenticated } = useCms();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [category, setCategory] = useState<string>('');
+  const [typeFilter, setTypeFilter] = useState<string>('');
   const [publishStatus, setPublishStatus] = useState('');
   const [yearFrom, setYearFrom] = useState('');
   const [yearTo, setYearTo] = useState('');
   const [areaId, setAreaId] = useState('');
-  const [featured, setFeatured] = useState<'' | '1' | '0'>('');
   const [hasLink, setHasLink] = useState<'' | '1' | '0'>('');
-  const [sort, setSort] = useState<ResearchListSort>('category');
+  const [sort, setSort] = useState<PublicationListSort>('type');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -166,7 +151,7 @@ export function ResearchAdminPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
-  const [pageItems, setPageItems] = useState<ResearchProject[]>([]);
+  const [pageItems, setPageItems] = useState<Publication[]>([]);
   const [total, setTotal] = useState(0);
   const [safePage, setSafePage] = useState(1);
   const [facets, setFacets] = useState(EMPTY_FACETS);
@@ -174,9 +159,6 @@ export function ResearchAdminPage() {
   const [filterAreas, setFilterAreas] = useState<
     Array<{ id: string; title: string }>
   >([]);
-  const [publicationsById, setPublicationsById] = useState(
-    () => new Map<string, Publication>(),
-  );
   const [areaTitleById, setAreaTitleById] = useState(
     () => new Map<string, string>(),
   );
@@ -194,12 +176,11 @@ export function ResearchAdminPage() {
     setSelectedIds(new Set());
   }, [
     debouncedQuery,
-    category,
+    typeFilter,
     publishStatus,
     yearFrom,
     yearTo,
     areaId,
-    featured,
     hasLink,
     sort,
   ]);
@@ -209,22 +190,21 @@ export function ResearchAdminPage() {
     setListLoading(true);
     setListError(null);
     try {
-      const result = await cmsApi.listCollection('researchProjects', {
+      const result = await cmsApi.listCollection('publications', {
         page,
         pageSize: PAGE_SIZE,
         q: debouncedQuery || undefined,
-        researchStatus: category || undefined,
+        publicationType: typeFilter || undefined,
         status: publishStatus || undefined,
         yearFrom: yearFrom ? Number(yearFrom) : undefined,
         yearTo: yearTo ? Number(yearTo) : undefined,
         areaId: areaId || undefined,
-        featured: featured === '' ? undefined : featured === '1',
         hasLink: hasLink === '' ? undefined : hasLink === '1',
         sort,
         facets: true,
       });
 
-      setPageItems(result.items);
+      setPageItems(result.items as Publication[]);
       setTotal(result.total);
       setSafePage(result.page);
 
@@ -232,14 +212,8 @@ export function ResearchAdminPage() {
         setFacets({
           total: result.facets.total,
           published: result.facets.published,
-          featured: result.facets.featured ?? 0,
           withLink: result.facets.withLink,
-          byCategory: {
-            ongoing: result.facets.byCategory?.ongoing ?? 0,
-            completed: result.facets.byCategory?.completed ?? 0,
-            planned: result.facets.byCategory?.planned ?? 0,
-            archived: result.facets.byCategory?.archived ?? 0,
-          },
+          byType: result.facets.byType ?? {},
           byStatus: result.facets.byStatus,
         });
       }
@@ -248,12 +222,6 @@ export function ResearchAdminPage() {
         setFilterYears(result.options.years);
         setFilterAreas(result.options.areas);
       }
-
-      const pubs = new Map<string, Publication>();
-      for (const pub of result.related?.publications ?? []) {
-        pubs.set(pub.id, pub as Publication);
-      }
-      setPublicationsById(pubs);
 
       const areas = new Map<string, string>();
       for (const area of [
@@ -265,7 +233,7 @@ export function ResearchAdminPage() {
       setAreaTitleById(areas);
     } catch (error) {
       setListError(
-        error instanceof Error ? error.message : 'Failed to load research',
+        error instanceof Error ? error.message : 'Failed to load publications',
       );
       setPageItems([]);
       setTotal(0);
@@ -276,12 +244,11 @@ export function ResearchAdminPage() {
     apiAuthenticated,
     page,
     debouncedQuery,
-    category,
+    typeFilter,
     publishStatus,
     yearFrom,
     yearTo,
     areaId,
-    featured,
     hasLink,
     sort,
     reloadToken,
@@ -309,15 +276,14 @@ export function ResearchAdminPage() {
     yearFrom,
     yearTo,
     areaId,
-    featured,
     hasLink,
-    sort !== 'category' ? sort : '',
+    sort !== 'type' ? sort : '',
   ].filter(Boolean).length;
 
   const filtersActive = Boolean(
     query.trim() ||
       debouncedQuery ||
-      category ||
+      typeFilter ||
       advancedFilterCount > 0,
   );
 
@@ -326,15 +292,14 @@ export function ResearchAdminPage() {
     setYearFrom('');
     setYearTo('');
     setAreaId('');
-    setFeatured('');
     setHasLink('');
-    setSort('category');
+    setSort('type');
   };
 
   const clearFilters = () => {
     setQuery('');
     setDebouncedQuery('');
-    setCategory('');
+    setTypeFilter('');
     clearAdvancedFilters();
     setPage(1);
   };
@@ -344,8 +309,8 @@ export function ResearchAdminPage() {
       ? 'rounded-full bg-[#0B1F36] px-3 py-1.5 text-xs font-semibold text-white'
       : 'rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1.5 text-xs font-semibold text-[#0B1F36] hover:bg-white';
 
-  const visibleCategories = CATEGORY_ORDER.filter(
-    (key) => counts.byCategory[key] > 0 || category === key,
+  const visibleTypes = TYPE_ORDER.filter(
+    (key) => (counts.byType[key] ?? 0) > 0 || typeFilter === key,
   );
 
   const refreshList = () => setReloadToken((n) => n + 1);
@@ -367,16 +332,15 @@ export function ResearchAdminPage() {
     if (total <= 0) return;
     setBulkBusy(true);
     try {
-      const result = await cmsApi.listCollection('researchProjects', {
+      const result = await cmsApi.listCollection('publications', {
         page: 1,
         pageSize: Math.min(Math.max(total, 1), 10_000),
         q: debouncedQuery || undefined,
-        researchStatus: category || undefined,
+        publicationType: typeFilter || undefined,
         status: publishStatus || undefined,
         yearFrom: yearFrom ? Number(yearFrom) : undefined,
         yearTo: yearTo ? Number(yearTo) : undefined,
         areaId: areaId || undefined,
-        featured: featured === '' ? undefined : featured === '1',
         hasLink: hasLink === '' ? undefined : hasLink === '1',
         sort,
       });
@@ -393,12 +357,11 @@ export function ResearchAdminPage() {
   }, [
     total,
     debouncedQuery,
-    category,
+    typeFilter,
     publishStatus,
     yearFrom,
     yearTo,
     areaId,
-    featured,
     hasLink,
     sort,
   ]);
@@ -417,7 +380,7 @@ export function ResearchAdminPage() {
     if (ids.length === 0) return;
     setBulkBusy(true);
     try {
-      await cmsApi.removeMany('researchProjects', { ids });
+      await cmsApi.removeMany('publications', { ids });
       setSelectedIds(new Set());
       setBulkDeleteMode(null);
       setDeleteId(null);
@@ -432,10 +395,10 @@ export function ResearchAdminPage() {
     }
   };
 
-  const setPublished = async (item: ResearchProject, published: boolean) => {
+  const setPublished = async (item: Publication, published: boolean) => {
     setBusyId(item.id);
     try {
-      await updateItem('researchProjects', item.id, {
+      await updateItem('publications', item.id, {
         status: published ? 'published' : 'draft',
         ...(published
           ? { publishedAt: item.publishedAt ?? new Date().toISOString() }
@@ -448,11 +411,11 @@ export function ResearchAdminPage() {
   };
 
   if (!ready) {
-    return <AdminLoading label="Loading research" />;
+    return <AdminLoading label="Loading publications" />;
   }
 
   if (!apiAuthenticated) {
-    return <AdminLockedState noun="research items" />;
+    return <AdminLockedState noun="publications" />;
   }
 
   const rangeStart = total === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
@@ -462,12 +425,12 @@ export function ResearchAdminPage() {
     <div className="space-y-6">
       <AdminPageHeader
         eyebrow="Library"
-        title="Research"
-        description={`${counts.total} items · ${counts.published} on site · ${counts.featured}/${FEATURED_HUB_LIMIT} featured`}
+        title="Publications"
+        description={`${counts.total} items · ${counts.published} on site`}
         action={
-          <AdminPrimaryButton href="/admin/research/new">
+          <AdminPrimaryButton href="/admin/publications/new">
             <Plus className="h-4 w-4" />
-            Add research
+            Add publication
           </AdminPrimaryButton>
         }
       />
@@ -488,21 +451,21 @@ export function ResearchAdminPage() {
             <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
               <button
                 type="button"
-                onClick={() => setCategory('')}
-                className={chipClass(category === '')}
+                onClick={() => setTypeFilter('')}
+                className={chipClass(typeFilter === '')}
               >
                 All ({counts.total})
               </button>
-              {visibleCategories.map((key) => (
+              {visibleTypes.map((key) => (
                 <button
                   key={key}
                   type="button"
                   onClick={() =>
-                    setCategory((current) => (current === key ? '' : key))
+                    setTypeFilter((current) => (current === key ? '' : key))
                   }
-                  className={chipClass(category === key)}
+                  className={chipClass(typeFilter === key)}
                 >
-                  {RESEARCH_STATUS_LABELS[key]} ({counts.byCategory[key]})
+                  {PUBLICATION_TYPE_LABELS[key]} ({counts.byType[key] ?? 0})
                 </button>
               ))}
             </div>
@@ -541,8 +504,8 @@ export function ResearchAdminPage() {
             <p className="mt-2 px-0.5 text-xs text-[#5B6B7C]">
               <span className="font-semibold text-[#0B1F36]">{total}</span>{' '}
               match{total === 1 ? '' : 'es'}
-              {category
-                ? ` · ${RESEARCH_STATUS_LABELS[category as ResearchStatus]}`
+              {typeFilter
+                ? ` · ${PUBLICATION_TYPE_LABELS[typeFilter as PublicationType] ?? typeFilter}`
                 : ''}
               {publishStatus
                 ? ` · ${SITE_VISIBILITY_LABELS[publishStatus] ?? publishStatus}`
@@ -550,7 +513,7 @@ export function ResearchAdminPage() {
               {yearFrom || yearTo
                 ? ` · ${yearFrom || '…'}–${yearTo || '…'}`
                 : ''}
-              {sort !== 'category'
+              {sort !== 'type'
                 ? ` · ${SORT_OPTIONS.find((o) => o.value === sort)?.label}`
                 : ''}
               {query.trim() ? ` · “${query.trim()}”` : ''}
@@ -590,8 +553,8 @@ export function ResearchAdminPage() {
                   Show on website?
                 </span>
                 <p className="text-xs text-[#7A90A8]">
-                  Not journal publication — only whether this row appears on
-                  /research.
+                  Only whether this row appears on /publications — not journal
+                  status.
                 </p>
                 <select
                   value={publishStatus}
@@ -658,7 +621,7 @@ export function ResearchAdminPage() {
                 <select
                   value={sort}
                   onChange={(e) =>
-                    setSort(e.target.value as ResearchListSort)
+                    setSort(e.target.value as PublicationListSort)
                   }
                   className={selectClass}
                 >
@@ -690,25 +653,6 @@ export function ResearchAdminPage() {
 
               <label className="block space-y-1.5">
                 <span className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[#7A90A8]">
-                  Featured hub
-                </span>
-                <select
-                  value={featured}
-                  onChange={(e) =>
-                    setFeatured(e.target.value as '' | '1' | '0')
-                  }
-                  className={selectClass}
-                >
-                  <option value="">Any</option>
-                  <option value="1">
-                    Featured only ({counts.featured})
-                  </option>
-                  <option value="0">Not featured</option>
-                </select>
-              </label>
-
-              <label className="block space-y-1.5">
-                  <span className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[#7A90A8]">
                   Clickable link
                 </span>
                 <select
@@ -793,20 +737,20 @@ export function ResearchAdminPage() {
       ) : null}
 
       {listLoading && pageItems.length === 0 ? (
-        <AdminLoading label="Loading research" />
+        <AdminLoading label="Loading publications" />
       ) : total === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#D5DEE8] bg-white px-6 py-14 text-center">
           <p className="text-sm font-semibold text-[#0B1F36]">Nothing here yet</p>
           <p className="mt-1 text-sm text-[#5B6B7C]">
-            {query || category || publishStatus
+            {query || typeFilter || publishStatus
               ? 'Try clearing search or filters.'
-              : 'Add your first research item to show it on /research.'}
+              : 'Add your first publication to show it on /publications.'}
           </p>
-          {!query && !category && !publishStatus ? (
+          {!query && !typeFilter && !publishStatus ? (
             <div className="mt-4 flex justify-center">
-              <AdminPrimaryButton href="/admin/research/new">
+              <AdminPrimaryButton href="/admin/publications/new">
                 <Plus className="h-4 w-4" />
-                Add research
+                Add publication
               </AdminPrimaryButton>
             </div>
           ) : null}
@@ -832,7 +776,7 @@ export function ResearchAdminPage() {
                           }
                         }}
                         onChange={toggleSelectAllMatching}
-                        aria-label={`Select all ${total} research items`}
+                        aria-label={`Select all ${total} publications`}
                         title={
                           allMatchingSelected
                             ? 'Clear selection'
@@ -842,7 +786,7 @@ export function ResearchAdminPage() {
                       />
                     </th>
                     <th className="px-4 py-3 font-semibold">Item</th>
-                    <th className="px-3 py-3 font-semibold">Stage</th>
+                    <th className="px-3 py-3 font-semibold">Type</th>
                     <th className="px-3 py-3 font-semibold">Year</th>
                     <th className="px-3 py-3 font-semibold">Link</th>
                     <th className="px-3 py-3 font-semibold">Updated</th>
@@ -850,16 +794,13 @@ export function ResearchAdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pageItems.map((item, index) => {
-                    const href = resolveResearchHref(item, publicationsById);
-                    const authors = (item.leadAuthorNames ?? [])
-                      .slice(0, 2)
-                      .join(', ');
+                  {pageItems.map((item) => {
+                    const href = publicationExternalUrl(item);
+                    const authors = (item.authors ?? []).slice(0, 2).join(', ');
                     const areas = (item.areaIds ?? [])
                       .map((id) => areaTitleById.get(id))
                       .filter(Boolean)
                       .slice(0, 2);
-                    const absoluteIndex = (safePage - 1) * PAGE_SIZE + index;
                     const checked = selectedIds.has(item.id);
 
                     return (
@@ -874,24 +815,23 @@ export function ResearchAdminPage() {
                             type="checkbox"
                             checked={checked}
                             onChange={() => toggleSelect(item.id)}
-                            aria-label={`Select ${item.title || 'research item'}`}
+                            aria-label={`Select ${item.title || 'publication'}`}
                             className="h-4 w-4 rounded border-[#CBD5E1] text-[#0B1F36] focus:ring-[#0B1F36]/30"
                           />
                         </td>
                         <td className="max-w-[26rem] px-4 py-3 align-middle">
                           <div className="flex items-start gap-3">
-                            <ResearchThumb item={item} index={absoluteIndex} />
+                            <PublicationThumb item={item} />
                             <div className="min-w-0">
                               <Link
-                                href={`/admin/research/${item.id}`}
+                                href={`/admin/publications/${item.id}`}
                                 className="line-clamp-2 font-semibold text-[#0B1F36] hover:text-[#173B6C]"
                               >
-                                {item.title || 'Untitled research'}
+                                {item.title || 'Untitled publication'}
                               </Link>
                               <p className="mt-1 line-clamp-1 text-xs text-[#7A90A8]">
                                 {[
                                   authors || null,
-                                  item.featuredOnResearchPage ? 'Featured' : null,
                                   areas.length ? areas.join(' · ') : null,
                                 ]
                                   .filter(Boolean)
@@ -901,7 +841,7 @@ export function ResearchAdminPage() {
                           </div>
                         </td>
                         <td className="whitespace-nowrap px-3 py-3 align-middle text-[#5B6B7C]">
-                          {RESEARCH_STATUS_LABELS[item.researchStatus]}
+                          {PUBLICATION_TYPE_LABELS[item.type] ?? item.type}
                         </td>
                         <td className="whitespace-nowrap px-3 py-3 align-middle text-[#5B6B7C]">
                           {item.year ?? '—'}
@@ -937,7 +877,7 @@ export function ResearchAdminPage() {
                               }
                             />
                             <Link
-                              href={`/admin/research/${item.id}`}
+                              href={`/admin/publications/${item.id}`}
                               className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-[#0B1F36] hover:bg-[#EEF2F6]"
                             >
                               <Pencil className="h-3.5 w-3.5" />
@@ -962,9 +902,8 @@ export function ResearchAdminPage() {
           </div>
 
           <ul className="space-y-3 lg:hidden">
-            {pageItems.map((item, index) => {
-              const href = resolveResearchHref(item, publicationsById);
-              const absoluteIndex = (safePage - 1) * PAGE_SIZE + index;
+            {pageItems.map((item) => {
+              const href = publicationExternalUrl(item);
               return (
                 <li
                   key={item.id}
@@ -977,21 +916,20 @@ export function ResearchAdminPage() {
                       type="checkbox"
                       checked={selectedIds.has(item.id)}
                       onChange={() => toggleSelect(item.id)}
-                      aria-label={`Select ${item.title || 'research item'}`}
+                      aria-label={`Select ${item.title || 'publication'}`}
                       className="mt-1 h-4 w-4 shrink-0 rounded border-[#CBD5E1] text-[#0B1F36] focus:ring-[#0B1F36]/30"
                     />
-                    <ResearchThumb item={item} index={absoluteIndex} size="sm" />
+                    <PublicationThumb item={item} size="sm" />
                     <div className="min-w-0 flex-1">
                       <p className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[#7A90A8]">
-                        {RESEARCH_STATUS_LABELS[item.researchStatus]}
+                        {PUBLICATION_TYPE_LABELS[item.type] ?? item.type}
                         {item.year ? ` · ${item.year}` : ''}
-                        {item.featuredOnResearchPage ? ' · Featured' : ''}
                       </p>
                       <Link
-                        href={`/admin/research/${item.id}`}
+                        href={`/admin/publications/${item.id}`}
                         className="mt-1 line-clamp-2 font-semibold text-[#0B1F36]"
                       >
-                        {item.title || 'Untitled research'}
+                        {item.title || 'Untitled publication'}
                       </Link>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         {href ? (
@@ -1020,7 +958,7 @@ export function ResearchAdminPage() {
                       onToggle={(published) => void setPublished(item, published)}
                     />
                     <Link
-                      href={`/admin/research/${item.id}`}
+                      href={`/admin/publications/${item.id}`}
                       className="inline-flex items-center gap-1 rounded-lg bg-[#0B1F36] px-3 py-1.5 text-xs font-semibold text-white"
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -1077,12 +1015,12 @@ export function ResearchAdminPage() {
 
       <ConfirmDialog
         open={Boolean(deleteId)}
-        title="Delete this research item?"
-        description="It will be removed from the Research page. You can restore starter content from System & data if needed."
+        title="Delete this publication?"
+        description="It will be removed from the Publications library. You can restore starter content from System & data if needed."
         onCancel={() => setDeleteId(null)}
         onConfirm={async () => {
           if (deleteId) {
-            await deleteItem('researchProjects', deleteId);
+            await deleteItem('publications', deleteId);
             setSelectedIds((prev) => {
               const next = new Set(prev);
               next.delete(deleteId);
@@ -1097,7 +1035,7 @@ export function ResearchAdminPage() {
       <ConfirmDialog
         open={bulkDeleteMode === 'selected'}
         title={`Delete ${selectedCount} selected item${selectedCount === 1 ? '' : 's'}?`}
-        description="Selected research rows will be removed from the CMS and the public Research page. This cannot be undone from here."
+        description="Selected publication rows will be removed from the CMS and the public Publications pages. This cannot be undone from here."
         confirmLabel={bulkBusy ? 'Deleting…' : `Delete ${selectedCount}`}
         onCancel={() => {
           if (!bulkBusy) setBulkDeleteMode(null);

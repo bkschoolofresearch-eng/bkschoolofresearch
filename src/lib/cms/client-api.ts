@@ -99,6 +99,76 @@ export const cmsApi = {
     return data.database;
   },
 
+  async listCollection<K extends ContentCollectionKey>(
+    collection: K,
+    params: {
+      page?: number;
+      pageSize?: number;
+      q?: string;
+      status?: string;
+      researchStatus?: string;
+      /** Publications library type filter → API search param `type` */
+      publicationType?: string;
+      yearFrom?: number;
+      yearTo?: number;
+      areaId?: string;
+      featured?: boolean;
+      hasLink?: boolean;
+      sort?: string;
+      facets?: boolean;
+    } = {},
+  ): Promise<{
+    items: CollectionEntityMap[K][];
+    total: number;
+    page: number;
+    pageSize: number;
+    facets?: {
+      total: number;
+      published: number;
+      featured?: number;
+      withLink: number;
+      byCategory?: Record<string, number>;
+      byType?: Record<string, number>;
+      byStatus: { draft: number; published: number; archived: number };
+    };
+    options?: {
+      years: number[];
+      areas: Array<{ id: string; title: string }>;
+    };
+    related?: {
+      publications?: Array<{
+        id: string;
+        url?: string | null;
+        doi?: string | null;
+        citation?: string | null;
+      }>;
+      researchAreas: Array<{ id: string; title: string }>;
+    };
+  }> {
+    const search = new URLSearchParams();
+    search.set('page', String(params.page ?? 1));
+    search.set('limit', String(params.pageSize ?? 20));
+    if (params.q) search.set('q', params.q);
+    if (params.status) search.set('status', params.status);
+    if (params.researchStatus) search.set('researchStatus', params.researchStatus);
+    if (params.publicationType) search.set('type', params.publicationType);
+    if (params.yearFrom != null) search.set('yearFrom', String(params.yearFrom));
+    if (params.yearTo != null) search.set('yearTo', String(params.yearTo));
+    if (params.areaId) search.set('areaId', params.areaId);
+    if (params.featured === true) search.set('featured', '1');
+    if (params.featured === false) search.set('featured', '0');
+    if (params.hasLink === true) search.set('hasLink', '1');
+    if (params.hasLink === false) search.set('hasLink', '0');
+    if (params.sort) search.set('sort', params.sort);
+    if (params.facets) search.set('facets', '1');
+
+    return parseJson(
+      await fetch(`/api/cms/${collection}?${search.toString()}`, {
+        credentials: 'include',
+      }),
+    );
+  },
+
   async create<K extends ContentCollectionKey>(
     collection: K,
     input: Omit<CollectionEntityMap[K], 'id' | 'createdAt' | 'updatedAt'> &
@@ -136,6 +206,55 @@ export const cmsApi = {
       await fetch(`/api/cms/${collection}/${id}`, {
         method: 'DELETE',
         credentials: 'include',
+      }),
+    );
+  },
+
+  async removeMany(
+    collection: ContentCollectionKey,
+    options:
+      | { ids: string[] }
+      | {
+          matchAll: true;
+          q?: string;
+          status?: string;
+          researchStatus?: string;
+          yearFrom?: number;
+          yearTo?: number;
+          areaId?: string;
+          featured?: boolean;
+          hasLink?: boolean;
+        },
+  ): Promise<{ deleted: number }> {
+    const search = new URLSearchParams();
+    if ('matchAll' in options && options.matchAll) {
+      if (options.q) search.set('q', options.q);
+      if (options.status) search.set('status', options.status);
+      if (options.researchStatus) {
+        search.set('researchStatus', options.researchStatus);
+      }
+      if (options.yearFrom != null) {
+        search.set('yearFrom', String(options.yearFrom));
+      }
+      if (options.yearTo != null) search.set('yearTo', String(options.yearTo));
+      if (options.areaId) search.set('areaId', options.areaId);
+      if (options.featured === true) search.set('featured', '1');
+      if (options.featured === false) search.set('featured', '0');
+      if (options.hasLink === true) search.set('hasLink', '1');
+      if (options.hasLink === false) search.set('hasLink', '0');
+    }
+
+    const qs = search.toString();
+    return parseJson(
+      await fetch(`/api/cms/${collection}${qs ? `?${qs}` : ''}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          'matchAll' in options && options.matchAll
+            ? { matchAll: true }
+            : { ids: 'ids' in options ? options.ids : [] },
+        ),
       }),
     );
   },

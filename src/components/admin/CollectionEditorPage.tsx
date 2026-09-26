@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import type { ContentStatus } from '@/types/content';
+import type { ContentStatus, Publication } from '@/types/content';
 import { ConfirmDialog } from './ConfirmDialog';
 import { EditorTabs, type EditorTabId } from './EditorTabs';
 import { FieldRenderer } from './FormFields';
@@ -16,12 +16,15 @@ import {
   type AdminCollectionSlug,
 } from './collections';
 import { isReservedPeopleSlug } from '@/lib/content/people-slugs';
+import { researchProjectExternalUrl } from '@/lib/content/research-links';
 import { replaceEntityPersonLinks } from '@/lib/cms/client-ops';
 import {
   PersonLinksEditor,
   type PersonLinkDraft,
 } from './PersonLinksEditor';
 import type { Person } from '@/types/content';
+
+const RESEARCH_FEATURED_LIMIT = 4;
 
 export function CollectionEditorPage({
   collectionSlug,
@@ -249,6 +252,47 @@ export function CollectionEditorPage({
         );
         window.setTimeout(() => setMessage(null), 4000);
         return;
+      }
+
+      const pubsById = new Map(
+        (database?.publications ?? []).map((pub) => [pub.id, pub as Publication]),
+      );
+      const resolvedHref = researchProjectExternalUrl(
+        {
+          url: (payload.url as string | null) ?? null,
+          publicationIds: payload.publicationIds as string[] | undefined,
+          description: payload.description as string | undefined,
+          summary: (payload.summary as string | undefined) ?? '',
+        },
+        pubsById,
+      );
+      const nextStatus = (statusOverride ?? payload.status) as ContentStatus;
+      const becomingPublished =
+        nextStatus === 'published' && existing?.status !== 'published';
+      if (becomingPublished && !resolvedHref) {
+        setSaving(false);
+        setMessage(
+          'Before publishing, add an openable link: journal/DOI URL, or a Publication that has a URL/DOI.',
+        );
+        window.setTimeout(() => setMessage(null), 5000);
+        return;
+      }
+
+      if (payload.featuredOnResearchPage) {
+        const others = (database?.researchProjects ?? []).filter(
+          (p) =>
+            p.featuredOnResearchPage &&
+            p.id !== id &&
+            p.status !== 'archived',
+        );
+        if (others.length >= RESEARCH_FEATURED_LIMIT) {
+          setSaving(false);
+          setMessage(
+            `Only ${RESEARCH_FEATURED_LIMIT} featured cards show on /research. Unfeature another item first (currently ${others.length} others flagged).`,
+          );
+          window.setTimeout(() => setMessage(null), 5500);
+          return;
+        }
       }
     }
 

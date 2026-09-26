@@ -1,7 +1,7 @@
 'use client';
 
 import { use } from 'react';
-import { CollectionEditorPage } from '@/components/admin/CollectionEditorPage';
+import { PublicationEditorPage } from '@/components/admin/PublicationEditorPage';
 
 export default function Page({
   params,
@@ -9,7 +9,5 @@ export default function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  return (
-    <CollectionEditorPage collectionSlug="publications" mode="edit" id={id} />
-  );
+  return <PublicationEditorPage mode="edit" id={id} />;
 }

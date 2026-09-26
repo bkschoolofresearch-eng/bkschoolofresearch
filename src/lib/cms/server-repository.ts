@@ -40,6 +40,38 @@ export async function serverGetAll<K extends ContentCollectionKey>(
   return fsGetAll(collection);
 }
 
+export async function serverListResearchProjects(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').ResearchProject
+  >
+> {
+  if (getCmsDriver() === 'mongo') {
+    const { mongoListResearchProjects } = await import(
+      '@/lib/cms/mongo-repository'
+    );
+    return mongoListResearchProjects(query);
+  }
+  const { fsListResearchProjects } = await import('@/lib/cms/fs-repository');
+  return fsListResearchProjects(query);
+}
+
+export async function serverListPublications(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Publication
+  >
+> {
+  if (getCmsDriver() === 'mongo') {
+    const { mongoListPublications } = await import('@/lib/cms/mongo-repository');
+    return mongoListPublications(query);
+  }
+  const { fsListPublications } = await import('@/lib/cms/fs-repository');
+  return fsListPublications(query);
+}
+
 export async function serverGetById<K extends ContentCollectionKey>(
   collection: K,
   id: string,
@@ -100,6 +132,18 @@ export async function serverRemove<K extends ContentCollectionKey>(
   }
   const { fsRemove } = await import('@/lib/cms/fs-repository');
   return fsRemove(collection, id);
+}
+
+export async function serverRemoveMany<K extends ContentCollectionKey>(
+  collection: K,
+  ids: string[],
+): Promise<number> {
+  if (getCmsDriver() === 'mongo') {
+    const { mongoRemoveMany } = await import('@/lib/cms/mongo-repository');
+    return mongoRemoveMany(collection, ids);
+  }
+  const { fsRemoveMany } = await import('@/lib/cms/fs-repository');
+  return fsRemoveMany(collection, ids);
 }
 
 export async function serverDuplicate<K extends ContentCollectionKey>(

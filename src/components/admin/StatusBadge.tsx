@@ -14,18 +14,30 @@ const styles: Record<ContentStatus | string, string> = {
   completed: 'bg-[#E7EEF5] text-[#2A4A6A] ring-[#C8D7E6]',
 };
 
+/** Site listing visibility — avoids “Published” sounding like a journal article. */
+export const SITE_VISIBILITY_LABELS: Record<string, string> = {
+  published: 'On site',
+  draft: 'Draft',
+  archived: 'Hidden',
+};
+
 export function StatusBadge({
   status,
   className,
+  label: labelOverride,
 }: {
   status: string;
   className?: string;
+  /** Override the default auto-capitalized status string. */
+  label?: string;
 }) {
-  const label = status.replace(/-/g, ' ');
+  const label =
+    labelOverride ?? SITE_VISIBILITY_LABELS[status] ?? status.replace(/-/g, ' ');
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset',
+        'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
+        !labelOverride && !SITE_VISIBILITY_LABELS[status] ? 'capitalize' : '',
         styles[status] ?? styles.archived,
         className,
       )}

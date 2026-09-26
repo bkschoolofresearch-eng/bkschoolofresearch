@@ -1,59 +1,64 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { AdminHeader } from './AdminHeader';
+import { usePathname } from 'next/navigation';
+import { Menu } from 'lucide-react';
+import { AdminLoading } from './AdminLoading';
 import { AdminLoginScreen } from './AdminLoginScreen';
 import { AdminSidebar } from './AdminSidebar';
 import { CmsProvider, useCms } from './CmsProvider';
 
-function AdminShellInner({
-  children,
-  title,
-}: {
-  children: ReactNode;
-  title?: string;
-}) {
-  const { ready, apiAuthenticated } = useCms();
+/** Routes that load their own data and should not wait on the full CMS snapshot. */
+function skipsFullDatabaseGate(pathname: string): boolean {
+  return pathname === '/admin/research' || pathname === '/admin/research/';
+}
+
+function AdminShellInner({ children }: { children: ReactNode }) {
+  const { ready, apiAuthenticated, database, contentLoading } = useCms();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (!ready) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#EEF2F6] text-sm text-[#5B6B7C]">
-        Loading CMS…
-      </div>
-    );
+    return <AdminLoading label="Checking session" fullScreen />;
   }
 
   if (!apiAuthenticated) {
     return <AdminLoginScreen />;
   }
 
+  const waitingOnFullDatabase =
+    contentLoading && !database && !skipsFullDatabaseGate(pathname);
+
   return (
     <div className="admin-root flex min-h-screen bg-[#EEF2F6] text-[#17212B]">
       <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <AdminHeader
-          title={title}
-          onMenuClick={() => setSidebarOpen(true)}
-        />
+        <div className="sticky top-0 z-30 flex h-12 items-center border-b border-[#E2E8F0] bg-[#EEF2F6]/95 px-3 backdrop-blur-md lg:hidden">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="rounded-xl p-2 text-[#0B1F36] hover:bg-white"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-          {children}
+          {waitingOnFullDatabase ? (
+            <AdminLoading label="Loading CMS" />
+          ) : (
+            children
+          )}
         </main>
       </div>
     </div>
   );
 }
 
-export function AdminShell({
-  children,
-  title,
-}: {
-  children: ReactNode;
-  title?: string;
-}) {
+export function AdminShell({ children }: { children: ReactNode; title?: string }) {
   return (
     <CmsProvider>
-      <AdminShellInner title={title}>{children}</AdminShellInner>
+      <AdminShellInner>{children}</AdminShellInner>
     </CmsProvider>
   );
 }

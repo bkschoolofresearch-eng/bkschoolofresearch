@@ -1,7 +1,7 @@
 'use client';
 
-import { CollectionEditorPage } from '@/components/admin/CollectionEditorPage';
+import { PublicationEditorPage } from '@/components/admin/PublicationEditorPage';
 
 export default function Page() {
-  return <CollectionEditorPage collectionSlug="publications" mode="new" />;
+  return <PublicationEditorPage mode="new" />;
 }

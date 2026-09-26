@@ -1,7 +1,10 @@
 import { assertCmsAdmin, jsonError, jsonOk } from '@/lib/cms/api-guard';
 import { getCmsDriver } from '@/lib/cms/server-repository';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = await assertCmsAdmin(request);
+  if (denied) return denied;
+
   try {
     const { serverGetFullDatabase } = await import('@/lib/cms/server-repository');
     const database = await serverGetFullDatabase();

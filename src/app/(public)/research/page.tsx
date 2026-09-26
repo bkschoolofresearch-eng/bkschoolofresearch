@@ -22,7 +22,12 @@ export const metadata = buildPageMetadata(
   '/research',
 );
 
-export default async function ResearchPage() {
+type Props = {
+  searchParams: Promise<{ area?: string }>;
+};
+
+export default async function ResearchPage({ searchParams }: Props) {
+  const params = await searchParams;
   const [rawProjects, areas, publications] = await Promise.all([
     getResearchProjects(),
     getResearchAreas(),
@@ -53,7 +58,12 @@ export default async function ResearchPage() {
 
       <Section className="bg-[#F7F1E6]">
         <Container>
-          <ResearchFilters projects={projects} areas={areas} />
+          <ResearchFilters
+            projects={projects}
+            areas={areas}
+            initialArea={params.area}
+            syncAreaToUrl
+          />
         </Container>
       </Section>
     </>

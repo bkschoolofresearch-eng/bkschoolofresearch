@@ -1,11 +1,9 @@
 import { ArrowLink } from '@/components/ui/ArrowLink';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { ImageFrame } from '@/components/ui/ImageFrame';
+import { ResearchProjectMedia } from '@/components/editorial/ResearchProjectMedia';
 import { asExternalHttpUrl } from '@/lib/content/research-links';
-import {
-  getResearchProjectCoverUrl,
-  getResearchProjectVisualUrl,
-} from '@/lib/content/prototype-media';
+import { getResearchProjectCoverUrl } from '@/lib/content/prototype-media';
 import { RESEARCH_STATUS_LABELS } from '@/lib/public/labels';
 import type { ResearchProject } from '@/types/content';
 import { cn } from '@/lib/utils';
@@ -175,9 +173,8 @@ export function ResearchFeaturedGrid({
         className,
       )}
     >
-      {projects.map((project, index) => {
+      {projects.map((project) => {
         const href = researchProjectHref(project);
-        const imageSrc = getResearchProjectVisualUrl(project, index);
         const statusLabel = RESEARCH_STATUS_LABELS[project.researchStatus];
         const yearLabel = project.year ? String(project.year) : null;
         const meta = [statusLabel, yearLabel].filter(Boolean).join(' · ');
@@ -192,14 +189,7 @@ export function ResearchFeaturedGrid({
               )}
             >
               <div className="w-full max-w-[8.5rem] overflow-hidden rounded-[0.65rem] sm:max-w-[9.5rem]">
-                <ImageFrame
-                  src={imageSrc}
-                  alt=""
-                  aspect="portrait"
-                  sizes="(max-width: 640px) 8.5rem, 9.5rem"
-                  framed
-                  frameClassName="border-0"
-                />
+                <ResearchProjectMedia project={project} size="feature" />
               </div>
               <div className="mt-3 flex min-h-0 flex-1 flex-col">
                 <Eyebrow>Featured</Eyebrow>

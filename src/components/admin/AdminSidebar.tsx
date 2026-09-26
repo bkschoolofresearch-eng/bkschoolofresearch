@@ -15,7 +15,7 @@ export function AdminSidebar({
   onClose: () => void;
 }) {
   const pathname = usePathname();
-  const { mode, apiAuthenticated } = useCms();
+  const { mode, apiAuthenticated, logoutCms } = useCms();
 
   const isActive = (href: string) => {
     const base = href.split('?')[0];
@@ -100,12 +100,32 @@ export function AdminSidebar({
           ))}
         </nav>
 
-        <div className="shrink-0 border-t border-white/10 px-5 py-4 text-[11px] leading-relaxed text-white/45">
-          {apiAuthenticated
-            ? mode === 'mongo'
-              ? 'Saving to MongoDB'
-              : 'Saving to server · updates the public site'
-            : 'Sign in required'}
+        <div className="shrink-0 space-y-3 border-t border-white/10 px-5 py-4">
+          <p className="text-[11px] leading-relaxed text-white/45">
+            {apiAuthenticated
+              ? mode === 'mongo'
+                ? 'Saving to MongoDB'
+                : 'Saving to server · updates the public site'
+              : 'Sign in required'}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/"
+              target="_blank"
+              className="rounded-lg border border-white/15 px-2.5 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10"
+            >
+              View website
+            </Link>
+            {apiAuthenticated ? (
+              <button
+                type="button"
+                onClick={() => void logoutCms()}
+                className="rounded-lg border border-white/15 px-2.5 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10"
+              >
+                Log out
+              </button>
+            ) : null}
+          </div>
         </div>
       </aside>
     </>

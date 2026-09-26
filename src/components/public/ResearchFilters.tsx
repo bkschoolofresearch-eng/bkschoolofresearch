@@ -21,8 +21,23 @@ type Props = {
   projects: ResearchProject[];
   areas: ResearchArea[];
   initialStatus?: ResearchStatus | 'all';
+  /** Area id or slug from ?area= */
+  initialArea?: string;
   lockStatus?: boolean;
+  /** Keep ?area= in sync with the active focus-area filter */
+  syncAreaToUrl?: boolean;
 };
+
+function resolveAreaFilterId(
+  areas: ResearchArea[],
+  initial?: string,
+): string {
+  const raw = initial?.trim();
+  if (!raw || raw === 'all') return 'all';
+  if (areas.some((item) => item.id === raw)) return raw;
+  const bySlug = areas.find((item) => item.slug === raw);
+  return bySlug?.id ?? 'all';
+}
 
 const chipScroll = 'flex w-max max-w-none gap-2 sm:w-auto sm:flex-wrap';
 const chipScroller =
@@ -103,15 +118,21 @@ export function ResearchFilters({
   projects,
   areas,
   initialStatus = 'all',
+  initialArea,
   lockStatus = false,
+  syncAreaToUrl = false,
 }: Props) {
   const baseId = useId();
   const [status, setStatus] = useState(initialStatus);
-  const [area, setArea] = useState('all');
+  const [area, setArea] = useState(() =>
+    resolveAreaFilterId(areas, initialArea),
+  );
   const [year, setYear] = useState('all');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
-  const [refineOpen, setRefineOpen] = useState(false);
+  const [refineOpen, setRefineOpen] = useState(
+    () => resolveAreaFilterId(areas, initialArea) !== 'all',
+  );
 
   const scoped = useMemo(
     () =>
@@ -190,6 +211,27 @@ export function ResearchFilters({
     setYear('all');
     setQuery('');
   };
+
+  useEffect(() => {
+    setArea(resolveAreaFilterId(areas, initialArea));
+  }, [areas, initialArea]);
+
+  useEffect(() => {
+    if (!syncAreaToUrl || typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (area === 'all') {
+      url.searchParams.delete('area');
+    } else {
+      const slug =
+        areas.find((item) => item.id === area)?.slug ?? area;
+      url.searchParams.set('area', slug);
+    }
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (next !== current) {
+      window.history.replaceState(null, '', next);
+    }
+  }, [area, areas, syncAreaToUrl]);
 
   useEffect(() => {
     if (!refineOpen) return;

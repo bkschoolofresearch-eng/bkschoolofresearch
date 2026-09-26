@@ -7,6 +7,7 @@ export const metadata = buildPageMetadata(
   'Account',
   'Your BK School of Research account.',
   '/account',
+  { noIndex: true },
 );
 
 export default function AccountPage() {

@@ -10,6 +10,7 @@ export const metadata = buildPageMetadata(
   'Verify',
   'Verify a BKSR membership or achievement certificate code.',
   '/verify',
+  { noIndex: true },
 );
 
 export default function VerifyPage() {

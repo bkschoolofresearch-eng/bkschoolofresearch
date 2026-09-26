@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { formatDateShort, humanizeLabel } from '@/lib/utils';
 import { getPersonClaimStatus } from '@/lib/auth/permissions';
+import { AdminLoading } from './AdminLoading';
 import { ConfirmDialog } from './ConfirmDialog';
 import {
   AdminLockedState,
@@ -69,7 +70,7 @@ export function CollectionListPage({
   }, [database, config, query, filters]);
 
   if (!ready) {
-    return <p className="text-sm text-[#5B6B7C]">Loading content…</p>;
+    return <AdminLoading label="Loading content" />;
   }
 
   if (!apiAuthenticated || !database) {

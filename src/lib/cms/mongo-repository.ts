@@ -58,26 +58,23 @@ async function writeSingleton(
 
 export async function mongoGetFullDatabase(): Promise<ContentDatabase> {
   const db = await getDb();
-  const seed = structuredClone(seedDatabase);
 
   const [siteSettings, homepage, navigation, ...lists] = await Promise.all([
-    readSingleton(MONGO_COLLECTIONS.siteSettings, seed.siteSettings),
-    readSingleton(MONGO_COLLECTIONS.homepage, seed.homepage),
-    readSingleton(MONGO_COLLECTIONS.navigation, seed.navigation),
+    readSingleton(MONGO_COLLECTIONS.siteSettings, seedDatabase.siteSettings),
+    readSingleton(MONGO_COLLECTIONS.homepage, seedDatabase.homepage),
+    readSingleton(MONGO_COLLECTIONS.navigation, seedDatabase.navigation),
     ...LIST_COLLECTION_KEYS.map(async (key) => {
       const rows = await db
         .collection(mongoNameForList(key))
         .find({})
+        .project({ _id: 0 })
         .toArray();
-      return [
-        key,
-        rows.map((row) => stripMongoId(row as Record<string, unknown>)),
-      ] as const;
+      return [key, rows] as const;
     }),
   ]);
 
   const database = {
-    version: seed.version,
+    version: seedDatabase.version,
     siteSettings,
     homepage,
     navigation,
@@ -87,9 +84,10 @@ export async function mongoGetFullDatabase(): Promise<ContentDatabase> {
     (database as unknown as Record<string, unknown>)[key] = rows;
   }
 
-  const meta = await db.collection(MONGO_COLLECTIONS.meta).findOne({
-    _id: 'version',
-  } as never);
+  const meta = await db.collection(MONGO_COLLECTIONS.meta).findOne(
+    { _id: 'version' } as never,
+    { projection: { version: 1 } },
+  );
   if (meta && typeof (meta as unknown as { version?: number }).version === 'number') {
     database.version = (meta as unknown as { version: number }).version;
   }
@@ -105,6 +103,323 @@ export async function mongoGetAll<K extends ContentCollectionKey>(
   return rows.map((row) =>
     stripMongoId(row as Record<string, unknown>),
   ) as unknown as CollectionEntityMap[K][];
+}
+
+export async function mongoListResearchProjects(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<import('@/lib/cms/paginated-list').CollectionListResult<
+  import('@/types/content').ResearchProject
+>> {
+  const {
+    mongoSortStages,
+    researchHasLink,
+    sortResearchProjects,
+    paginateInMemory,
+    buildResearchFacets,
+    buildResearchYears,
+  } = await import('@/lib/cms/paginated-list');
+  const db = await getDb();
+  const col = db.collection(mongoNameForList('researchProjects'));
+
+  const match: Record<string, unknown> = {};
+  if (query.researchStatus) match.researchStatus = query.researchStatus;
+  if (query.status) match.status = query.status;
+  if (query.yearFrom != null || query.yearTo != null) {
+    match.year = {
+      ...(query.yearFrom != null ? { $gte: query.yearFrom } : {}),
+      ...(query.yearTo != null ? { $lte: query.yearTo } : {}),
+    };
+  }
+  if (query.areaId) match.areaIds = query.areaId;
+  if (query.featured === true) match.featuredOnResearchPage = true;
+  if (query.featured === false) {
+    match.$and = [
+      ...(Array.isArray(match.$and) ? (match.$and as unknown[]) : []),
+      {
+        $or: [
+          { featuredOnResearchPage: { $exists: false } },
+          { featuredOnResearchPage: false },
+        ],
+      },
+    ];
+  }
+  // hasLink resolved in JS with publication URLs (same rule as Open column)
+  if (query.q) {
+    const re = {
+      $regex: query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      $options: 'i',
+    };
+    match.$or = [
+      { title: re },
+      { summary: re },
+      { venue: re },
+      { description: re },
+      { url: re },
+      { leadAuthorNames: re },
+    ];
+  }
+
+  const needsLinkResolve =
+    query.hasLink === true || query.hasLink === false || Boolean(query.facets);
+
+  type PubLinkFields = {
+    url?: string | null;
+    doi?: string | null;
+    citation?: string | null;
+  };
+
+  const publicationsById: Map<string, PubLinkFields> | undefined = needsLinkResolve
+    ? new Map(
+        (
+          await db
+            .collection(mongoNameForList('publications'))
+            .find({})
+            .project({ _id: 0, id: 1, url: 1, doi: 1, citation: 1 })
+            .toArray()
+        ).map((pub) => {
+          const row = pub as { id: string } & PubLinkFields;
+          return [row.id, { url: row.url, doi: row.doi, citation: row.citation }] as [
+            string,
+            PubLinkFields,
+          ];
+        }),
+      )
+    : undefined;
+
+  let items: import('@/types/content').ResearchProject[];
+  let total: number;
+  let page: number;
+
+  if (query.hasLink === true || query.hasLink === false) {
+    const matched = (await col
+      .find(match)
+      .project({ _id: 0 })
+      .toArray()) as unknown as import('@/types/content').ResearchProject[];
+    const linkFiltered = matched.filter((item) => {
+      const has = researchHasLink(
+        item,
+        publicationsById as Parameters<typeof researchHasLink>[1],
+      );
+      return query.hasLink === true ? has : !has;
+    });
+    const sorted = sortResearchProjects(linkFiltered, query.sort);
+    const paged = paginateInMemory(sorted, query.page, query.pageSize);
+    items = paged.items;
+    total = paged.total;
+    page = paged.page;
+  } else {
+    total = await col.countDocuments(match);
+    const totalPages = Math.max(1, Math.ceil(total / query.pageSize) || 1);
+    page = Math.min(query.page, totalPages);
+    const skip = (page - 1) * query.pageSize;
+    items = (await col
+      .aggregate([
+        { $match: match },
+        ...mongoSortStages(query.sort),
+        { $skip: skip },
+        { $limit: query.pageSize },
+        { $project: { _id: 0, _rank: 0 } },
+      ])
+      .toArray()) as unknown as import('@/types/content').ResearchProject[];
+  }
+
+  let facets: import('@/lib/cms/paginated-list').ResearchListFacets | undefined;
+  let options: import('@/lib/cms/paginated-list').ResearchListOptions | undefined;
+  if (query.facets) {
+    const allProjects = (await col
+      .find({})
+      .project({ _id: 0 })
+      .toArray()) as unknown as import('@/types/content').ResearchProject[];
+    facets = buildResearchFacets(
+      allProjects,
+      publicationsById as Parameters<typeof buildResearchFacets>[1],
+    );
+
+    const areas = await db
+      .collection(mongoNameForList('researchAreas'))
+      .find({})
+      .project({ _id: 0, id: 1, title: 1 })
+      .sort({ title: 1 })
+      .toArray();
+
+    options = {
+      years: buildResearchYears(allProjects),
+      areas: areas as Array<{ id: string; title: string }>,
+    };
+  }
+
+  const related = await loadResearchListRelated(items);
+
+  return {
+    items,
+    total,
+    page,
+    pageSize: query.pageSize,
+    facets,
+    options,
+    related,
+  };
+}
+
+export async function mongoListPublications(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Publication
+  >
+> {
+  const {
+    mongoSortStages,
+    publicationHasLink,
+    sortPublications,
+    paginateInMemory,
+    buildPublicationFacets,
+    buildPublicationYears,
+  } = await import('@/lib/cms/paginated-list');
+  const db = await getDb();
+  const col = db.collection(mongoNameForList('publications'));
+
+  const match: Record<string, unknown> = {};
+  if (query.publicationType) match.type = query.publicationType;
+  if (query.status) match.status = query.status;
+  if (query.yearFrom != null || query.yearTo != null) {
+    match.year = {
+      ...(query.yearFrom != null ? { $gte: query.yearFrom } : {}),
+      ...(query.yearTo != null ? { $lte: query.yearTo } : {}),
+    };
+  }
+  if (query.areaId) match.areaIds = query.areaId;
+  if (query.q) {
+    const re = {
+      $regex: query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      $options: 'i',
+    };
+    match.$or = [
+      { title: re },
+      { citation: re },
+      { abstract: re },
+      { venue: re },
+      { doi: re },
+      { url: re },
+      { publisher: re },
+      { authors: re },
+    ];
+  }
+
+  let items: import('@/types/content').Publication[];
+  let total: number;
+  let page: number;
+
+  if (query.hasLink === true || query.hasLink === false) {
+    const matched = (await col
+      .find(match)
+      .project({ _id: 0 })
+      .toArray()) as unknown as import('@/types/content').Publication[];
+    const linkFiltered = matched.filter((item) => {
+      const has = publicationHasLink(item);
+      return query.hasLink === true ? has : !has;
+    });
+    const sorted = sortPublications(linkFiltered, query.sort ?? 'type');
+    const paged = paginateInMemory(sorted, query.page, query.pageSize);
+    items = paged.items;
+    total = paged.total;
+    page = paged.page;
+  } else {
+    total = await col.countDocuments(match);
+    const totalPages = Math.max(1, Math.ceil(total / query.pageSize) || 1);
+    page = Math.min(query.page, totalPages);
+    const skip = (page - 1) * query.pageSize;
+    const sortKey = query.sort === 'category' ? 'type' : (query.sort ?? 'type');
+    items = (await col
+      .aggregate([
+        { $match: match },
+        ...mongoSortStages(sortKey),
+        { $skip: skip },
+        { $limit: query.pageSize },
+        { $project: { _id: 0, _rank: 0 } },
+      ])
+      .toArray()) as unknown as import('@/types/content').Publication[];
+  }
+
+  let facets:
+    | import('@/lib/cms/paginated-list').PublicationListFacets
+    | undefined;
+  let options: import('@/lib/cms/paginated-list').ResearchListOptions | undefined;
+  if (query.facets) {
+    const all = (await col
+      .find({})
+      .project({ _id: 0 })
+      .toArray()) as unknown as import('@/types/content').Publication[];
+    facets = buildPublicationFacets(all);
+
+    const areas = await db
+      .collection(mongoNameForList('researchAreas'))
+      .find({})
+      .project({ _id: 0, id: 1, title: 1 })
+      .sort({ title: 1 })
+      .toArray();
+
+    options = {
+      years: buildPublicationYears(all),
+      areas: areas as Array<{ id: string; title: string }>,
+    };
+  }
+
+  const areaIds = [...new Set(items.flatMap((item) => item.areaIds ?? []))];
+  const researchAreas = areaIds.length
+    ? ((await db
+        .collection(mongoNameForList('researchAreas'))
+        .find({ id: { $in: areaIds } })
+        .project({ _id: 0, id: 1, title: 1 })
+        .toArray()) as Array<{ id: string; title: string }>)
+    : [];
+
+  return {
+    items,
+    total,
+    page,
+    pageSize: query.pageSize,
+    facets,
+    options,
+    related: { researchAreas },
+  };
+}
+
+async function loadResearchListRelated(
+  items: import('@/types/content').ResearchProject[],
+) {
+  const db = await getDb();
+  const pubIds = [
+    ...new Set(items.flatMap((item) => item.publicationIds ?? [])),
+  ];
+  const areaIds = [...new Set(items.flatMap((item) => item.areaIds ?? []))];
+
+  const [publications, researchAreas] = await Promise.all([
+    pubIds.length
+      ? db
+          .collection(mongoNameForList('publications'))
+          .find({ id: { $in: pubIds } })
+          .project({ _id: 0, id: 1, url: 1, doi: 1, citation: 1 })
+          .toArray()
+      : Promise.resolve([]),
+    areaIds.length
+      ? db
+          .collection(mongoNameForList('researchAreas'))
+          .find({ id: { $in: areaIds } })
+          .project({ _id: 0, id: 1, title: 1 })
+          .toArray()
+      : Promise.resolve([]),
+  ]);
+
+  return {
+    publications: publications as Array<{
+      id: string;
+      url?: string | null;
+      doi?: string | null;
+      citation?: string | null;
+    }>,
+    researchAreas: researchAreas as Array<{ id: string; title: string }>,
+  };
 }
 
 export async function mongoGetById<K extends ContentCollectionKey>(
@@ -199,30 +514,51 @@ export async function mongoRemove<K extends ContentCollectionKey>(
   collection: K,
   id: string,
 ): Promise<boolean> {
+  const deleted = await mongoRemoveMany(collection, [id]);
+  return deleted > 0;
+}
+
+export async function mongoRemoveMany<K extends ContentCollectionKey>(
+  collection: K,
+  ids: string[],
+): Promise<number> {
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+  if (uniqueIds.length === 0) return 0;
+
   const db = await getDb();
-  const result = await db.collection(mongoNameForList(collection)).deleteOne({ id });
-  if (result.deletedCount === 0) return false;
+  const result = await db
+    .collection(mongoNameForList(collection))
+    .deleteMany({ id: { $in: uniqueIds } });
+  if (result.deletedCount === 0) return 0;
 
   if (collection === 'people') {
     await Promise.all([
-      db.collection(MONGO_COLLECTIONS.personContentLinks).deleteMany({ personId: id }),
-      db.collection(MONGO_COLLECTIONS.roleAssignments).deleteMany({ personId: id }),
-      db.collection(MONGO_COLLECTIONS.achievementAssignments).deleteMany({ personId: id }),
-      db.collection(MONGO_COLLECTIONS.memberAchievements).deleteMany({ personId: id }),
+      db
+        .collection(MONGO_COLLECTIONS.personContentLinks)
+        .deleteMany({ personId: { $in: uniqueIds } }),
+      db
+        .collection(MONGO_COLLECTIONS.roleAssignments)
+        .deleteMany({ personId: { $in: uniqueIds } }),
+      db
+        .collection(MONGO_COLLECTIONS.achievementAssignments)
+        .deleteMany({ personId: { $in: uniqueIds } }),
+      db
+        .collection(MONGO_COLLECTIONS.memberAchievements)
+        .deleteMany({ personId: { $in: uniqueIds } }),
     ]);
   } else if (collection === 'events') {
     await db
       .collection(MONGO_COLLECTIONS.personContentLinks)
-      .deleteMany({ entityType: 'event', entityId: id });
+      .deleteMany({ entityType: 'event', entityId: { $in: uniqueIds } });
     const forms = await db
       .collection(MONGO_COLLECTIONS.registrationForms)
-      .find({ entityType: 'event', entityId: id })
+      .find({ entityType: 'event', entityId: { $in: uniqueIds } })
       .project({ id: 1 })
       .toArray();
     const formIds = forms.map((f) => (f as { id: string }).id);
     await db
       .collection(MONGO_COLLECTIONS.registrationForms)
-      .deleteMany({ entityType: 'event', entityId: id });
+      .deleteMany({ entityType: 'event', entityId: { $in: uniqueIds } });
     if (formIds.length) {
       await db
         .collection(MONGO_COLLECTIONS.registrationEntries)
@@ -231,20 +567,23 @@ export async function mongoRemove<K extends ContentCollectionKey>(
   } else if (collection === 'researchProjects') {
     await db
       .collection(MONGO_COLLECTIONS.personContentLinks)
-      .deleteMany({ entityType: 'research', entityId: id });
+      .deleteMany({ entityType: 'research', entityId: { $in: uniqueIds } });
   } else if (collection === 'publications') {
     await db
       .collection(MONGO_COLLECTIONS.personContentLinks)
-      .deleteMany({ entityType: 'publication', entityId: id });
+      .deleteMany({
+        entityType: 'publication',
+        entityId: { $in: uniqueIds },
+      });
   } else if (collection === 'activities') {
     await db
       .collection(MONGO_COLLECTIONS.personContentLinks)
-      .deleteMany({ entityType: 'activity', entityId: id });
+      .deleteMany({ entityType: 'activity', entityId: { $in: uniqueIds } });
   }
 
   revalidateTag(CMS_CACHE_TAGS.collection(collection), 'max');
   revalidateTag(CMS_CACHE_TAGS.all, 'max');
-  return true;
+  return result.deletedCount;
 }
 
 export async function mongoDuplicate<K extends ContentCollectionKey>(
@@ -434,6 +773,8 @@ export const mongoCmsRepository = {
   getAll: mongoGetAll,
   getById: mongoGetById,
   getBySlug: mongoGetBySlug,
+  listResearchProjects: mongoListResearchProjects,
+  listPublications: mongoListPublications,
   create: mongoCreate,
   update: mongoUpdate,
   remove: mongoRemove,

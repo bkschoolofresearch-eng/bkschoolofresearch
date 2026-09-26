@@ -261,17 +261,12 @@ export const researchProjectVisualFallbacks = [
   prototypeMedia.heroSlideWebinar.url,
 ] as const;
 
+/** @deprecated Prefer getResearchProjectCoverUrl — never invent stock photos. */
 export function getResearchProjectVisualUrl(
   project: { featuredImageUrl?: string | null },
-  fallbackIndex = 0,
-): string {
-  return (
-    project.featuredImageUrl ??
-    researchProjectVisualFallbacks[
-      fallbackIndex % researchProjectVisualFallbacks.length
-    ] ??
-    prototypeMedia.researchField.url
-  );
+  _fallbackIndex = 0,
+): string | null {
+  return getResearchProjectCoverUrl(project);
 }
 
 /** Real cover only — null when none is set (use typographic placeholder in UI). */

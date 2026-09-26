@@ -1,7 +1,7 @@
 'use client';
 
-import { CollectionListPage } from '@/components/admin/CollectionListPage';
+import { PublicationsAdminPage } from '@/components/admin/PublicationsAdminPage';
 
 export default function Page() {
-  return <CollectionListPage collectionSlug="publications" />;
+  return <PublicationsAdminPage />;
 }

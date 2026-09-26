@@ -20,7 +20,10 @@ import type {
 
 interface CmsContextValue {
   database: ContentDatabase | null;
+  /** Session checked (login screen vs shell). */
   ready: boolean;
+  /** Full CMS snapshot still loading after auth. */
+  contentLoading: boolean;
   mode: 'fs' | 'mongo';
   apiAuthenticated: boolean;
   refresh: () => Promise<void>;
@@ -70,11 +73,33 @@ interface CmsContextValue {
 
 const CmsContext = createContext<CmsContextValue | null>(null);
 
+function patchCollection<K extends ContentCollectionKey>(
+  db: ContentDatabase,
+  collection: K,
+  nextRows: CollectionEntityMap[K][],
+): ContentDatabase {
+  return { ...db, [collection]: nextRows };
+}
+
 export function CmsProvider({ children }: { children: ReactNode }) {
   const [database, setDatabase] = useState<ContentDatabase | null>(null);
   const [ready, setReady] = useState(false);
+  const [contentLoading, setContentLoading] = useState(false);
   const [apiAuthenticated, setApiAuthenticated] = useState(false);
   const [mode, setMode] = useState<'fs' | 'mongo'>('fs');
+
+  const loadDatabase = useCallback(async () => {
+    setContentLoading(true);
+    try {
+      const db = await cmsApi.getDatabase();
+      setDatabase(db);
+    } catch {
+      setDatabase(null);
+      setApiAuthenticated(false);
+    } finally {
+      setContentLoading(false);
+    }
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
@@ -91,40 +116,72 @@ export function CmsProvider({ children }: { children: ReactNode }) {
 
       if (!session.authenticated) {
         setDatabase(null);
+        setContentLoading(false);
         return;
       }
 
-      const db = await cmsApi.getDatabase();
-      setDatabase(db);
+      await loadDatabase();
     } catch {
       setApiAuthenticated(false);
       setDatabase(null);
+      setContentLoading(false);
     }
-  }, []);
+  }, [loadDatabase]);
 
   useEffect(() => {
-    void refresh().finally(() => setReady(true));
-  }, [refresh]);
+    let cancelled = false;
+    void (async () => {
+      try {
+        const [session, health] = await Promise.all([
+          cmsApi.getSession(),
+          cmsApi.health().catch(() => null),
+        ]);
+        if (cancelled) return;
+        setApiAuthenticated(session.authenticated);
+        if (health?.driver === 'mongo' || health?.mode === 'mongo') {
+          setMode('mongo');
+        } else {
+          setMode('fs');
+        }
+        setReady(true);
+
+        if (!session.authenticated) {
+          setDatabase(null);
+          return;
+        }
+
+        await loadDatabase();
+      } catch {
+        if (cancelled) return;
+        setApiAuthenticated(false);
+        setDatabase(null);
+        setReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loadDatabase]);
 
   const loginCms = useCallback(
     async (email: string, password: string) => {
       const result = await cmsApi.login(email, password);
       if (result.step === 'done') {
         setApiAuthenticated(true);
-        await refresh();
+        await loadDatabase();
       }
       return result;
     },
-    [refresh],
+    [loadDatabase],
   );
 
   const verifyCmsOtp = useCallback(
     async (otp: string) => {
       await cmsApi.verifyOtp(otp);
       setApiAuthenticated(true);
-      await refresh();
+      await loadDatabase();
     },
-    [refresh],
+    [loadDatabase],
   );
 
   const resendCmsOtp = useCallback(async () => {
@@ -135,12 +192,14 @@ export function CmsProvider({ children }: { children: ReactNode }) {
     await cmsApi.logout();
     setApiAuthenticated(false);
     setDatabase(null);
+    setContentLoading(false);
   }, []);
 
   const value = useMemo<CmsContextValue>(
     () => ({
       database,
       ready,
+      contentLoading,
       mode,
       apiAuthenticated,
       refresh,
@@ -150,43 +209,80 @@ export function CmsProvider({ children }: { children: ReactNode }) {
       logoutCms,
       createItem: async (collection, input) => {
         const item = await cmsApi.create(collection, input);
-        await refresh();
+        setDatabase((prev) => {
+          if (!prev) return prev;
+          const rows = prev[collection] as CollectionEntityMap[typeof collection][];
+          return patchCollection(prev, collection, [...rows, item]);
+        });
         return item;
       },
       updateItem: async (collection, id, patch) => {
         const item = await cmsApi.update(collection, id, patch);
-        await refresh();
+        if (!item) return undefined;
+        setDatabase((prev) => {
+          if (!prev) return prev;
+          const rows = prev[collection] as CollectionEntityMap[typeof collection][];
+          return patchCollection(
+            prev,
+            collection,
+            rows.map((row) => (row.id === id ? item : row)),
+          );
+        });
         return item;
       },
       deleteItem: async (collection, id) => {
         await cmsApi.remove(collection, id);
-        await refresh();
+        setDatabase((prev) => {
+          if (!prev) return prev;
+          const rows = prev[collection] as CollectionEntityMap[typeof collection][];
+          return patchCollection(
+            prev,
+            collection,
+            rows.filter((row) => row.id !== id),
+          );
+        });
       },
       duplicateItem: async (collection, id) => {
         const item = await cmsApi.duplicate(collection, id);
-        await refresh();
+        if (!item) return undefined;
+        setDatabase((prev) => {
+          if (!prev) return prev;
+          const rows = prev[collection] as CollectionEntityMap[typeof collection][];
+          return patchCollection(prev, collection, [...rows, item]);
+        });
         return item;
       },
       saveSiteSettings: async (patch) => {
         await cmsApi.updateSiteSettings(patch);
-        await refresh();
+        setDatabase((prev) =>
+          prev
+            ? { ...prev, siteSettings: { ...prev.siteSettings, ...patch } }
+            : prev,
+        );
       },
       saveHomepage: async (patch) => {
         await cmsApi.updateHomepage(patch);
-        await refresh();
+        setDatabase((prev) =>
+          prev ? { ...prev, homepage: { ...prev.homepage, ...patch } } : prev,
+        );
       },
       saveNavigation: async (patch) => {
         await cmsApi.updateNavigation(patch);
-        await refresh();
+        setDatabase((prev) =>
+          prev
+            ? { ...prev, navigation: { ...prev.navigation, ...patch } }
+            : prev,
+        );
       },
       resetDemoData: async () => {
         await cmsApi.seed(true);
-        await refresh();
+        await loadDatabase();
       },
     }),
     [
       database,
       ready,
+      contentLoading,
       mode,
       apiAuthenticated,
       refresh,
@@ -194,6 +290,7 @@ export function CmsProvider({ children }: { children: ReactNode }) {
       verifyCmsOtp,
       resendCmsOtp,
       logoutCms,
+      loadDatabase,
     ],
   );
 

@@ -3,14 +3,13 @@ import {
   ResearchProjectAnchor,
   researchProjectHref,
 } from '@/components/editorial/ResearchFeature';
-import { ImageFrame } from '@/components/ui/ImageFrame';
+import { ResearchProjectMedia } from '@/components/editorial/ResearchProjectMedia';
 import {
   MediaCardBody,
   MediaCardMedia,
   MediaCardMeta,
   MediaCardTitle,
 } from '@/components/ui/MediaCard';
-import { getResearchProjectVisualUrl } from '@/lib/content/prototype-media';
 import { RESEARCH_STATUS_LABELS } from '@/lib/public/labels';
 import type { ResearchProject } from '@/types/content';
 import { cn } from '@/lib/utils';
@@ -22,15 +21,13 @@ type ResearchProjectCardProps = {
   className?: string;
 };
 
-/** Homepage-language research tile — photo plane + editorial body. */
+/** Homepage-language research tile — CMS cover or typographic plate. */
 export function ResearchProjectCard({
   project,
-  imageIndex = 0,
   areaLabels = [],
   className,
 }: ResearchProjectCardProps) {
   const href = researchProjectHref(project);
-  const imageSrc = getResearchProjectVisualUrl(project, imageIndex);
   const meta = [
     RESEARCH_STATUS_LABELS[project.researchStatus],
     project.year ? String(project.year) : null,
@@ -52,11 +49,10 @@ export function ResearchProjectCard({
       )}
     >
       <MediaCardMedia>
-        <ImageFrame
-          src={imageSrc}
-          alt=""
-          aspect="video"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        <ResearchProjectMedia
+          project={project}
+          size="list"
+          className="sm:rounded-[0.65rem] sm:border-ink/8"
         />
       </MediaCardMedia>
       <MediaCardBody>
@@ -91,12 +87,10 @@ type ResearchFeatureCardProps = {
 /** Lead project strip — From the library / news featured language. */
 export function ResearchFeatureCard({
   project,
-  imageIndex = 0,
   areaLabels = [],
   className,
 }: ResearchFeatureCardProps) {
   const href = researchProjectHref(project);
-  const imageSrc = getResearchProjectVisualUrl(project, imageIndex);
 
   return (
     <article
@@ -109,12 +103,10 @@ export function ResearchFeatureCard({
         project={project}
         className="relative block overflow-hidden bg-surface lg:col-span-5"
       >
-        <ImageFrame
-          src={imageSrc}
-          alt=""
-          aspect="video"
-          sizes="(max-width: 1024px) 100vw, 42vw"
-          frameClassName="border-0"
+        <ResearchProjectMedia
+          project={project}
+          size="feature"
+          className="mx-0 max-w-none rounded-none border-0 lg:aspect-video lg:max-h-none"
         />
       </ResearchProjectAnchor>
       <div className="flex flex-col justify-center p-6 sm:p-8 lg:col-span-7 lg:p-10 xl:p-12">

@@ -16,6 +16,7 @@ import {
   Users,
 } from 'lucide-react';
 import { formatDateShort } from '@/lib/utils';
+import { AdminLoading } from './AdminLoading';
 import {
   AdminPageHeader,
   AdminPanel,
@@ -164,7 +165,7 @@ export function DashboardPage() {
   }, [database]);
 
   if (!ready) {
-    return <p className="text-sm text-[#5B6B7C]">Loading overview…</p>;
+    return <AdminLoading label="Loading overview" />;
   }
 
   if (!apiAuthenticated || !metrics) {

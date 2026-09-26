@@ -90,8 +90,10 @@ export function withResearchExternalUrls(
 }
 
 /**
- * Venue / source line for list rows — strips author, year, and title so the
- * citation does not repeat fields already shown above (Publications pattern).
+ * Venue / source line under authors on /research listing cards.
+ * Prefer the explicit `venue` field (Journal / conference in CMS).
+ * Legacy fallback: parse leftover after the title from description/summary
+ * (older seed stored full citations there with venue empty).
  */
 export function researchProjectVenueLine(
   project: Pick<
@@ -117,4 +119,15 @@ export function researchProjectVenueLine(
     .replace(/^[.\s]+/, '')
     .trim();
   return rest || null;
+}
+
+/** Pull a venue string to prefill the CMS Journal field when venue is empty. */
+export function deriveResearchVenueForEditor(
+  project: Pick<
+    ResearchProject,
+    'title' | 'summary' | 'description' | 'venue'
+  >,
+): string {
+  if (project.venue?.trim()) return project.venue.trim();
+  return researchProjectVenueLine({ ...project, venue: null }) ?? '';
 }

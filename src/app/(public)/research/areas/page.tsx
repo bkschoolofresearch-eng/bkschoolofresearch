@@ -87,7 +87,7 @@ export default async function ResearchAreasPage() {
                 className="scroll-mt-28 border border-border bg-white"
               >
                 <Link
-                  href="/research"
+                  href={`/research/areas/${featured.area.slug}`}
                   className="group grid gap-0 lg:grid-cols-12"
                 >
                   <div className="flex flex-col justify-between border-b border-border bg-ink px-6 py-8 sm:px-8 sm:py-10 lg:col-span-4 lg:border-b-0 lg:border-r">
@@ -142,7 +142,7 @@ export default async function ResearchAreasPage() {
                 <li key={area.id} id={area.slug} className="scroll-mt-28">
                   <Reveal delay={Math.min(i * 0.03, 0.12)} className="h-full">
                     <Link
-                      href="/research"
+                      href={`/research/areas/${area.slug}`}
                       className={cn(
                         'group/card relative flex h-full flex-col border border-border bg-white p-6 sm:p-7',
                         'transition-[border-color,background-color] duration-200',

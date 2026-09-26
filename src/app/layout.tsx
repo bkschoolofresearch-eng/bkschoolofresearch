@@ -8,6 +8,7 @@ import {
 import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { getSiteUrl } from "@/lib/seo/site-url";
 import { siteSettings } from "@/content/seed/site-settings";
 import "./globals.css";
 
@@ -37,7 +38,9 @@ const adlamDisplay = ADLaM_Display({
   display: "swap",
 });
 
-export const metadata: Metadata = buildMetadata(siteSettings.defaultSeo);
+export const metadata: Metadata = buildMetadata(siteSettings.defaultSeo, {
+  absoluteUrlBase: getSiteUrl(),
+});
 
 export default function RootLayout({
   children,
