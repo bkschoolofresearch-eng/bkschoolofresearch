@@ -143,7 +143,7 @@ export function create<K extends ContentCollectionKey>(
   database: ContentDatabase = getDatabase(),
 ): { database: ContentDatabase; item: CollectionEntityMap[K] } {
   const timestamp = nowIso();
-  let prepared = { ...input } as Record<string, unknown>;
+  const prepared = { ...input } as Record<string, unknown>;
 
   if (collection === 'people') {
     const personInput = prepared as Partial<import('@/types/content').Person>;

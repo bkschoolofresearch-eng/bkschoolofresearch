@@ -2,7 +2,6 @@ import { PeopleDirectory } from '@/components/home/PeopleDirectory';
 import {
   PEOPLE_DEMO_SECTION_COPY,
   PEOPLE_DEMO_SECTION_ORDER,
-  peopleDemoRoster,
 } from '@/content/seed/people-demo';
 import { prototypeMedia } from '@/lib/content/prototype-media';
 import { getPeople } from '@/lib/content/queries';
@@ -37,7 +36,7 @@ export default async function PeoplePage() {
     director?.bio?.split(/\n\s*\n/)[0]?.replace(/\s+/g, ' ').trim() ||
     `${director?.name ?? 'Leadership'} serves BK School of Research.`;
 
-  const publishedOthers = people
+  const roster = people
     .filter((person) => person.id !== director?.id)
     .map((person) => ({
       id: person.id,
@@ -54,25 +53,6 @@ export default async function PeoplePage() {
         person.bio?.split(/\n\s*\n/)[0]?.replace(/\s+/g, ' ').trim() ||
         `${person.name} serves as ${person.role} at BK School of Research.`,
     }));
-
-  const demoMembers = peopleDemoRoster
-    .filter(
-      (demo) =>
-        !publishedOthers.some(
-          (person) => person.name.toLowerCase() === demo.name.toLowerCase(),
-        ),
-    )
-    .map((demo) => ({
-      id: demo.id,
-      href: `/people/${demo.slug}`,
-      name: demo.name,
-      role: demo.role,
-      category: demo.category,
-      imageSrc: demo.imageSrc,
-      description: demo.description,
-    }));
-
-  const roster = [...publishedOthers, ...demoMembers];
 
   const jumpLinks = [
     ...(director

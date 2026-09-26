@@ -1,7 +1,9 @@
 import { createHash, timingSafeEqual } from 'crypto';
 import { getCmsDriver } from '@/lib/cms/server-repository';
+import { verifyCmsAdminSessionCookie } from '@/lib/cms/admin-session';
+import { isProductionRuntime } from '@/lib/security/runtime';
 
-/** Cookie / API token value after a successful admin login. */
+/** Cookie / API token signing material after a successful admin login. */
 export function getCmsSessionToken(): string | null {
   const secret = process.env.CMS_ADMIN_SECRET?.trim();
   if (secret) return secret;
@@ -25,11 +27,18 @@ export function hasCmsAdminLogin(): boolean {
 }
 
 /**
- * Local file CMS stays open only when no admin login credentials are set.
- * Mongo always requires configured login (or legacy session token).
+ * Local file CMS stays open only in non-production when no admin credentials
+ * are set. Production always fails closed.
  */
 export function isCmsOpenWithoutLogin(): boolean {
+  if (isProductionRuntime()) return false;
   return getCmsDriver() === 'fs' && !hasCmsAdminLogin() && !getCmsSessionToken();
+}
+
+/** Production (and mongo) must have admin login configured. */
+export function cmsAdminSecurityReady(): boolean {
+  if (isCmsOpenWithoutLogin()) return true;
+  return hasCmsAdminLogin() && Boolean(getCmsSessionToken());
 }
 
 function hashEqual(provided: string, expected: string): boolean {
@@ -49,7 +58,7 @@ export function credentialsMatch(email: string, password: string): boolean {
   );
 }
 
-/** Header `x-cms-admin-secret` accepts session token or admin password. */
+/** Header `x-cms-admin-secret` accepts long-lived secret or admin password (scripts). */
 export function apiSecretMatches(provided: string): boolean {
   if (!provided) return false;
   const token = getCmsSessionToken();
@@ -59,8 +68,7 @@ export function apiSecretMatches(provided: string): boolean {
   return false;
 }
 
+/** Browser session cookie: HMAC-signed, time-bounded (not the raw secret). */
 export function sessionCookieMatches(cookieValue: string): boolean {
-  const token = getCmsSessionToken();
-  if (!token || !cookieValue) return false;
-  return hashEqual(cookieValue, token);
+  return verifyCmsAdminSessionCookie(cookieValue);
 }

@@ -8,7 +8,6 @@ import { MessageFromExecutive } from '@/components/home/MessageFromExecutive';
 import { NoticesAndEvents } from '@/components/home/NoticesAndEvents';
 import { NoticesNewsCarousel } from '@/components/home/NoticesNewsCarousel';
 import { OurPrograms } from '@/components/home/OurPrograms';
-import { ResearcherSay } from '@/components/home/ResearcherSay';
 import { StatsMarquee } from '@/components/home/StatsMarquee';
 import { TeamMemberCard } from '@/components/home/TeamMemberCard';
 import { WhoWeAre } from '@/components/home/WhoWeAre';
@@ -34,7 +33,6 @@ import {
   heroSlides,
   prototypeMedia,
 } from '@/lib/content/prototype-media';
-import { peopleDemoRoster } from '@/content/seed/people-demo';
 import {
   ABOUT_HEADLINE,
   ABOUT_OVERVIEW_IDENTITY,
@@ -179,26 +177,8 @@ export default async function HomePage() {
   };
 
   /**
-   * Homepage row demo members (presentation placeholders — replace with CMS people).
-   * Published people beyond the director take priority when available.
+   * Homepage team row: CMS-published people only (no fictional demo roster).
    */
-  const homepageDemoSlugs = [
-    'carlos-ramirez',
-    'daniel-wong',
-    'aisha-patel',
-    'sofia-chen',
-  ];
-  const teamDemoMembers = homepageDemoSlugs
-    .map((slug) => peopleDemoRoster.find((person) => person.slug === slug))
-    .filter((person): person is NonNullable<typeof person> => Boolean(person))
-    .map((person) => ({
-      href: `/people/${person.slug}`,
-      name: person.name,
-      role: person.role,
-      image: person.imageSrc,
-      description: person.description,
-    }));
-
   const publishedTeamMembers = people
     .filter((person) => person.id !== director?.id)
     .map((person) => ({
@@ -212,10 +192,7 @@ export default async function HomePage() {
       description: teamFlipDescription(person),
     }));
 
-  const teamMembers = [
-    ...publishedTeamMembers,
-    ...teamDemoMembers.slice(publishedTeamMembers.length),
-  ].slice(0, 4);
+  const teamMembers = publishedTeamMembers.slice(0, 4);
 
   const featuredEventPool = (
     homepage.featuredEventIds.length
@@ -533,78 +510,6 @@ export default async function HomePage() {
           </div>
         </Container>
       </Section>
-
-      <ResearcherSay
-        title="What Our Researchers Say"
-        subtitle="From early-career researchers to seasoned scholars, discover how mentorship and hands-on experience at BK School of Research fuel their growth and success."
-        items={[
-          {
-            imageSrc: prototypeMedia.researcherSayPortrait1.url,
-            quote:
-              '“Statement forthcoming — attributed researcher quotes will appear here when published.”',
-            name: 'Attribution pending',
-            role: 'Researcher',
-          },
-          {
-            imageSrc: prototypeMedia.researcherSayPortrait2.url,
-            quote:
-              '“Statement forthcoming — attributed researcher quotes will appear here when published.”',
-            name: 'Attribution pending',
-            role: 'Researcher',
-          },
-          {
-            imageSrc: prototypeMedia.teamDemoAisha.url,
-            quote:
-              '“Statement forthcoming — attributed researcher quotes will appear here when published.”',
-            name: 'Attribution pending',
-            role: 'Researcher',
-          },
-          {
-            imageSrc: prototypeMedia.teamDemoDaniel.url,
-            quote:
-              '“Statement forthcoming — attributed researcher quotes will appear here when published.”',
-            name: 'Attribution pending',
-            role: 'Researcher',
-          },
-          {
-            imageSrc: prototypeMedia.teamDemoSofia.url,
-            quote:
-              '“Statement forthcoming — attributed researcher quotes will appear here when published.”',
-            name: 'Attribution pending',
-            role: 'Researcher',
-          },
-          {
-            imageSrc: prototypeMedia.teamDemoCarlos.url,
-            quote:
-              '“Statement forthcoming — attributed researcher quotes will appear here when published.”',
-            name: 'Attribution pending',
-            role: 'Researcher',
-          },
-          {
-            imageSrc: prototypeMedia.directorPortrait.url,
-            quote:
-              '“Statement forthcoming — attributed researcher quotes will appear here when published.”',
-            name: 'Attribution pending',
-            role: 'Researcher',
-          },
-          {
-            imageSrc:
-              'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=640&h=800&q=80',
-            quote:
-              '“Statement forthcoming — attributed researcher quotes will appear here when published.”',
-            name: 'Attribution pending',
-            role: 'Researcher',
-          },
-          {
-            imageSrc:
-              'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=640&h=800&q=80',
-            quote:
-              '“Statement forthcoming — attributed researcher quotes will appear here when published.”',
-            name: 'Attribution pending',
-            role: 'Researcher',
-          },
-        ]}
-      />
 
       {/* Temporarily hidden — Talks & webinars */}
       {false && (

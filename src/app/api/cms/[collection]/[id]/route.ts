@@ -1,9 +1,6 @@
 import { assertCmsAdmin, jsonError, jsonOk } from '@/lib/cms/api-guard';
 import { parseCollectionKey } from '@/lib/cms/collection-param';
-import {
-  CMS_ADMIN_ONLY_COLLECTIONS,
-  isPublishedCmsItem,
-} from '@/lib/cms/public-read';
+import { assertPublicCmsReadAllowed, isPublishedCmsItem } from '@/lib/cms/public-read';
 
 type RouteContext = { params: Promise<{ collection: string; id: string }> };
 
@@ -14,9 +11,9 @@ export async function GET(request: Request, context: RouteContext) {
 
   const url = new URL(request.url);
   const publishedOnly = url.searchParams.get('published') === '1';
-  const adminOnly = CMS_ADMIN_ONLY_COLLECTIONS.has(collection);
 
-  if (adminOnly || !publishedOnly) {
+  const publicOk = assertPublicCmsReadAllowed(collection, publishedOnly);
+  if (!publicOk.ok) {
     const denied = await assertCmsAdmin(request);
     if (denied) return denied;
   }

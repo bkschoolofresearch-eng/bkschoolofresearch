@@ -5,10 +5,6 @@ import {
   supportsPublicationListQuery,
   supportsResearchListQuery,
 } from '@/lib/cms/paginated-list';
-import {
-  CMS_ADMIN_ONLY_COLLECTIONS,
-  isPublishedCmsItem,
-} from '@/lib/cms/public-read';
 
 type RouteContext = { params: Promise<{ collection: string }> };
 
@@ -36,8 +32,13 @@ export async function GET(request: Request, context: RouteContext) {
     url.searchParams.has('sort') ||
     url.searchParams.has('facets');
 
-  const adminOnly = CMS_ADMIN_ONLY_COLLECTIONS.has(collection);
-  if (adminOnly || !publishedOnly) {
+  const {
+    assertPublicCmsReadAllowed,
+    isPublishedCmsItem,
+  } = await import('@/lib/cms/public-read');
+
+  const publicOk = assertPublicCmsReadAllowed(collection, publishedOnly);
+  if (!publicOk.ok) {
     const denied = await assertCmsAdmin(request);
     if (denied) return denied;
   }
