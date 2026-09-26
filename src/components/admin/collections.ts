@@ -280,6 +280,7 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
       startYear: null,
       endYear: null,
       featuredImageUrl: null,
+      featuredOnResearchPage: false,
       seo: {},
     }),
     fields: [
@@ -304,6 +305,13 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
           { value: 'archived', label: 'Archived' },
         ],
         help: 'Controls the Ongoing / Completed filters on /research.',
+      },
+      {
+        name: 'featuredOnResearchPage',
+        label: 'Featured on Research page',
+        type: 'checkbox',
+        tab: 'content',
+        help: 'Show in the featured card row at the top of /research (up to 4). Any category can be featured — not only Ongoing.',
       },
       {
         name: 'status',

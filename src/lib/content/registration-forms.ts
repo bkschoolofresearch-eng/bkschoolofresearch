@@ -158,7 +158,8 @@ export function getJoinForm(db: ContentDatabase): RegistrationForm {
     slug: JOIN_FORM_SLUG,
     title: 'Join BKSR',
     description:
-      'Apply to the research community or organisational team. No account needed until you are approved.',
+      'Apply to the research community or organisational team. No account needed until you are approved. Choose your path below, share your details, and we will email you if approved.',
+    bannerImageUrl: '/media/prototype/bksr-hero-slide-seminar.png',
     entityType: 'join',
     entityId: JOIN_FORM_ENTITY_ID,
     fields: DEFAULT_JOIN_FORM_FIELDS.map((f) => ({ ...f })),
@@ -504,6 +505,7 @@ export function saveRegistrationForm(
     slug,
     title: input.title,
     description: input.description,
+    bannerImageUrl: input.bannerImageUrl ?? null,
     entityType: input.entityType,
     entityId,
     linkMode,

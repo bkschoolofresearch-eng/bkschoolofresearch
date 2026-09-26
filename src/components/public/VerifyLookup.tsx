@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { authInputClass, authNoticeClass } from '@/components/auth/auth-styles';
+import { authBoxedInputClass, authNoticeClass } from '@/components/auth/auth-styles';
 import { Button } from '@/components/ui/Button';
 
 type VerifyResult =
@@ -78,7 +78,7 @@ export function VerifyLookup({ initialCode = '' }: { initialCode?: string }) {
             Verification code
           </span>
           <input
-            className={authInputClass}
+            className={authBoxedInputClass}
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="BKSR-00001M or BKSR-00001C"

@@ -274,6 +274,7 @@ export function ResearchAdminPage() {
                     <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#7A90A8]">
                       {RESEARCH_STATUS_LABELS[item.researchStatus]}
                       {item.year ? ` · ${item.year}` : ''}
+                      {item.featuredOnResearchPage ? ' · Featured' : ''}
                     </p>
                     <Link
                       href={`/admin/research/${item.id}`}

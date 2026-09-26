@@ -1,4 +1,7 @@
-import { ResearchFeature } from '@/components/editorial/ResearchFeature';
+import {
+  pickResearchHubFeatured,
+  ResearchFeaturedGrid,
+} from '@/components/editorial/ResearchFeature';
 import { PageHero } from '@/components/layout/PageHero';
 import { Container } from '@/components/ui/Container';
 import { Section } from '@/components/ui/Section';
@@ -26,9 +29,7 @@ export default async function ResearchPage() {
     getPublications(),
   ]);
   const projects = withResearchExternalUrls(rawProjects, publications);
-  const featured =
-    projects.find((project) => project.researchStatus === 'ongoing') ??
-    projects[0];
+  const featured = pickResearchHubFeatured(projects);
 
   return (
     <>
@@ -42,10 +43,10 @@ export default async function ResearchPage() {
 
       <ResearchIntro />
 
-      {featured ? (
+      {featured.length ? (
         <Section tone="white" className="border-b border-border">
           <Container>
-            <ResearchFeature project={featured} />
+            <ResearchFeaturedGrid projects={featured} />
           </Container>
         </Section>
       ) : null}

@@ -49,13 +49,6 @@ export default async function RegistrationFormPage({ params }: Props) {
 
   return (
     <UtilityFormShell
-      breadcrumbs={[
-        { label: 'Home', href: '/' },
-        ...(entityHref && entityTitle
-          ? [{ label: entityTitle, href: entityHref }]
-          : []),
-        { label: 'Register' },
-      ]}
       title={form.title}
       description={
         form.description ??

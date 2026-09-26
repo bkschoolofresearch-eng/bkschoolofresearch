@@ -24,11 +24,6 @@ export default async function VerifyCodePage({ params }: Props) {
 
   return (
     <UtilityFormShell
-      breadcrumbs={[
-        { label: 'Home', href: '/' },
-        { label: 'Verify', href: '/verify' },
-        { label: decoded },
-      ]}
       title="Verify a BKSR code"
       description="Enter a membership code (BKSR-#####M) or certificate code (BKSR-#####C)."
       panel={

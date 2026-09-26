@@ -1,9 +1,4 @@
 import { PeopleDirectory } from '@/components/home/PeopleDirectory';
-import { ArrowLink } from '@/components/ui/ArrowLink';
-import { Button } from '@/components/ui/Button';
-import { Container } from '@/components/ui/Container';
-import { EditorialHeading } from '@/components/ui/EditorialHeading';
-import { Section } from '@/components/ui/Section';
 import {
   PEOPLE_DEMO_SECTION_COPY,
   PEOPLE_DEMO_SECTION_ORDER,
@@ -97,55 +92,21 @@ export default async function PeoplePage() {
   ];
 
   return (
-    <>
-      <PeopleDirectory
-        director={
-          director
-            ? {
-                href: `/people/${director.slug}`,
-                name: director.name,
-                role: director.role,
-                imageSrc: directorPhoto,
-                description: directorDescription,
-              }
-            : null
-        }
-        roster={roster}
-        jumpLinks={jumpLinks}
-        sectionIds={SECTION_IDS}
-      />
-
-      <Section tone="white" spaced={false} className="pb-16 md:pb-24">
-        <Container>
-          <div className="border border-ink bg-ink px-6 py-10 text-center text-paper sm:px-10 sm:py-12">
-            <EditorialHeading
-              as="h2"
-              className="text-3xl text-paper sm:text-4xl"
-            >
-              Apply to join the committee
-            </EditorialHeading>
-            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-paper/75 sm:text-base">
-              Want to join BK School of Research as a researcher or
-              organisational collaborator? Submit a full application — no
-              account needed until you are approved.
-            </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button href="/join" variant="onInk" size="lg">
-                Apply to this organisation
-              </Button>
-              <Button href="/join#join-application-form" variant="onInkSecondary" size="lg">
-                Apply as a researcher
-              </Button>
-            </div>
-            <ArrowLink
-              href="/people/career"
-              className="mt-6 justify-center text-paper/80 hover:text-paper"
-            >
-              Career at BKSR
-            </ArrowLink>
-          </div>
-        </Container>
-      </Section>
-    </>
+    <PeopleDirectory
+      director={
+        director
+          ? {
+              href: `/people/${director.slug}`,
+              name: director.name,
+              role: director.role,
+              imageSrc: directorPhoto,
+              description: directorDescription,
+            }
+          : null
+      }
+      roster={roster}
+      jumpLinks={jumpLinks}
+      sectionIds={SECTION_IDS}
+    />
   );
 }

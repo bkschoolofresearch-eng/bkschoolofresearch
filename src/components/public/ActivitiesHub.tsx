@@ -47,35 +47,22 @@ const STREAM_FOCUS: Record<string, string> = {
   'innovation-showcasing': 'Creative and literary initiatives',
 };
 
-function ProgrammeCard({
+function FeaturedProgrammeCard({
   item,
-  index,
   eventCount,
   fallbackImage,
-  heading: Heading = 'h3',
-  tone = 'deep',
 }: {
   item: ActivityProgrammeItem;
-  index: number;
   eventCount: number;
   fallbackImage: string;
-  heading?: 'h2' | 'h3';
-  /** `soft` = slightly lighter navy for More programmes cards */
-  tone?: 'deep' | 'soft';
 }) {
   const { activity, href, label } = item;
   const imageSrc = activity.imageUrl || fallbackImage;
   const focus =
     STREAM_FOCUS[activity.type] ?? 'Public programme stream at BKSR';
-  const indexLabel = String(index + 1).padStart(2, '0');
 
   return (
-    <article
-      className={cn(
-        'min-w-0 overflow-hidden rounded-[1.35rem] p-2.5 sm:rounded-[2.5rem] sm:p-4 lg:p-5',
-        tone === 'soft' ? 'bg-accent' : 'bg-ink',
-      )}
-    >
+    <article className="min-w-0 overflow-hidden rounded-[1.35rem] bg-ink p-2.5 sm:rounded-[2.5rem] sm:p-4 lg:p-5">
       <div className="grid gap-3 sm:gap-5 lg:grid-cols-12 lg:items-stretch lg:gap-6">
         <Link
           href={href}
@@ -92,7 +79,7 @@ function ProgrammeCard({
           />
           <span className="pointer-events-none absolute left-3 top-3 sm:left-4 sm:top-4">
             <span className="inline-flex rounded-[1rem] bg-paper/95 px-3 py-2 font-display text-2xl tabular-nums leading-none text-ink sm:rounded-[1.25rem] sm:px-4 sm:py-3 sm:text-4xl">
-              {indexLabel}
+              01
             </span>
           </span>
         </Link>
@@ -114,14 +101,14 @@ function ProgrammeCard({
             {focus}
           </p>
 
-          <Heading className="mt-1.5 text-balance font-instrument text-[1.45rem] font-medium leading-snug text-paper sm:mt-2 sm:text-4xl lg:text-[2.65rem] lg:leading-tight">
+          <h2 className="mt-1.5 text-balance font-instrument text-[1.45rem] font-medium leading-snug text-paper sm:mt-2 sm:text-4xl lg:text-[2.65rem] lg:leading-tight">
             <Link
               href={href}
               className="break-words transition-colors hover:text-white"
             >
               {activity.title}
             </Link>
-          </Heading>
+          </h2>
 
           <p className="mt-2.5 max-w-2xl font-instrument text-sm leading-relaxed text-paper/80 sm:mt-4 sm:text-lg">
             {activity.summary}
@@ -134,9 +121,91 @@ function ProgrammeCard({
               size="md"
               className="w-full font-normal tracking-normal sm:w-auto sm:h-[3.25rem] sm:px-8 sm:text-[0.9375rem]"
             >
-              {index === 0 ? 'Explore programme' : 'View programme'}
+              Explore programme
             </Button>
           </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/** Compact homepage-style card for the More programmes grid. */
+function CompactProgrammeCard({
+  item,
+  index,
+  eventCount,
+  fallbackImage,
+}: {
+  item: ActivityProgrammeItem;
+  index: number;
+  eventCount: number;
+  fallbackImage: string;
+}) {
+  const { activity, href, label } = item;
+  const imageSrc = activity.imageUrl || fallbackImage;
+  const focus =
+    STREAM_FOCUS[activity.type] ?? 'Public programme stream at BKSR';
+  const indexLabel = String(index + 1).padStart(2, '0');
+
+  return (
+    <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-[1.25rem] bg-accent p-2 sm:rounded-[1.75rem] sm:p-2.5">
+      <Link
+        href={href}
+        className="relative block min-w-0 overflow-hidden rounded-[1rem] sm:rounded-[1.35rem]"
+        aria-hidden
+      >
+        <ImageFrame
+          src={imageSrc}
+          alt=""
+          aspect="video"
+          sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+          frameClassName="border-0 bg-[#d9d9d9] rounded-[1rem] sm:rounded-[1.35rem]"
+          className="object-cover"
+        />
+        <span className="pointer-events-none absolute left-2.5 top-2.5 sm:left-3 sm:top-3">
+          <span className="inline-flex rounded-xl bg-paper/95 px-2.5 py-1.5 font-display text-xl tabular-nums leading-none text-ink sm:rounded-[1rem] sm:px-3 sm:py-2 sm:text-2xl">
+            {indexLabel}
+          </span>
+        </span>
+      </Link>
+
+      <div className="flex min-w-0 flex-1 flex-col px-2 pb-2 pt-3 text-paper sm:px-3 sm:pb-3 sm:pt-4">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <MetaChip onInk>{label}</MetaChip>
+          {eventCount ? (
+            <MetaChip onInk>
+              {eventCount} linked
+            </MetaChip>
+          ) : null}
+        </div>
+
+        <p className="mt-2.5 font-sans text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-paper/55">
+          {focus}
+        </p>
+
+        <h3 className="mt-1 text-balance font-instrument text-xl font-medium leading-snug text-paper sm:text-2xl">
+          <Link
+            href={href}
+            className="break-words transition-colors hover:text-white"
+          >
+            {activity.title}
+          </Link>
+        </h3>
+
+        <p className="mt-2 line-clamp-3 font-instrument text-sm leading-relaxed text-paper/80">
+          {activity.summary}
+        </p>
+
+        <div className="mt-auto pt-4">
+          <Button
+            href={href}
+            variant="onInk"
+            size="sm"
+            className="w-full font-normal tracking-normal sm:w-auto"
+          >
+            View programme
+          </Button>
         </div>
       </div>
     </article>
@@ -202,17 +271,18 @@ export function ActivitiesHub({
       </div>
 
       {featured ? (
-        <ProgrammeCard
+        <FeaturedProgrammeCard
           item={featured}
-          index={0}
           eventCount={featured.activity.relatedEventIds?.length ?? 0}
           fallbackImage={fallbackImage}
-          heading="h2"
         />
       ) : null}
 
       {rest.length ? (
-        <section className="min-w-0 space-y-4 sm:space-y-5" aria-labelledby="more-programmes-heading">
+        <section
+          className="min-w-0 space-y-4 sm:space-y-5"
+          aria-labelledby="more-programmes-heading"
+        >
           <header className="min-w-0">
             <h3
               id="more-programmes-heading"
@@ -222,15 +292,14 @@ export function ActivitiesHub({
             </h3>
           </header>
 
-          <ul className="grid gap-4 sm:gap-5">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4 xl:gap-5">
             {rest.map((item, i) => (
               <li key={item.routeSlug} className="min-w-0">
-                <ProgrammeCard
+                <CompactProgrammeCard
                   item={item}
                   index={i + 1}
                   eventCount={item.activity.relatedEventIds?.length ?? 0}
                   fallbackImage={fallbackImage}
-                  tone="soft"
                 />
               </li>
             ))}
@@ -254,8 +323,8 @@ export function ActivitiesHub({
             </div>
             <ArrowLink href="/events">All events</ArrowLink>
           </div>
-          <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-            {relatedEvents.slice(0, 4).map((event) => (
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+            {relatedEvents.map((event) => (
               <RelatedEventCard key={event.id} event={event} />
             ))}
           </ul>

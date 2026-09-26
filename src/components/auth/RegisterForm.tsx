@@ -7,9 +7,10 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import {
   authErrorClass,
   authInputClass,
+  authLabelClass,
   authNoticeClass,
+  authSubmitClass,
 } from '@/components/auth/auth-styles';
-import { Button } from '@/components/ui/Button';
 import { CloudinaryImageField } from '@/components/media/CloudinaryImageField';
 
 type Step = 'email' | 'otp' | 'profile' | 'password';
@@ -110,19 +111,9 @@ export function RegisterForm() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className={authNoticeClass}>
-        <p className="font-semibold text-ink">
-          {inviteToken ? 'Complete your BKSR invitation' : 'Claim your profile'}
-        </p>
-        <p className="mt-1">
-          Verify your email with a one-time code, complete a short profile, then
-          set a password to sign in.
-        </p>
-      </div>
-
+    <div className="space-y-8">
       {preview ? (
-        <div className="rounded-[1.15rem] border border-border bg-surface-subtle px-4 py-3.5 text-sm">
+        <div className={authNoticeClass}>
           <p className="font-sans text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted">
             Team position
           </p>
@@ -136,14 +127,14 @@ export function RegisterForm() {
 
       {step === 'email' ? (
         <form
-          className="space-y-4"
+          className="space-y-8"
           onSubmit={(e) => {
             e.preventDefault();
             void requestCode();
           }}
         >
-          <label className="block text-sm font-semibold text-ink">
-            Email
+          <label className={authLabelClass}>
+            Email Address*
             <input
               type="email"
               required
@@ -151,17 +142,24 @@ export function RegisterForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               readOnly={Boolean(inviteToken)}
+              placeholder=" "
             />
           </label>
-          <Button type="submit" disabled={busy}>
-            {busy ? 'Sending…' : 'Send verification code'}
-          </Button>
+          <div className="space-y-3 pt-2">
+            <p className="text-sm leading-5 text-ink">
+              Your information is encrypted and secure. We only email invited or
+              allowlisted addresses.
+            </p>
+            <button type="submit" disabled={busy} className={authSubmitClass}>
+              {busy ? 'Sending…' : 'Send verification code'}
+            </button>
+          </div>
         </form>
       ) : null}
 
       {step === 'otp' ? (
         <form
-          className="space-y-4"
+          className="space-y-8"
           onSubmit={(e) => {
             e.preventDefault();
             setBusy(true);
@@ -199,17 +197,18 @@ export function RegisterForm() {
           }}
         >
           {devOtp ? (
-            <p className="rounded-md border border-border bg-paper px-3 py-2 text-sm text-body">
-              Dev mode: your code is <strong className="font-mono">{devOtp}</strong>{' '}
-              (email delivery is not configured).
+            <p className={authNoticeClass}>
+              Dev mode: your code is{' '}
+              <strong className="font-mono">{devOtp}</strong> (email delivery is
+              not configured).
             </p>
           ) : (
-            <p className="text-sm text-muted">
+            <p className="text-sm text-ink/80">
               We sent a verification code to {email}.
             </p>
           )}
-          <label className="block text-sm font-semibold text-ink">
-            Verification code
+          <label className={authLabelClass}>
+            Verification code*
             <input
               required
               className={authInputClass}
@@ -217,59 +216,62 @@ export function RegisterForm() {
               onChange={(e) => setOtp(e.target.value)}
               inputMode="numeric"
               autoComplete="one-time-code"
+              placeholder=" "
             />
           </label>
-          <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={busy}>
+          <div className="space-y-3 pt-2">
+            <button type="submit" disabled={busy} className={authSubmitClass}>
               {busy ? 'Checking…' : 'Continue'}
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
-              variant="secondary"
               disabled={busy}
               onClick={() => void requestCode()}
+              className="w-full text-center text-sm font-medium text-ink underline-offset-2 hover:underline disabled:opacity-50"
             >
               Resend code
-            </Button>
+            </button>
           </div>
         </form>
       ) : null}
 
       {step === 'profile' ? (
         <form
-          className="space-y-4"
+          className="space-y-8"
           onSubmit={(e) => {
             e.preventDefault();
             setStep('password');
           }}
         >
-          <label className="block text-sm font-semibold text-ink">
-            Display name
+          <label className={authLabelClass}>
+            Display name*
             <input
               required
               className={authInputClass}
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder=" "
             />
           </label>
-          <label className="block text-sm font-semibold text-ink">
-            Short bio
+          <label className={authLabelClass}>
+            Short bio*
             <textarea
               required
               rows={3}
-              className={authInputClass}
+              className={`${authInputClass} resize-y`}
               value={shortBio}
               onChange={(e) => setShortBio(e.target.value)}
               placeholder="One or two sentences about your work"
             />
           </label>
-          <label className="block text-sm font-semibold text-ink">
-            Fuller bio (optional)
+          <label className={authLabelClass}>
+            Fuller bio
             <textarea
-              rows={5}
-              className={authInputClass}
+              rows={4}
+              className={`${authInputClass} resize-y`}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
+              placeholder=" "
             />
           </label>
           <CloudinaryImageField
@@ -280,24 +282,27 @@ export function RegisterForm() {
             uploadExtraFields={
               registerToken ? { registerToken } : undefined
             }
-            help="Upload a portrait to Cloudinary, or paste an image URL."
-            className="text-ink [&_label]:font-semibold [&_label]:text-ink"
+            help="Upload a portrait, or paste an image URL."
+            className="text-ink [&_label]:text-base [&_label]:font-normal [&_label]:text-[#525252]"
           />
-          <label className="block text-sm font-semibold text-ink">
-            Affiliation (optional)
+          <label className={authLabelClass}>
+            Affiliation
             <input
               className={authInputClass}
               value={affiliation}
               onChange={(e) => setAffiliation(e.target.value)}
+              placeholder=" "
             />
           </label>
-          <Button type="submit">Continue to password</Button>
+          <button type="submit" className={authSubmitClass}>
+            Continue to password
+          </button>
         </form>
       ) : null}
 
       {step === 'password' ? (
         <form
-          className="space-y-4"
+          className="space-y-8"
           onSubmit={(e) => {
             e.preventDefault();
             if (!registerToken) return;
@@ -345,37 +350,49 @@ export function RegisterForm() {
             })();
           }}
         >
-          <label className="block text-sm font-semibold text-ink">
-            Password
-            <input
-              type="password"
-              required
-              minLength={8}
-              className={authInputClass}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
-          <label className="block text-sm font-semibold text-ink">
-            Confirm password
-            <input
-              type="password"
-              required
-              minLength={8}
-              className={authInputClass}
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-            />
-          </label>
-          <Button type="submit" disabled={busy}>
-            {busy ? 'Creating account…' : 'Create account'}
-          </Button>
+          <div className="grid gap-8 sm:grid-cols-2 sm:gap-6">
+            <label className={authLabelClass}>
+              Create Password*
+              <input
+                type="password"
+                required
+                minLength={8}
+                className={authInputClass}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder=" "
+              />
+            </label>
+            <label className={authLabelClass}>
+              Confirm Password*
+              <input
+                type="password"
+                required
+                minLength={8}
+                className={authInputClass}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                placeholder=" "
+              />
+            </label>
+          </div>
+          <div className="space-y-3 pt-2">
+            <p className="text-sm leading-5 text-ink">
+              Your information is encrypted and secure.
+            </p>
+            <button type="submit" disabled={busy} className={authSubmitClass}>
+              {busy ? 'Creating account…' : 'Create account'}
+            </button>
+          </div>
         </form>
       ) : null}
 
-      <p className="border-t border-border pt-5 text-sm text-muted">
+      <p className="text-sm text-ink/70">
         Already have an account?{' '}
-        <Link href="/login" className="font-medium text-accent hover:underline">
+        <Link
+          href="/login"
+          className="font-medium text-ink underline-offset-2 hover:underline"
+        >
           Sign in
         </Link>
       </p>

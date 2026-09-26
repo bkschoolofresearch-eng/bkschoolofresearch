@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { useCms } from '@/components/admin/CmsProvider';
+import { CloudinaryImageField } from '@/components/media/CloudinaryImageField';
 import {
   DEFAULT_JOIN_FORM_FIELDS,
   DEFAULT_REGISTRATION_FIELDS,
@@ -65,6 +66,7 @@ export function RegistrationFormEditorPage({
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
+  const [bannerImageUrl, setBannerImageUrl] = useState('');
   const [linkMode, setLinkMode] =
     useState<RegistrationFormLinkMode>('dedicated');
   const [entityId, setEntityId] = useState('');
@@ -111,6 +113,7 @@ export function RegistrationFormEditorPage({
         setTitle(existing.title);
         setSlug(existing.slug);
         setDescription(existing.description ?? '');
+        setBannerImageUrl(existing.bannerImageUrl ?? '');
         setEntityId(JOIN_FORM_ENTITY_ID);
         setLinkMode('dedicated');
         setIsOpen(existing.isOpen);
@@ -132,8 +135,9 @@ export function RegistrationFormEditorPage({
         setTitle('Join BKSR');
         setSlug(JOIN_FORM_SLUG);
         setDescription(
-          'Apply to the research community or organisational team.',
+          'Apply to the research community or organisational team. No account needed until you are approved.',
         );
+        setBannerImageUrl('/media/prototype/bksr-hero-slide-seminar.png');
         setEntityId(JOIN_FORM_ENTITY_ID);
         setLinkMode('dedicated');
         setIsOpen(true);
@@ -185,6 +189,7 @@ export function RegistrationFormEditorPage({
       setTitle(existing.title);
       setSlug(existing.slug);
       setDescription(existing.description ?? '');
+      setBannerImageUrl(existing.bannerImageUrl ?? '');
       setLinkMode(modeResolved);
       setEntityId(
         modeResolved === 'shared' ? '' : existing.entityId,
@@ -270,6 +275,7 @@ export function RegistrationFormEditorPage({
             ? JOIN_FORM_SLUG
             : slug.trim() || slugify(title),
         description: description.trim() || undefined,
+        bannerImageUrl: bannerImageUrl.trim() || null,
         entityType,
         entityId:
           purpose === 'join'
@@ -439,6 +445,14 @@ export function RegistrationFormEditorPage({
               onChange={(e) => setDescription(e.target.value)}
             />
           </label>
+
+          <CloudinaryImageField
+            id="form-banner"
+            label="Form banner / poster"
+            value={bannerImageUrl}
+            onChange={setBannerImageUrl}
+            help="Shown at the top of the public form (Google Forms–style). Upload a wide image, or paste a URL."
+          />
 
           {purposeProp !== 'join' && linkMode === 'dedicated' ? (
             <label className="block text-sm font-medium text-[#0D2745]">

@@ -2,7 +2,10 @@ import { ArrowLink } from '@/components/ui/ArrowLink';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { ImageFrame } from '@/components/ui/ImageFrame';
 import { asExternalHttpUrl } from '@/lib/content/research-links';
-import { getResearchProjectCoverUrl } from '@/lib/content/prototype-media';
+import {
+  getResearchProjectCoverUrl,
+  getResearchProjectVisualUrl,
+} from '@/lib/content/prototype-media';
 import { RESEARCH_STATUS_LABELS } from '@/lib/public/labels';
 import type { ResearchProject } from '@/types/content';
 import { cn } from '@/lib/utils';
@@ -51,8 +54,8 @@ type ResearchFeatureProps = {
 };
 
 /**
- * Featured strip — same composition as `/publications` featured:
- * portrait (or year plate) left; Featured + meta + title + CTA right.
+ * Single featured strip (legacy / publications-style). Prefer
+ * ResearchFeaturedGrid on `/research`.
  */
 export function ResearchFeature({
   project,
@@ -129,5 +132,95 @@ export function ResearchFeature({
         ) : null}
       </div>
     </article>
+  );
+}
+
+const FEATURED_HUB_LIMIT = 4;
+
+/** Prefer admin-flagged items; otherwise fall back to ongoing then newest. */
+export function pickResearchHubFeatured(
+  projects: ResearchProject[],
+  limit = FEATURED_HUB_LIMIT,
+): ResearchProject[] {
+  const flagged = projects.filter((p) => p.featuredOnResearchPage);
+  if (flagged.length) {
+    return flagged
+      .slice()
+      .sort((a, b) => (b.year ?? 0) - (a.year ?? 0))
+      .slice(0, limit);
+  }
+  const ongoing = projects.filter((p) => p.researchStatus === 'ongoing');
+  const pool = ongoing.length ? ongoing : projects;
+  return pool.slice(0, limit);
+}
+
+type ResearchFeaturedGridProps = {
+  projects: ResearchProject[];
+  className?: string;
+};
+
+/**
+ * `/research` featured row — up to four equal cards (admin-picked).
+ */
+export function ResearchFeaturedGrid({
+  projects,
+  className,
+}: ResearchFeaturedGridProps) {
+  if (!projects.length) return null;
+
+  return (
+    <ul
+      className={cn(
+        'grid gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4',
+        className,
+      )}
+    >
+      {projects.map((project, index) => {
+        const href = researchProjectHref(project);
+        const imageSrc = getResearchProjectVisualUrl(project, index);
+        const statusLabel = RESEARCH_STATUS_LABELS[project.researchStatus];
+        const yearLabel = project.year ? String(project.year) : null;
+        const meta = [statusLabel, yearLabel].filter(Boolean).join(' · ');
+
+        return (
+          <li key={project.id} className="min-w-0">
+            <ResearchProjectAnchor
+              project={project}
+              className={cn(
+                'group flex h-full flex-col',
+                href && 'transition-opacity hover:opacity-95',
+              )}
+            >
+              <div className="w-full max-w-[8.5rem] overflow-hidden rounded-[0.65rem] sm:max-w-[9.5rem]">
+                <ImageFrame
+                  src={imageSrc}
+                  alt=""
+                  aspect="portrait"
+                  sizes="(max-width: 640px) 8.5rem, 9.5rem"
+                  framed
+                  frameClassName="border-0"
+                />
+              </div>
+              <div className="mt-3 flex min-h-0 flex-1 flex-col">
+                <Eyebrow>Featured</Eyebrow>
+                {meta ? (
+                  <p className="mt-2 font-sans text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-muted">
+                    {meta}
+                  </p>
+                ) : null}
+                <h2
+                  className={cn(
+                    'mt-2 font-display text-base leading-snug text-ink sm:text-lg',
+                    href && 'transition-colors group-hover:text-accent',
+                  )}
+                >
+                  <span className="line-clamp-5">{project.title}</span>
+                </h2>
+              </div>
+            </ResearchProjectAnchor>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

@@ -1,5 +1,5 @@
 import { SiteCtaGate } from '@/components/layout/SiteCtaGate';
-import { SiteFooter } from '@/components/layout/SiteFooter';
+import { SiteFooterGate } from '@/components/layout/SiteFooterGate';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SkipLink } from '@/components/layout/SkipLink';
 import { getNavigation, getSiteSettings } from '@/lib/content/queries';
@@ -23,7 +23,7 @@ export async function PublicShell({ children }: PublicShellProps) {
         {children}
       </main>
       <SiteCtaGate />
-      <SiteFooter
+      <SiteFooterGate
         settings={settings}
         footerNav={navigation.footer}
         knowledgeHub={navigation.knowledgeHub}

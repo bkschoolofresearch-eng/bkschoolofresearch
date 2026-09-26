@@ -59,24 +59,26 @@ export function AdminPrimaryButton({
   onClick,
   type = 'button',
   disabled,
+  className = '',
 }: {
   children: ReactNode;
   href?: string;
   onClick?: () => void;
   type?: 'button' | 'submit';
   disabled?: boolean;
+  className?: string;
 }) {
-  const className =
-    'inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1F36] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173B6C] disabled:opacity-50';
+  const classes =
+    `inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1F36] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173B6C] disabled:opacity-50 ${className}`.trim();
   if (href) {
     return (
-      <Link href={href} className={className}>
+      <Link href={href} className={classes}>
         {children}
       </Link>
     );
   }
   return (
-    <button type={type} onClick={onClick} disabled={disabled} className={className}>
+    <button type={type} onClick={onClick} disabled={disabled} className={classes}>
       {children}
     </button>
   );
@@ -114,11 +116,7 @@ export function AdminSecondaryButton({
 export function AdminLockedState({ noun }: { noun: string }) {
   return (
     <AdminPanel className="border-[#F0D4D4] bg-[#FFF8F8] p-6 text-sm text-[#8A3B3B]">
-      Unlock the CMS under{' '}
-      <Link href="/admin/system" className="font-semibold underline">
-        System &amp; data
-      </Link>{' '}
-      to manage {noun}.
+      Sign in to the CMS to manage {noun}.
     </AdminPanel>
   );
 }

@@ -10,7 +10,8 @@ type PageHeroProps = {
   eyebrow?: string;
   title: string;
   description?: string;
-  breadcrumbs?: BreadcrumbItem[];
+  /** Required on every inner page — sitewide orientation trail */
+  breadcrumbs: BreadcrumbItem[];
   actions?: React.ReactNode;
   /** Optional hero photograph — defaults to institute seminar imagery */
   imageSrc?: string;
@@ -57,7 +58,7 @@ export function PageHero({
           aria-hidden
         />
         <Container className="relative">
-          {breadcrumbs ? <Breadcrumb items={breadcrumbs} /> : null}
+          <Breadcrumb items={breadcrumbs} />
           {eyebrow ? <Eyebrow className="mb-3">{eyebrow}</Eyebrow> : null}
           <EditorialHeading as="h1" size="xl" className="max-w-4xl">
             {title}
@@ -102,13 +103,11 @@ export function PageHero({
       />
 
       <Container className="relative z-[2] min-w-0">
-        {breadcrumbs ? (
-          <Breadcrumb
-            items={breadcrumbs}
-            tone="onDark"
-            className="mb-4 sm:mb-7 [@media(max-height:500px)]:mb-3"
-          />
-        ) : null}
+        <Breadcrumb
+          items={breadcrumbs}
+          tone="onDark"
+          className="mb-4 sm:mb-7 [@media(max-height:500px)]:mb-3"
+        />
         {eyebrow ? (
           <Eyebrow className="mb-2 text-paper/65 sm:mb-3">
             {eyebrow}

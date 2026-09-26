@@ -11,7 +11,7 @@ export function AdminHeader({
   title?: string;
   onMenuClick: () => void;
 }) {
-  const { mode, apiAuthenticated } = useCms();
+  const { mode, apiAuthenticated, logoutCms } = useCms();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-[#E2E8F0] bg-white/90 px-4 backdrop-blur-md sm:px-6">
@@ -32,9 +32,18 @@ export function AdminHeader({
             ? mode === 'mongo'
               ? 'Connected to MongoDB'
               : 'Connected — edits update the live site'
-            : 'CMS locked'}
+            : 'Not logged in'}
         </p>
       </div>
+      {apiAuthenticated ? (
+        <button
+          type="button"
+          onClick={() => void logoutCms()}
+          className="rounded-xl border border-[#D5DEE8] bg-white px-3 py-2 text-xs font-semibold text-[#0B1F36] hover:bg-[#F4F7FB]"
+        >
+          Log out
+        </button>
+      ) : null}
       <Link
         href="/"
         target="_blank"

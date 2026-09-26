@@ -24,13 +24,49 @@ export const cmsApi = {
     return parseJson(await fetch('/api/cms/session', { credentials: 'include' }));
   },
 
-  async login(secret: string): Promise<void> {
-    await parseJson(
+  async login(
+    email: string,
+    password: string,
+  ): Promise<{
+    step: 'otp' | 'done';
+    maskedEmail?: string;
+    mailSent?: boolean;
+    devOtp?: string;
+    mailError?: string;
+  }> {
+    return parseJson(
       await fetch('/api/cms/session', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret }),
+        body: JSON.stringify({ email, password }),
+      }),
+    );
+  },
+
+  async verifyOtp(otp: string): Promise<void> {
+    await parseJson(
+      await fetch('/api/cms/session/otp', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ otp }),
+      }),
+    );
+  },
+
+  async resendOtp(): Promise<{
+    maskedEmail?: string;
+    mailSent?: boolean;
+    devOtp?: string;
+    mailError?: string;
+  }> {
+    return parseJson(
+      await fetch('/api/cms/session/otp', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resend: true }),
       }),
     );
   },

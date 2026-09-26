@@ -8,7 +8,8 @@ export const registrationForms: RegistrationForm[] = [
     slug: 'join-bksr',
     title: 'Join BKSR',
     description:
-      'Apply to the research community or organisational team. No account needed until you are approved.',
+      'Apply to the research community or organisational team. No account needed until you are approved. Choose your path below, share your details, and we will email you if approved.',
+    bannerImageUrl: '/media/prototype/bksr-hero-slide-seminar.png',
     entityType: 'join',
     entityId: 'site',
     fields: [

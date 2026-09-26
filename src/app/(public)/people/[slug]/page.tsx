@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { PersonProfile } from '@/components/editorial/PersonProfile';
 import { PersonProfileClaimBridge } from '@/components/editorial/PersonProfileClaimBridge';
+import { ExecutiveDirectorSolo } from '@/components/home/ExecutiveDirectorSolo';
 import { PeopleCategoryHub } from '@/components/home/PeopleCategoryHub';
 import {
   getDemoPeopleSlugs,
@@ -11,6 +12,7 @@ import {
 import { prototypeMedia } from '@/lib/content/prototype-media';
 import { RESERVED_PEOPLE_CATEGORY_SLUGS } from '@/lib/content/people-slugs';
 import {
+  getHomepageConfig,
   getPeople,
   getPersonBySlug,
   getPublications,
@@ -122,6 +124,27 @@ export default async function PeopleSlugPage({ params }: Props) {
         description: member.description,
       })),
     ];
+
+    // Single ED: portrait + director message (not a one-card flip grid).
+    if (category === 'executive-director' && hubPeople.length === 1) {
+      const solo = hubPeople[0];
+      const homepage = await getHomepageConfig();
+      const message =
+        homepage.directorMessageExcerpt?.trim() ||
+        solo.description;
+
+      return (
+        <ExecutiveDirectorSolo
+          title={meta.label}
+          description={meta.description}
+          name={solo.name}
+          role={solo.role}
+          message={message}
+          photoSrc={solo.imageSrc}
+          profileHref={solo.href}
+        />
+      );
+    }
 
     return (
       <PeopleCategoryHub

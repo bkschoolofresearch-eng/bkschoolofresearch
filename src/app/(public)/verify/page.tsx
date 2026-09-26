@@ -15,10 +15,6 @@ export const metadata = buildPageMetadata(
 export default function VerifyPage() {
   return (
     <UtilityFormShell
-      breadcrumbs={[
-        { label: 'Home', href: '/' },
-        { label: 'Verify' },
-      ]}
       title="Verify a BKSR code"
       description="Enter a membership code (BKSR-#####M) or certificate code (BKSR-#####C)."
       panel={

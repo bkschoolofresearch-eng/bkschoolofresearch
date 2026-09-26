@@ -24,7 +24,24 @@ interface CmsContextValue {
   mode: 'fs' | 'mongo';
   apiAuthenticated: boolean;
   refresh: () => Promise<void>;
-  unlockMongoCms: (secret: string) => Promise<void>;
+  loginCms: (
+    email: string,
+    password: string,
+  ) => Promise<{
+    step: 'otp' | 'done';
+    maskedEmail?: string;
+    mailSent?: boolean;
+    devOtp?: string;
+    mailError?: string;
+  }>;
+  verifyCmsOtp: (otp: string) => Promise<void>;
+  resendCmsOtp: () => Promise<{
+    maskedEmail?: string;
+    mailSent?: boolean;
+    devOtp?: string;
+    mailError?: string;
+  }>;
+  logoutCms: () => Promise<void>;
   createItem: <K extends ContentCollectionKey>(
     collection: K,
     input: Omit<CollectionEntityMap[K], 'id' | 'createdAt' | 'updatedAt'> &
@@ -89,14 +106,36 @@ export function CmsProvider({ children }: { children: ReactNode }) {
     void refresh().finally(() => setReady(true));
   }, [refresh]);
 
-  const unlockMongoCms = useCallback(
-    async (secret: string) => {
-      await cmsApi.login(secret);
+  const loginCms = useCallback(
+    async (email: string, password: string) => {
+      const result = await cmsApi.login(email, password);
+      if (result.step === 'done') {
+        setApiAuthenticated(true);
+        await refresh();
+      }
+      return result;
+    },
+    [refresh],
+  );
+
+  const verifyCmsOtp = useCallback(
+    async (otp: string) => {
+      await cmsApi.verifyOtp(otp);
       setApiAuthenticated(true);
       await refresh();
     },
     [refresh],
   );
+
+  const resendCmsOtp = useCallback(async () => {
+    return cmsApi.resendOtp();
+  }, []);
+
+  const logoutCms = useCallback(async () => {
+    await cmsApi.logout();
+    setApiAuthenticated(false);
+    setDatabase(null);
+  }, []);
 
   const value = useMemo<CmsContextValue>(
     () => ({
@@ -105,7 +144,10 @@ export function CmsProvider({ children }: { children: ReactNode }) {
       mode,
       apiAuthenticated,
       refresh,
-      unlockMongoCms,
+      loginCms,
+      verifyCmsOtp,
+      resendCmsOtp,
+      logoutCms,
       createItem: async (collection, input) => {
         const item = await cmsApi.create(collection, input);
         await refresh();
@@ -148,7 +190,10 @@ export function CmsProvider({ children }: { children: ReactNode }) {
       mode,
       apiAuthenticated,
       refresh,
-      unlockMongoCms,
+      loginCms,
+      verifyCmsOtp,
+      resendCmsOtp,
+      logoutCms,
     ],
   );
 

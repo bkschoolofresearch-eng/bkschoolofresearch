@@ -3,6 +3,7 @@
 import { TeamMemberCard } from '@/components/home/TeamMemberCard';
 import { PeopleSectionNav } from '@/components/home/PeopleSectionNav';
 import { Reveal } from '@/components/motion/Reveal';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { EditorialHeading } from '@/components/ui/EditorialHeading';
 import { Section } from '@/components/ui/Section';
 import { Container } from '@/components/ui/Container';
@@ -97,6 +98,14 @@ export function PeopleDirectory({
     <>
       <Section tone="white" spaced={false} className="pt-28 pb-6 md:pt-32 md:pb-8">
         <Container>
+          <div className="flex justify-center">
+            <Breadcrumb
+              items={[
+                { label: 'Home', href: '/' },
+                { label: 'People' },
+              ]}
+            />
+          </div>
           <header className="mx-auto max-w-3xl text-center">
             <EditorialHeading as="h1" size="xl" className="text-balance">
               Meet our team

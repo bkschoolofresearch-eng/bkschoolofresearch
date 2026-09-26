@@ -1,8 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
+import { ArrowRight, BookOpen } from 'lucide-react';
 import { MediaImage } from '@/components/media/MediaImage';
 import { Button } from '@/components/ui/Button';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Container } from '@/components/ui/Container';
 import { EditorialHeading } from '@/components/ui/EditorialHeading';
 import { RichText } from '@/components/ui/RichText';
@@ -108,7 +109,6 @@ function clipSummary(text: string, max = 140) {
 
 export function PersonProfile({ person, related, className }: PersonProfileProps) {
   const backHref = person.backHref ?? '/people';
-  const backLabel = person.backLabel ?? 'Back to team';
   const skills = person.skills?.filter(Boolean) ?? [];
   const researchItems = person.researchItems?.filter((item) => item.title) ?? [];
   const involvementGroups = groupInvolvements(person.involvements ?? []);
@@ -117,19 +117,22 @@ export function PersonProfile({ person, related, className }: PersonProfileProps
   const memberAchievements = person.memberAchievements ?? [];
   const headline = person.shortBio?.trim();
 
+  const breadcrumbItems = [
+    { label: 'Home', href: '/' },
+    { label: 'People', href: '/people' },
+    ...(person.categoryLabel && backHref !== '/people'
+      ? [{ label: person.categoryLabel, href: backHref }]
+      : []),
+    { label: person.name },
+  ];
+
   return (
     <div className={cn('min-h-screen bg-surface-subtle', className)}>
       <Container className="pb-16 pt-24 md:pb-24 md:pt-28">
-        <Link
-          href={backHref}
-          className="inline-flex items-center gap-2 font-sans text-sm text-muted transition-colors hover:text-ink"
-        >
-          <ArrowLeft className="size-4" aria-hidden />
-          {backLabel}
-        </Link>
+        <Breadcrumb items={breadcrumbItems} className="mb-5 sm:mb-6" />
 
         {/* Hero identity card */}
-        <article className="mt-5 overflow-hidden rounded-[1.75rem] border border-ink/12 bg-white shadow-[0_22px_50px_-36px_rgba(13,39,69,0.45)] sm:mt-6 sm:rounded-[2.25rem]">
+        <article className="overflow-hidden rounded-[1.75rem] border border-ink/12 bg-white shadow-[0_22px_50px_-36px_rgba(13,39,69,0.45)] sm:rounded-[2.25rem]">
           <div className="relative h-40 overflow-hidden sm:h-52 md:h-60">
             <div
               className="absolute inset-0 bg-[linear-gradient(125deg,#0b233f_0%,#173b6c_48%,#2a5f96_100%)]"

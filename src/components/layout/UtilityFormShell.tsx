@@ -1,10 +1,8 @@
 import Link from 'next/link';
-import { Breadcrumb, type BreadcrumbItem } from '@/components/ui/Breadcrumb';
 import { Container } from '@/components/ui/Container';
 import { cn } from '@/lib/utils';
 
 type UtilityFormShellProps = {
-  breadcrumbs: BreadcrumbItem[];
   title: string;
   description: string;
   panel: React.ReactNode;
@@ -16,11 +14,10 @@ type UtilityFormShellProps = {
 };
 
 /**
- * Shared form-first layout for join / auth / verify utility pages.
+ * Shared form-first layout for auth / verify / registration utility pages.
  * No full-bleed PageHero — compact title band + side panel + form card.
  */
 export function UtilityFormShell({
-  breadcrumbs,
   title,
   description,
   panel,
@@ -39,8 +36,7 @@ export function UtilityFormShell({
     >
       <div className="border-b border-border/70 pt-24 pb-6 sm:pt-28 sm:pb-8">
         <Container>
-          <Breadcrumb items={breadcrumbs} />
-          <h1 className="mt-4 font-display text-3xl tracking-tight text-ink sm:text-4xl md:text-[2.75rem]">
+          <h1 className="font-display text-3xl tracking-tight text-ink sm:text-4xl md:text-[2.75rem]">
             {title}
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted sm:text-base">

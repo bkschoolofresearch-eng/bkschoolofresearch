@@ -9,9 +9,10 @@ const HIDDEN_PREFIXES = [
   '/forgot-password',
   '/account',
   '/verify',
+  '/join',
 ];
 
-/** Keep auth / account flows free of the sitewide CTA. */
+/** Keep auth / account / join form flows free of the sitewide CTA. */
 export function SiteCtaGate() {
   const pathname = usePathname();
   const hidden = HIDDEN_PREFIXES.some(

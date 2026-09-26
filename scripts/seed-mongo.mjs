@@ -6,7 +6,7 @@
  *   node --env-file=.env.local scripts/seed-mongo.mjs --wipe
  *
  * Requires MONGODB_URI. Prefer POST /api/cms/seed when the app is running
- * (with CMS admin session / x-cms-admin-secret).
+ * (admin session cookie, or header x-cms-admin-secret).
  */
 
 import { MongoClient } from 'mongodb';
@@ -33,10 +33,10 @@ BKSR Mongo seed helper
 Preferred path (uses the same code as production):
 
   1. Set CMS_DRIVER=mongo and NEXT_PUBLIC_CMS_MODE=mongo in .env.local
-  2. Set MONGODB_URI, MONGODB_DB, CMS_ADMIN_SECRET, and R2_* vars
+  2. Set MONGODB_URI, MONGODB_DB, CMS_ADMIN_EMAIL, CMS_ADMIN_PASSWORD
   3. npm run dev
-  4. Unlock CMS at /admin/system with CMS_ADMIN_SECRET
-  5. Click "Re-seed MongoDB from starter"  OR:
+  4. Sign in at /admin with CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD
+  5. Open System & data → Reset to starter library  OR:
 
      curl -X POST http://localhost:3000/api/cms/seed \\
        -H "content-type: application/json" \\

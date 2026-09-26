@@ -7,9 +7,9 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import {
   authErrorClass,
   authInputClass,
-  authNoticeClass,
+  authLabelClass,
+  authSubmitClass,
 } from '@/components/auth/auth-styles';
-import { Button } from '@/components/ui/Button';
 import type { AuthSession } from '@/types/auth';
 
 export function LoginForm() {
@@ -57,19 +57,12 @@ export function LoginForm() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className={authNoticeClass}>
-        <p className="font-semibold text-ink">Member access</p>
-        <p className="mt-1">
-          Use the email and password from your BKSR invitation or profile claim.
-        </p>
-      </div>
-
+    <div className="space-y-8">
       {error ? <p className={authErrorClass}>{error}</p> : null}
 
-      <form className="space-y-5" onSubmit={onSubmit}>
-        <label className="block">
-          <span className="font-sans text-sm font-semibold text-ink">Email</span>
+      <form className="space-y-8" onSubmit={onSubmit}>
+        <label className={authLabelClass}>
+          Email Address*
           <input
             required
             type="email"
@@ -77,12 +70,11 @@ export function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={authInputClass}
+            placeholder=" "
           />
         </label>
-        <label className="block">
-          <span className="font-sans text-sm font-semibold text-ink">
-            Password
-          </span>
+        <label className={authLabelClass}>
+          Password*
           <input
             required
             type="password"
@@ -90,18 +82,26 @@ export function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className={authInputClass}
+            placeholder=" "
           />
         </label>
-        <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <Link
-            href="/forgot-password"
-            className="text-xs font-medium text-muted hover:text-accent"
-          >
-            Forgot password?
-          </Link>
-          <Button type="submit" variant="primary" disabled={busy} withArrow>
+
+        <div className="space-y-3 pt-2">
+          <p className="text-sm leading-5 text-ink">
+            Use the email and password from your BKSR invitation or profile
+            claim. Your information is encrypted and secure.
+          </p>
+          <button type="submit" disabled={busy} className={authSubmitClass}>
             {busy ? 'Signing in…' : 'Sign in'}
-          </Button>
+          </button>
+          <p className="text-center text-sm text-ink/70">
+            <Link
+              href="/forgot-password"
+              className="font-medium underline-offset-2 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </p>
         </div>
       </form>
     </div>

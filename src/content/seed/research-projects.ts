@@ -29,6 +29,7 @@ export const ongoingProjects: ResearchProject[] = [
     startYear: 2024,
     year: 2024,
     featuredImageUrl: '/media/prototype/bksr-research-field.jpg',
+    featuredOnResearchPage: true,
   },
   {
     ...ts,
@@ -46,6 +47,7 @@ export const ongoingProjects: ResearchProject[] = [
     leadAuthorNames: [],
     startYear: 2024,
     year: 2024,
+    featuredOnResearchPage: true,
   },
   {
     ...ts,
@@ -63,6 +65,7 @@ export const ongoingProjects: ResearchProject[] = [
     leadAuthorNames: [],
     startYear: 2025,
     year: 2025,
+    featuredOnResearchPage: true,
   },
 ];
 
@@ -85,6 +88,7 @@ export const completedProjects: ResearchProject[] = [
     endYear: 2026,
     publicationIds: ['pub-kumar-remittances-rural-development-2026'],
     featuredImageUrl: '/media/prototype/bksr-pub-cover-remittances.jpg',
+    featuredOnResearchPage: true,
   },
   {
     ...ts,

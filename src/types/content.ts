@@ -281,6 +281,11 @@ export interface ResearchProject extends ContentBase {
   themeCount?: number;
   /** Optional feature visual (may be prototype media) */
   featuredImageUrl?: string | null;
+  /**
+   * When true, appears in the featured card row on `/research`
+   * (up to four; any category — ongoing, completed, etc.).
+   */
+  featuredOnResearchPage?: boolean;
   /** External journal / DOI / attached source — listing clicks open this, not an internal detail page */
   url?: string | null;
   originalLegacyUrl?: string;
@@ -399,6 +404,8 @@ export interface RegistrationForm {
   slug: string;
   title: string;
   description?: string;
+  /** Optional top banner / poster (Google Forms–style header image) */
+  bannerImageUrl?: string | null;
   entityType: RegistrationFormEntityType;
   /**
    * Dedicated: event/vacancy/activity id (or `site` for join).

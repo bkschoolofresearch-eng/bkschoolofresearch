@@ -5,7 +5,6 @@ import { ConfirmDialog } from './ConfirmDialog';
 import {
   AdminPageHeader,
   AdminPanel,
-  AdminPrimaryButton,
   AdminSecondaryButton,
 } from './AdminUI';
 import { useCms } from './CmsProvider';
@@ -18,13 +17,11 @@ export function SystemPage() {
     database,
     mode,
     apiAuthenticated,
-    unlockMongoCms,
+    logoutCms,
     refresh,
   } = useCms();
   const [confirmReset, setConfirmReset] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [secret, setSecret] = useState('');
-  const [busy, setBusy] = useState(false);
   const [health, setHealth] = useState<{
     driver?: string;
     mode?: string;
@@ -41,8 +38,6 @@ export function SystemPage() {
     return <p className="text-sm text-[#5B6B7C]">Loading…</p>;
   }
 
-  const needsSecret =
-    mode === 'mongo' || (health?.mongoConfigured && !apiAuthenticated);
   const storageLabel =
     mode === 'mongo'
       ? 'MongoDB (live database)'
@@ -63,7 +58,7 @@ export function SystemPage() {
             ['Driver', health?.driver ?? mode],
             ['Content store', storageLabel],
             ['Content version', database?.version ?? '—'],
-            ['Session', apiAuthenticated ? 'Unlocked' : 'Locked'],
+            ['Admin session', apiAuthenticated ? 'Logged in' : 'Logged out'],
             [
               'Image storage (Cloudinary)',
               health?.cloudinaryConfigured
@@ -86,61 +81,18 @@ export function SystemPage() {
             </div>
           ))}
         </dl>
-      </AdminPanel>
-
-      {(needsSecret && !apiAuthenticated) || mode === 'mongo' ? (
-        <AdminPanel className="max-w-2xl space-y-3 p-5">
-          <h2 className="text-sm font-semibold text-[#0B1F36]">
-            Unlock CMS session
-          </h2>
-          <p className="text-sm text-[#5B6B7C]">
-            Required when a CMS admin secret is set (Mongo production). Local
-            file mode is usually open without a secret.
-          </p>
-          {apiAuthenticated ? (
-            <p className="text-sm font-semibold text-[#173B6C]">
-              Session unlocked — edits sync to the content store.
-            </p>
-          ) : (
-            <form
-              className="flex flex-wrap items-end gap-2"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setBusy(true);
-                try {
-                  await unlockMongoCms(secret);
-                  setSecret('');
-                  setMessage('CMS unlocked');
-                  window.setTimeout(() => setMessage(null), 2500);
-                } catch (err) {
-                  setMessage(
-                    err instanceof Error ? err.message : 'Unlock failed',
-                  );
-                } finally {
-                  setBusy(false);
-                }
+        {apiAuthenticated ? (
+          <div className="mt-4">
+            <AdminSecondaryButton
+              onClick={() => {
+                void logoutCms();
               }}
             >
-              <label className="min-w-[16rem] flex-1 space-y-1.5 text-sm">
-                <span className="font-medium text-[#0B1F36]">CMS secret</span>
-                <input
-                  type="password"
-                  value={secret}
-                  onChange={(e) => setSecret(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 outline-none focus:border-[#0B1F36] focus:bg-white"
-                  autoComplete="off"
-                />
-              </label>
-              <AdminPrimaryButton type="submit" disabled={busy || !secret}>
-                {busy ? 'Unlocking…' : 'Unlock'}
-              </AdminPrimaryButton>
-            </form>
-          )}
-          {message ? (
-            <p className="text-sm font-semibold text-[#173B6C]">{message}</p>
-          ) : null}
-        </AdminPanel>
-      ) : null}
+              Log out
+            </AdminSecondaryButton>
+          </div>
+        ) : null}
+      </AdminPanel>
 
       <AdminPanel className="max-w-2xl space-y-3 border-[#F0D4D4] p-5">
         <h2 className="text-sm font-semibold text-[#8A3B3B]">
@@ -163,7 +115,7 @@ export function SystemPage() {
             Refresh from store
           </AdminSecondaryButton>
         </div>
-        {message && !needsSecret ? (
+        {message ? (
           <p className="text-sm font-semibold text-[#173B6C]">{message}</p>
         ) : null}
       </AdminPanel>

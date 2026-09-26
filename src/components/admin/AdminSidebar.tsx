@@ -105,7 +105,7 @@ export function AdminSidebar({
             ? mode === 'mongo'
               ? 'Saving to MongoDB'
               : 'Saving to server · updates the public site'
-            : 'Unlock required in System & data'}
+            : 'Sign in required'}
         </div>
       </aside>
     </>
