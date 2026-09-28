@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getContentDatabase } from '@/lib/cms/get-content-database';
+import { sitemapPublicPath } from '@/lib/seo/public-path';
 import { getSiteUrl } from '@/lib/seo/site-url';
 
 const STATIC_PATHS = [
@@ -75,12 +76,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         if (!isPublished({ status: item.status, noIndex: item.seo?.noIndex })) {
           continue;
         }
-        const path =
+        const raw =
           item.seo?.canonicalPath ||
           (item.slug ? `${prefix}/${item.slug}` : null);
+        if (!raw) continue;
+        const path = sitemapPublicPath(raw, origin);
         if (!path) continue;
         entries.push({
-          url: `${origin}${path.startsWith('/') ? path : `/${path}`}`,
+          url: `${origin}${path === '/' ? '' : path}`,
           lastModified: item.updatedAt ? new Date(item.updatedAt) : now,
           changeFrequency: 'monthly',
           priority: 0.6,
@@ -105,6 +108,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       '',
     );
     pushSlug(db.researchAreas, '/research/areas');
+    for (const form of db.registrationForms ?? []) {
+      if (form.status !== 'published' || form.entityType === 'join') continue;
+      const path = sitemapPublicPath(`/forms/${form.slug}`, origin);
+      if (!path) continue;
+      entries.push({
+        url: `${origin}${path}`,
+        lastModified: form.updatedAt ? new Date(form.updatedAt) : now,
+        changeFrequency: 'monthly',
+        priority: 0.5,
+      });
+    }
     // Research projects intentionally omit internal detail URLs — they open
     // external journal/DOI destinations from listing cards.
   } catch {

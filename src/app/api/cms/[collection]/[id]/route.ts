@@ -1,6 +1,7 @@
 import { assertCmsAdmin, jsonError, jsonOk } from '@/lib/cms/api-guard';
 import { parseCollectionKey } from '@/lib/cms/collection-param';
 import { assertPublicCmsReadAllowed, isPublishedCmsItem } from '@/lib/cms/public-read';
+import { redactPublicCmsPayload } from '@/lib/cms/public-response';
 
 type RouteContext = { params: Promise<{ collection: string; id: string }> };
 
@@ -25,7 +26,9 @@ export async function GET(request: Request, context: RouteContext) {
     if (publishedOnly && !isPublishedCmsItem(item)) {
       return jsonError('Not found', 404);
     }
-    return jsonOk({ item });
+    return jsonOk(
+      publicOk.ok ? redactPublicCmsPayload(collection, { item }) : { item },
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Query failed';
     return jsonError(message, 500);

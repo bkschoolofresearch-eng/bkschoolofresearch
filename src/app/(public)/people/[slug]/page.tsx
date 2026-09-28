@@ -165,7 +165,6 @@ export default async function PeopleSlugPage({ params }: Props) {
         roleHistory,
         verifiedAchievements: achievements.verified,
         memberAchievements: achievements.member,
-        verificationCode: person.verificationCode,
         appointmentYear: person.appointmentYear,
         backHref: PERSON_CATEGORY_META[person.category]
           ? `/people/${

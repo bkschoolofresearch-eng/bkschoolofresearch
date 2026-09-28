@@ -13,6 +13,7 @@ export const metadata = buildPageMetadata(
   'Forgot password',
   'Password reset will be available when email delivery is connected.',
   '/forgot-password',
+  { noIndex: true },
 );
 
 export default function ForgotPasswordPage() {
