@@ -14,7 +14,7 @@ export type HowWeWorkStep = {
 };
 
 type HowWeWorkTimelineProps = {
-  steps: HowWeWorkStep[];
+  steps: readonly HowWeWorkStep[];
   className?: string;
   /** Homepage column highlights the step in view. A reading page shows every step in full. */
   mode?: 'scroll' | 'reading';
