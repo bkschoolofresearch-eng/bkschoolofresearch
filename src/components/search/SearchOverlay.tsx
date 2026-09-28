@@ -25,6 +25,7 @@ const CATEGORIES: { label: string; value: SearchCategory }[] = [
   { label: 'Events', value: 'events' },
   { label: 'Notices', value: 'notices' },
   { label: 'Resources', value: 'resources' },
+  { label: 'BKSR in Media', value: 'media' },
 ];
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -35,6 +36,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   events: 'Event',
   notices: 'Notice',
   resources: 'Resource',
+  media: 'BKSR in Media',
   pages: 'Page',
 };
 
@@ -167,11 +169,16 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
               No matches for “{query}”.
             </li>
           ) : (
-            results.map((result) => (
+            results.map((result) => {
+              const opensOutlet = result.href.startsWith('http');
+              return (
               <li key={`${result.category}-${result.id}`}>
                 <Link
                   href={result.href}
                   onClick={onClose}
+                  {...(opensOutlet
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {})}
                   className="group block rounded-[1rem] px-3 py-3 transition-colors hover:bg-surface-subtle sm:rounded-[1.15rem] sm:px-3.5 sm:py-3.5"
                 >
                   <span className="font-sans text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-muted">
@@ -187,7 +194,8 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                   ) : null}
                 </Link>
               </li>
-            ))
+              );
+            })
           )}
         </ul>
 

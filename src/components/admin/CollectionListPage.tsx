@@ -45,7 +45,10 @@ export function CollectionListPage({
 
   const items = useMemo(() => {
     if (!database) return [];
-    const list = database[config.key] as unknown as Record<string, unknown>[];
+    const list = (database[config.key] ?? []) as unknown as Record<
+      string,
+      unknown
+    >[];
     return list
       .filter((item) => {
         for (const [key, value] of Object.entries(filters)) {

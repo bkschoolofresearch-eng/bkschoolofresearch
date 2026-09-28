@@ -1,18 +1,29 @@
-import { notFound } from 'next/navigation';
+import { HowWeWorkTimeline } from '@/components/home/HowWeWorkTimeline';
 import { AboutSubpageView } from '@/components/public/AboutSubpageView';
-import { getPageBySlug } from '@/lib/content/queries';
+import { WHAT_WE_DO_PILLARS } from '@/content/about-hub';
+import { getAboutPage } from '@/content/about-pages';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 
-const SLUG = 'what-we-do';
+const page = getAboutPage('what-we-do');
 
-export async function generateMetadata() {
-  const page = await getPageBySlug(SLUG, { includeDrafts: true });
-  if (!page) return {};
-  return buildPageMetadata(page.title, page.excerpt ?? page.title, `/about/${SLUG}`);
-}
+export const metadata = buildPageMetadata(
+  page.title,
+  page.excerpt,
+  `/about/${page.slug}`,
+);
 
-export default async function AboutSubpage() {
-  const page = await getPageBySlug(SLUG, { includeDrafts: true });
-  if (!page) notFound();
-  return <AboutSubpageView page={page} slug={SLUG} />;
+export default function WhatWeDoPage() {
+  return (
+    <AboutSubpageView
+      page={page}
+      slug={page.slug}
+      bodySlot={
+        <HowWeWorkTimeline
+          mode="reading"
+          showLabel={false}
+          steps={WHAT_WE_DO_PILLARS}
+        />
+      }
+    />
+  );
 }

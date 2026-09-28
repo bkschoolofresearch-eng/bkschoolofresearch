@@ -29,7 +29,14 @@ async function readDb(): Promise<ContentDatabase> {
   try {
     const raw = await fs.readFile(DATA_FILE, 'utf8');
     const parsed = JSON.parse(raw) as ContentDatabase;
-    if (parsed?.siteSettings && parsed?.homepage) return parsed;
+    if (parsed?.siteSettings && parsed?.homepage) {
+      for (const key of LIST_COLLECTION_KEYS) {
+        if (!Array.isArray(parsed[key])) {
+          parsed[key] = [] as never;
+        }
+      }
+      return parsed;
+    }
   } catch {
     // Missing or unreadable local file. Public reads use the compiled seed.
   }
@@ -154,6 +161,281 @@ export async function fsListPublications(
         .filter((area) => areaIds.has(area.id))
         .map((area) => ({ id: area.id, title: area.title })),
     },
+  };
+}
+
+export async function fsListEvents(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Event
+  >
+> {
+  const {
+    buildEventFacets,
+    buildEventYears,
+    filterEvents,
+    sortEvents,
+    paginateInMemory,
+  } = await import('@/lib/cms/paginated-list');
+
+  const db = await readDb();
+  const all = db.events;
+  const sort = query.sort === 'category' || query.sort === 'type' || !query.sort
+    ? 'start_desc'
+    : query.sort;
+  const filtered = sortEvents(filterEvents(all, query), sort);
+  const page = paginateInMemory(filtered, query.page, query.pageSize);
+
+  return {
+    ...page,
+    facets: query.facets ? buildEventFacets(all) : undefined,
+    options: query.facets
+      ? { years: buildEventYears(all), areas: [] }
+      : undefined,
+  };
+}
+
+export async function fsListNotices(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Notice
+  >
+> {
+  const {
+    buildNoticeFacets,
+    buildNoticeYears,
+    filterNotices,
+    sortNotices,
+    paginateInMemory,
+  } = await import('@/lib/cms/paginated-list');
+
+  const db = await readDb();
+  const all = db.notices;
+  const sort =
+    !query.sort || query.sort === 'category' || query.sort === 'type'
+      ? 'updated_desc'
+      : query.sort;
+  const filtered = sortNotices(filterNotices(all, query), sort);
+  const page = paginateInMemory(filtered, query.page, query.pageSize);
+
+  return {
+    ...page,
+    facets: query.facets ? buildNoticeFacets(all) : undefined,
+    options: query.facets
+      ? { years: buildNoticeYears(all), areas: [] }
+      : undefined,
+  };
+}
+
+export async function fsListActivities(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Activity
+  >
+> {
+  const {
+    buildActivityFacets,
+    filterActivities,
+    sortActivities,
+    paginateInMemory,
+  } = await import('@/lib/cms/paginated-list');
+
+  const db = await readDb();
+  const all = db.activities;
+  const sort =
+    !query.sort ||
+    query.sort === 'category' ||
+    query.sort === 'type' ||
+    query.sort === 'start_desc' ||
+    query.sort === 'start_asc' ||
+    query.sort === 'deadline_desc' ||
+    query.sort === 'deadline_asc'
+      ? 'order_asc'
+      : query.sort;
+  const filtered = sortActivities(filterActivities(all, query), sort);
+  const page = paginateInMemory(filtered, query.page, query.pageSize);
+
+  return {
+    ...page,
+    facets: query.facets ? buildActivityFacets(all) : undefined,
+  };
+}
+
+export async function fsListResources(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Resource
+  >
+> {
+  const {
+    buildResourceFacets,
+    filterResources,
+    sortResources,
+    paginateInMemory,
+  } = await import('@/lib/cms/paginated-list');
+
+  const db = await readDb();
+  const all = db.resources;
+  const sort =
+    !query.sort ||
+    query.sort === 'category' ||
+    query.sort === 'type' ||
+    query.sort === 'start_desc' ||
+    query.sort === 'start_asc' ||
+    query.sort === 'deadline_desc' ||
+    query.sort === 'deadline_asc' ||
+    query.sort === 'order_asc'
+      ? 'title_asc'
+      : query.sort;
+  const filtered = sortResources(filterResources(all, query), sort);
+  const page = paginateInMemory(filtered, query.page, query.pageSize);
+
+  return {
+    ...page,
+    facets: query.facets ? buildResourceFacets(all) : undefined,
+  };
+}
+
+function newsListSort(
+  sort: import('@/lib/cms/paginated-list').CollectionListQuery['sort'],
+): import('@/lib/cms/paginated-list').ResearchListSort {
+  if (
+    !sort ||
+    sort === 'category' ||
+    sort === 'type' ||
+    sort === 'start_desc' ||
+    sort === 'start_asc' ||
+    sort === 'deadline_desc' ||
+    sort === 'deadline_asc' ||
+    sort === 'order_asc'
+  ) {
+    return 'published_desc';
+  }
+  return sort;
+}
+
+export async function fsListNews(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').NewsArticle
+  >
+> {
+  const {
+    buildNewsFacets,
+    buildNewsYears,
+    filterNews,
+    sortNews,
+    paginateInMemory,
+  } = await import('@/lib/cms/paginated-list');
+
+  const db = await readDb();
+  const all = db.news;
+  const filtered = sortNews(filterNews(all, query), newsListSort(query.sort));
+  const page = paginateInMemory(filtered, query.page, query.pageSize);
+
+  return {
+    ...page,
+    facets: query.facets ? buildNewsFacets(all) : undefined,
+    options: query.facets ? { years: buildNewsYears(all), areas: [] } : undefined,
+  };
+}
+
+function clippingListSort(
+  sort: import('@/lib/cms/paginated-list').CollectionListQuery['sort'],
+): import('@/lib/cms/paginated-list').ResearchListSort {
+  if (
+    !sort ||
+    sort === 'category' ||
+    sort === 'type' ||
+    sort === 'start_desc' ||
+    sort === 'start_asc' ||
+    sort === 'deadline_desc' ||
+    sort === 'deadline_asc' ||
+    sort === 'order_asc' ||
+    sort === 'published_desc' ||
+    sort === 'published_asc'
+  ) {
+    return 'year_desc';
+  }
+  return sort;
+}
+
+export async function fsListMediaClippings(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').MediaClipping
+  >
+> {
+  const {
+    buildMediaClippingFacets,
+    buildMediaClippingYears,
+    filterMediaClippings,
+    sortMediaClippings,
+    paginateInMemory,
+  } = await import('@/lib/cms/paginated-list');
+
+  const db = await readDb();
+  const all = db.mediaClippings ?? [];
+  const filtered = sortMediaClippings(
+    filterMediaClippings(all, query),
+    clippingListSort(query.sort),
+  );
+  const page = paginateInMemory(filtered, query.page, query.pageSize);
+
+  return {
+    ...page,
+    facets: query.facets ? buildMediaClippingFacets(all) : undefined,
+    options: query.facets
+      ? { years: buildMediaClippingYears(all), areas: [] }
+      : undefined,
+  };
+}
+
+function areaListSort(
+  sort: import('@/lib/cms/paginated-list').CollectionListQuery['sort'],
+): import('@/lib/cms/paginated-list').ResearchListSort {
+  if (
+    sort === 'updated_asc' ||
+    sort === 'updated_desc' ||
+    sort === 'title_asc' ||
+    sort === 'order_asc'
+  ) {
+    return sort;
+  }
+  return 'order_asc';
+}
+
+export async function fsListResearchAreas(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').ResearchArea
+  >
+> {
+  const {
+    buildResearchAreaFacets,
+    filterResearchAreas,
+    sortResearchAreas,
+    paginateInMemory,
+  } = await import('@/lib/cms/paginated-list');
+
+  const db = await readDb();
+  const all = db.researchAreas;
+  const filtered = sortResearchAreas(
+    filterResearchAreas(all, query),
+    areaListSort(query.sort),
+  );
+  const page = paginateInMemory(filtered, query.page, query.pageSize);
+
+  return {
+    ...page,
+    facets: query.facets ? buildResearchAreaFacets(all) : undefined,
   };
 }
 

@@ -1,18 +1,15 @@
-import { notFound } from 'next/navigation';
 import { AboutSubpageView } from '@/components/public/AboutSubpageView';
-import { getPageBySlug } from '@/lib/content/queries';
+import { getAboutPage } from '@/content/about-pages';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 
-const SLUG = 'governance';
+const page = getAboutPage('governance');
 
-export async function generateMetadata() {
-  const page = await getPageBySlug(SLUG, { includeDrafts: true });
-  if (!page) return {};
-  return buildPageMetadata(page.title, page.excerpt ?? page.title, `/about/${SLUG}`);
-}
+export const metadata = buildPageMetadata(
+  page.title,
+  page.excerpt,
+  `/about/${page.slug}`,
+);
 
-export default async function AboutSubpage() {
-  const page = await getPageBySlug(SLUG, { includeDrafts: true });
-  if (!page) notFound();
-  return <AboutSubpageView page={page} slug={SLUG} />;
+export default function GovernancePage() {
+  return <AboutSubpageView page={page} slug={page.slug} />;
 }

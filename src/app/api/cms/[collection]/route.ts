@@ -2,6 +2,13 @@ import { assertCmsAdmin, jsonError, jsonOk } from '@/lib/cms/api-guard';
 import { parseCollectionKey } from '@/lib/cms/collection-param';
 import {
   parseCollectionListQuery,
+  supportsActivityListQuery,
+  supportsResourceListQuery,
+  supportsNewsListQuery,
+  supportsMediaClippingListQuery,
+  supportsResearchAreaListQuery,
+  supportsEventListQuery,
+  supportsNoticeListQuery,
   supportsPublicationListQuery,
   supportsResearchListQuery,
 } from '@/lib/cms/paginated-list';
@@ -29,6 +36,18 @@ export async function GET(request: Request, context: RouteContext) {
     url.searchParams.has('areaId') ||
     url.searchParams.has('featured') ||
     url.searchParams.has('hasLink') ||
+    url.searchParams.has('eventStatus') ||
+    url.searchParams.has('online') ||
+    url.searchParams.has('hasRegistration') ||
+    url.searchParams.has('noticeType') ||
+    url.searchParams.has('hasApplication') ||
+    url.searchParams.has('activityType') ||
+    url.searchParams.has('resourceType') ||
+    url.searchParams.has('software') ||
+    url.searchParams.has('newsLanguage') ||
+    url.searchParams.has('newsCategory') ||
+    url.searchParams.has('clippingLanguage') ||
+    url.searchParams.has('outlet') ||
     url.searchParams.has('sort') ||
     url.searchParams.has('facets');
 
@@ -50,6 +69,13 @@ export async function GET(request: Request, context: RouteContext) {
       serverGetAll,
       serverListResearchProjects,
       serverListPublications,
+      serverListEvents,
+      serverListNotices,
+      serverListActivities,
+      serverListResources,
+      serverListNews,
+      serverListMediaClippings,
+      serverListResearchAreas,
     } = await import('@/lib/cms/server-repository');
 
     if (id) {
@@ -83,6 +109,124 @@ export async function GET(request: Request, context: RouteContext) {
         if (publishedOnly) query.status = 'published';
         if (!query.sort || query.sort === 'category') query.sort = 'type';
         const result = await serverListPublications(query);
+        return jsonOk(result);
+      }
+
+      if (supportsEventListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        if (publishedOnly) query.status = 'published';
+        if (!query.sort || query.sort === 'category' || query.sort === 'type') {
+          query.sort = 'start_desc';
+        }
+        const result = await serverListEvents(query);
+        return jsonOk(result);
+      }
+
+      if (supportsNoticeListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        if (publishedOnly) query.status = 'published';
+        if (
+          !query.sort ||
+          query.sort === 'category' ||
+          query.sort === 'type' ||
+          query.sort === 'start_desc' ||
+          query.sort === 'start_asc'
+        ) {
+          query.sort = 'updated_desc';
+        }
+        const result = await serverListNotices(query);
+        return jsonOk(result);
+      }
+
+      if (supportsActivityListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        if (publishedOnly) query.status = 'published';
+        if (
+          !query.sort ||
+          query.sort === 'category' ||
+          query.sort === 'type' ||
+          query.sort === 'start_desc' ||
+          query.sort === 'start_asc' ||
+          query.sort === 'deadline_desc' ||
+          query.sort === 'deadline_asc'
+        ) {
+          query.sort = 'order_asc';
+        }
+        const result = await serverListActivities(query);
+        return jsonOk(result);
+      }
+
+      if (supportsResourceListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        if (publishedOnly) query.status = 'published';
+        if (
+          !query.sort ||
+          query.sort === 'category' ||
+          query.sort === 'type' ||
+          query.sort === 'start_desc' ||
+          query.sort === 'start_asc' ||
+          query.sort === 'deadline_desc' ||
+          query.sort === 'deadline_asc' ||
+          query.sort === 'order_asc'
+        ) {
+          query.sort = 'title_asc';
+        }
+        const result = await serverListResources(query);
+        return jsonOk(result);
+      }
+
+      if (supportsNewsListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        if (publishedOnly) query.status = 'published';
+        if (
+          !query.sort ||
+          query.sort === 'category' ||
+          query.sort === 'type' ||
+          query.sort === 'start_desc' ||
+          query.sort === 'start_asc' ||
+          query.sort === 'deadline_desc' ||
+          query.sort === 'deadline_asc' ||
+          query.sort === 'order_asc'
+        ) {
+          query.sort = 'published_desc';
+        }
+        const result = await serverListNews(query);
+        return jsonOk(result);
+      }
+
+      if (supportsMediaClippingListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        if (publishedOnly) query.status = 'published';
+        if (
+          !query.sort ||
+          query.sort === 'category' ||
+          query.sort === 'type' ||
+          query.sort === 'start_desc' ||
+          query.sort === 'start_asc' ||
+          query.sort === 'deadline_desc' ||
+          query.sort === 'deadline_asc' ||
+          query.sort === 'order_asc' ||
+          query.sort === 'published_desc' ||
+          query.sort === 'published_asc'
+        ) {
+          query.sort = 'year_desc';
+        }
+        const result = await serverListMediaClippings(query);
+        return jsonOk(result);
+      }
+
+      if (supportsResearchAreaListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        if (publishedOnly) query.status = 'published';
+        if (
+          query.sort !== 'updated_asc' &&
+          query.sort !== 'updated_desc' &&
+          query.sort !== 'title_asc' &&
+          query.sort !== 'order_asc'
+        ) {
+          query.sort = 'order_asc';
+        }
+        const result = await serverListResearchAreas(query);
         return jsonOk(result);
       }
 
@@ -157,14 +301,31 @@ export async function DELETE(request: Request, context: RouteContext) {
       ids?: string[];
       matchAll?: boolean;
     };
-    const { serverRemoveMany, serverListResearchProjects, serverListPublications, serverGetAll } =
-      await import('@/lib/cms/server-repository');
+    const {
+      serverRemoveMany,
+      serverListResearchProjects,
+      serverListPublications,
+      serverListEvents,
+      serverListNotices,
+      serverListActivities,
+      serverListResources,
+      serverListNews,
+      serverListMediaClippings,
+      serverListResearchAreas,
+      serverGetAll,
+    } = await import('@/lib/cms/server-repository');
     const {
       parseCollectionListQuery,
       supportsResearchListQuery,
       supportsPublicationListQuery,
-    } =
-      await import('@/lib/cms/paginated-list');
+      supportsEventListQuery,
+      supportsNoticeListQuery,
+      supportsActivityListQuery,
+      supportsResourceListQuery,
+      supportsNewsListQuery,
+      supportsMediaClippingListQuery,
+      supportsResearchAreaListQuery,
+    } = await import('@/lib/cms/paginated-list');
 
     let ids = Array.isArray(body.ids)
       ? body.ids.filter((id): id is string => typeof id === 'string' && id.length > 0)
@@ -186,6 +347,124 @@ export async function DELETE(request: Request, context: RouteContext) {
         query.facets = false;
         if (!query.sort || query.sort === 'category') query.sort = 'type';
         const result = await serverListPublications(query);
+        ids = result.items.map((item) => item.id);
+      } else if (supportsEventListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        query.page = 1;
+        query.pageSize = 10_000;
+        query.facets = false;
+        if (!query.sort || query.sort === 'category' || query.sort === 'type') {
+          query.sort = 'start_desc';
+        }
+        const result = await serverListEvents(query);
+        ids = result.items.map((item) => item.id);
+      } else if (supportsNoticeListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        query.page = 1;
+        query.pageSize = 10_000;
+        query.facets = false;
+        if (
+          !query.sort ||
+          query.sort === 'category' ||
+          query.sort === 'type' ||
+          query.sort === 'start_desc' ||
+          query.sort === 'start_asc'
+        ) {
+          query.sort = 'updated_desc';
+        }
+        const result = await serverListNotices(query);
+        ids = result.items.map((item) => item.id);
+      } else if (supportsActivityListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        query.page = 1;
+        query.pageSize = 10_000;
+        query.facets = false;
+        if (
+          !query.sort ||
+          query.sort === 'category' ||
+          query.sort === 'type' ||
+          query.sort === 'start_desc' ||
+          query.sort === 'start_asc' ||
+          query.sort === 'deadline_desc' ||
+          query.sort === 'deadline_asc'
+        ) {
+          query.sort = 'order_asc';
+        }
+        const result = await serverListActivities(query);
+        ids = result.items.map((item) => item.id);
+      } else if (supportsResourceListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        query.page = 1;
+        query.pageSize = 10_000;
+        query.facets = false;
+        if (
+          !query.sort ||
+          query.sort === 'category' ||
+          query.sort === 'type' ||
+          query.sort === 'start_desc' ||
+          query.sort === 'start_asc' ||
+          query.sort === 'deadline_desc' ||
+          query.sort === 'deadline_asc' ||
+          query.sort === 'order_asc'
+        ) {
+          query.sort = 'title_asc';
+        }
+        const result = await serverListResources(query);
+        ids = result.items.map((item) => item.id);
+      } else if (supportsNewsListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        query.page = 1;
+        query.pageSize = 10_000;
+        query.facets = false;
+        if (
+          !query.sort ||
+          query.sort === 'category' ||
+          query.sort === 'type' ||
+          query.sort === 'start_desc' ||
+          query.sort === 'start_asc' ||
+          query.sort === 'deadline_desc' ||
+          query.sort === 'deadline_asc' ||
+          query.sort === 'order_asc'
+        ) {
+          query.sort = 'published_desc';
+        }
+        const result = await serverListNews(query);
+        ids = result.items.map((item) => item.id);
+      } else if (supportsMediaClippingListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        query.page = 1;
+        query.pageSize = 10_000;
+        query.facets = false;
+        if (
+          !query.sort ||
+          query.sort === 'category' ||
+          query.sort === 'type' ||
+          query.sort === 'start_desc' ||
+          query.sort === 'start_asc' ||
+          query.sort === 'deadline_desc' ||
+          query.sort === 'deadline_asc' ||
+          query.sort === 'order_asc' ||
+          query.sort === 'published_desc' ||
+          query.sort === 'published_asc'
+        ) {
+          query.sort = 'year_desc';
+        }
+        const result = await serverListMediaClippings(query);
+        ids = result.items.map((item) => item.id);
+      } else if (supportsResearchAreaListQuery(collection)) {
+        const query = parseCollectionListQuery(url.searchParams);
+        query.page = 1;
+        query.pageSize = 10_000;
+        query.facets = false;
+        if (
+          query.sort !== 'updated_asc' &&
+          query.sort !== 'updated_desc' &&
+          query.sort !== 'title_asc' &&
+          query.sort !== 'order_asc'
+        ) {
+          query.sort = 'order_asc';
+        }
+        const result = await serverListResearchAreas(query);
         ids = result.items.map((item) => item.id);
       } else {
         let items = await serverGetAll(collection);

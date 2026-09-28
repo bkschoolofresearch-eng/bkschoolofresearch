@@ -114,6 +114,18 @@ export const cmsApi = {
       areaId?: string;
       featured?: boolean;
       hasLink?: boolean;
+      eventStatus?: string;
+      online?: boolean;
+      hasRegistration?: boolean;
+      noticeType?: string;
+      hasApplication?: boolean;
+      activityType?: string;
+      resourceType?: string;
+      software?: string;
+      newsLanguage?: string;
+      newsCategory?: string;
+      clippingLanguage?: string;
+      outlet?: string;
       sort?: string;
       facets?: boolean;
     } = {},
@@ -129,6 +141,12 @@ export const cmsApi = {
       withLink: number;
       byCategory?: Record<string, number>;
       byType?: Record<string, number>;
+      byCalendar?: Record<string, number>;
+      withRegistration?: number;
+      withApplication?: number;
+      bySoftware?: Record<string, number>;
+      byLanguage?: Record<string, number>;
+      byOutlet?: Record<string, number>;
       byStatus: { draft: number; published: number; archived: number };
     };
     options?: {
@@ -159,6 +177,21 @@ export const cmsApi = {
     if (params.featured === false) search.set('featured', '0');
     if (params.hasLink === true) search.set('hasLink', '1');
     if (params.hasLink === false) search.set('hasLink', '0');
+    if (params.eventStatus) search.set('eventStatus', params.eventStatus);
+    if (params.online === true) search.set('online', '1');
+    if (params.online === false) search.set('online', '0');
+    if (params.hasRegistration === true) search.set('hasRegistration', '1');
+    if (params.hasRegistration === false) search.set('hasRegistration', '0');
+    if (params.noticeType) search.set('noticeType', params.noticeType);
+    if (params.hasApplication === true) search.set('hasApplication', '1');
+    if (params.hasApplication === false) search.set('hasApplication', '0');
+    if (params.activityType) search.set('activityType', params.activityType);
+    if (params.resourceType) search.set('resourceType', params.resourceType);
+    if (params.software) search.set('software', params.software);
+    if (params.newsLanguage) search.set('newsLanguage', params.newsLanguage);
+    if (params.newsCategory) search.set('newsCategory', params.newsCategory);
+    if (params.clippingLanguage) search.set('clippingLanguage', params.clippingLanguage);
+    if (params.outlet) search.set('outlet', params.outlet);
     if (params.sort) search.set('sort', params.sort);
     if (params.facets) search.set('facets', '1');
 

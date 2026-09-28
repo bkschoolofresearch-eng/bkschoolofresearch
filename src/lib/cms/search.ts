@@ -10,7 +10,8 @@ export type SearchCategory =
   | 'news'
   | 'events'
   | 'notices'
-  | 'resources';
+  | 'resources'
+  | 'media';
 
 export interface SearchResult {
   id: string;
@@ -128,6 +129,19 @@ function buildIndex(database: ContentDatabase): SearchResult[] {
       href: `/notices/${notice.slug}`,
       excerpt: notice.summary,
       keywords: [notice.noticeType],
+    });
+  }
+
+  for (const clipping of database.mediaClippings ?? []) {
+    const href = clipping.url?.trim() || '/media';
+    results.push({
+      id: clipping.id,
+      category: 'media',
+      title: clipping.title,
+      slug: clipping.slug,
+      href,
+      excerpt: clipping.abstract?.trim() || clipping.citation,
+      keywords: [clipping.venue ?? '', ...clipping.authors, String(clipping.year)],
     });
   }
 

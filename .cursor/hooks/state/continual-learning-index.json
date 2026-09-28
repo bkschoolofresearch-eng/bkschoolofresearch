@@ -1,403 +1,451 @@
 {
     "workspace": "F:/Ratul/bk",
-    "updatedAt": "2026-09-26T11:01:15.343Z",
+    "updatedAt": "2026-09-28T11:50:51.571Z",
     "version": 1,
     "transcripts": {
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\06198369-bea4-465f-8d92-d47344ed57fb\\06198369-bea4-465f-8d92-d47344ed57fb.jsonl": {
             "mtimeMs": 1789216056647.847,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\07e2675e-0042-447d-98e1-b39f62a25a7e\\07e2675e-0042-447d-98e1-b39f62a25a7e.jsonl": {
             "mtimeMs": 1789207649856.5564,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\1404932e-0f3a-40ac-8b35-651d08e6c783\\1404932e-0f3a-40ac-8b35-651d08e6c783.jsonl": {
             "mtimeMs": 1789888549988.7898,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\1404932e-0f3a-40ac-8b35-651d08e6c783\\subagents\\63886c99-aca0-4bf1-9135-642bf4060aeb.jsonl": {
             "mtimeMs": 1789888236037.9353,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\1505b874-8457-4262-b632-6cf48b625380\\1505b874-8457-4262-b632-6cf48b625380.jsonl": {
             "mtimeMs": 1789037406304.3403,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\1e9c4df7-986c-4819-b742-ee5299091f96\\1e9c4df7-986c-4819-b742-ee5299091f96.jsonl": {
+            "mtimeMs": 1790423009923.7222,
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\1f625df0-4c85-478c-adc6-ea5c0b74eec9\\1f625df0-4c85-478c-adc6-ea5c0b74eec9.jsonl": {
             "mtimeMs": 1789903617386.8103,
-            "lastProcessedAt": "2026-09-21T09:52:18.615Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\1f625df0-4c85-478c-adc6-ea5c0b74eec9\\subagents\\904927f4-9d4f-420b-83ea-035fc7493aca.jsonl": {
             "mtimeMs": 1789902673710.342,
-            "lastProcessedAt": "2026-09-21T09:52:18.615Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\21b7e8a5-66a0-460f-a9b7-6390ffee0954\\21b7e8a5-66a0-460f-a9b7-6390ffee0954.jsonl": {
+            "mtimeMs": 1790595992024.0566,
+            "lastProcessedAt": "2026-09-28T11:50:51.571Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\21b7e8a5-66a0-460f-a9b7-6390ffee0954\\subagents\\6808691c-c147-4f78-9596-76b7e6d9fd90.jsonl": {
+            "mtimeMs": 1790427914835.7488,
+            "lastProcessedAt": "2026-09-27T08:07:16.902Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\21b7e8a5-66a0-460f-a9b7-6390ffee0954\\subagents\\fc96636d-4756-4efb-a2e1-951014b78e09.jsonl": {
+            "mtimeMs": 1790424263169.1155,
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\2605233f-7c0a-471f-83e3-4a80e8f57319\\2605233f-7c0a-471f-83e3-4a80e8f57319.jsonl": {
             "mtimeMs": 1788157949938.0903,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\2ca349c4-6864-4ecc-a2ea-d192e958005d\\2ca349c4-6864-4ecc-a2ea-d192e958005d.jsonl": {
             "mtimeMs": 1789801334743.196,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\2e700554-44bd-47b2-947c-468f9bb10f02\\2e700554-44bd-47b2-947c-468f9bb10f02.jsonl": {
             "mtimeMs": 1789899276265,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\2ed445c0-0909-45ef-b4f5-ce4cb107a9b0\\2ed445c0-0909-45ef-b4f5-ce4cb107a9b0.jsonl": {
             "mtimeMs": 1789371200416.045,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\2ed445c0-0909-45ef-b4f5-ce4cb107a9b0\\subagents\\da0d596e-d23a-4d5e-aec5-81d2479025b2.jsonl": {
             "mtimeMs": 1789369800370.4917,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\36bb57c5-980e-49f4-a469-9df7eaf6e96b\\36bb57c5-980e-49f4-a469-9df7eaf6e96b.jsonl": {
             "mtimeMs": 1790401661076.6753,
-            "lastProcessedAt": "2026-09-26T05:57:21.408Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\373d11e1-e49c-486f-a7d7-1970d9b5e8da\\373d11e1-e49c-486f-a7d7-1970d9b5e8da.jsonl": {
             "mtimeMs": 1789046810707.0808,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\373d11e1-e49c-486f-a7d7-1970d9b5e8da\\subagents\\21cced74-15c5-4502-a945-ca369515c105.jsonl": {
             "mtimeMs": 1789043841032.1555,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\3c5129e6-1e2a-4afc-9474-9cf05f4b2636\\3c5129e6-1e2a-4afc-9474-9cf05f4b2636.jsonl": {
             "mtimeMs": 1789897141069.0645,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\3c5129e6-1e2a-4afc-9474-9cf05f4b2636\\subagents\\fe8837e4-4fca-4854-b843-28ddbc4a01fe.jsonl": {
             "mtimeMs": 1789895425094.625,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\4272ca53-1656-44bd-aea9-8b0d0d83bf2f\\4272ca53-1656-44bd-aea9-8b0d0d83bf2f.jsonl": {
             "mtimeMs": 1789800833753.1274,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\4a3a8ad8-b966-40c9-89c2-6fdf9d715059\\4a3a8ad8-b966-40c9-89c2-6fdf9d715059.jsonl": {
             "mtimeMs": 1789049493771.2502,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\5f746630-3718-4244-8fdb-0608ad438dc4\\5f746630-3718-4244-8fdb-0608ad438dc4.jsonl": {
             "mtimeMs": 1789376303385.075,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\631baf86-7171-4114-9be1-999a2d8aea2a\\631baf86-7171-4114-9be1-999a2d8aea2a.jsonl": {
             "mtimeMs": 1789047296448.3484,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\64044237-ac19-4880-86d9-ba7038d0cc81\\64044237-ac19-4880-86d9-ba7038d0cc81.jsonl": {
             "mtimeMs": 1789215541488.3809,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\684b1ed0-c93d-4d3c-827d-3318499321ad\\684b1ed0-c93d-4d3c-827d-3318499321ad.jsonl": {
             "mtimeMs": 1789216274029.0442,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\684b1ed0-c93d-4d3c-827d-3318499321ad\\subagents\\5f6af416-dfbd-4653-85f4-048235acccde.jsonl": {
             "mtimeMs": 1789203147126.5518,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\684b1ed0-c93d-4d3c-827d-3318499321ad\\subagents\\d4ece1f6-43d8-4d8b-a1e1-4904b859434f.jsonl": {
             "mtimeMs": 1789050515604.9583,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\744d8103-d69b-404d-abbd-3f58957e2ef4\\744d8103-d69b-404d-abbd-3f58957e2ef4.jsonl": {
             "mtimeMs": 1789898131337.7734,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\744d8103-d69b-404d-abbd-3f58957e2ef4\\subagents\\34942670-6ae6-4146-b5a2-5a41ed9002a4.jsonl": {
             "mtimeMs": 1789888735309.1797,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\744d8103-d69b-404d-abbd-3f58957e2ef4\\subagents\\ce7a41e5-f1ba-45a8-9e29-7d6bedb3ebb3.jsonl": {
             "mtimeMs": 1789889091411.8516,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\744d8103-d69b-404d-abbd-3f58957e2ef4\\subagents\\d51bf4bf-d417-4959-95bc-e31291bc15d7.jsonl": {
             "mtimeMs": 1789888936103.984,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\77d574b0-3f7f-4c63-b9de-204ba1af6845.jsonl": {
             "mtimeMs": 1788439065316.0215,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\subagents\\0c7754bd-4daa-4669-9921-f24336acc8fd.jsonl": {
             "mtimeMs": 1788075335060.6548,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\subagents\\0fac5dd6-b5da-43fb-8a00-799b8cbd8c0f.jsonl": {
             "mtimeMs": 1788074765667.2715,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\subagents\\1c5277d0-1ddb-43f0-9379-164473ef889a.jsonl": {
             "mtimeMs": 1788076211089.5808,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\subagents\\21263972-854e-4a5c-b433-1c970543f407.jsonl": {
             "mtimeMs": 1788075425589.2532,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\subagents\\3df04da3-88dc-4e29-8bfe-315172c77438.jsonl": {
             "mtimeMs": 1788085356379.233,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\subagents\\6285fc3c-36a7-46a6-b875-c6a105d22e03.jsonl": {
             "mtimeMs": 1788157771714.0996,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\subagents\\7eb9b4a4-7311-4061-be68-2c7300967ce8.jsonl": {
             "mtimeMs": 1788438567669.8618,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\subagents\\ae5363a7-a750-4f2e-8b69-18deba5e5dc4.jsonl": {
             "mtimeMs": 1788075716697.3513,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\subagents\\b4636459-9806-4ef6-aea7-42132e7c2d40.jsonl": {
             "mtimeMs": 1788075810112.001,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\subagents\\c7828aaf-a1a3-4865-8012-f17ac135983d.jsonl": {
             "mtimeMs": 1788165970982.6162,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\subagents\\de6d3f7e-c19a-4b83-89d2-091d5fd5118b.jsonl": {
             "mtimeMs": 1788077242874.0286,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\77d574b0-3f7f-4c63-b9de-204ba1af6845\\subagents\\fb6aefec-d09a-444f-97bf-a3c65bb6f61d.jsonl": {
             "mtimeMs": 1788076153787.6753,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\792102e0-50a4-4f60-bcef-9cd9a2d2f723\\792102e0-50a4-4f60-bcef-9cd9a2d2f723.jsonl": {
             "mtimeMs": 1789049680448.5032,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\7993a7af-2390-4d18-bdef-b446885ee6de\\7993a7af-2390-4d18-bdef-b446885ee6de.jsonl": {
             "mtimeMs": 1789049075439.309,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\7c06975b-970b-49e4-a0f1-da95a27ed833\\7c06975b-970b-49e4-a0f1-da95a27ed833.jsonl": {
             "mtimeMs": 1789049704093.8892,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\7f934e6b-bbb1-4a44-9435-db34b3565a0e\\7f934e6b-bbb1-4a44-9435-db34b3565a0e.jsonl": {
             "mtimeMs": 1789465052300.7505,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\7f934e6b-bbb1-4a44-9435-db34b3565a0e\\subagents\\4a328ddb-fb31-42f0-b724-ce20abfaed32.jsonl": {
             "mtimeMs": 1789465040558.392,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\7f934e6b-bbb1-4a44-9435-db34b3565a0e\\subagents\\9629977d-8dd0-4e9c-89fb-5c909ef3e527.jsonl": {
             "mtimeMs": 1789371348835.5732,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\809f0215-9d4a-4aa7-a678-cce19c55cd82\\809f0215-9d4a-4aa7-a678-cce19c55cd82.jsonl": {
             "mtimeMs": 1789543026116.783,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\83d16b90-9af2-4235-82f4-823b3f7a2ed5\\83d16b90-9af2-4235-82f4-823b3f7a2ed5.jsonl": {
             "mtimeMs": 1789555097046.055,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\83d16b90-9af2-4235-82f4-823b3f7a2ed5\\subagents\\8259bcb3-7bfb-4d94-bb60-448510e6c6fa.jsonl": {
             "mtimeMs": 1789543235409.0215,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\83d16b90-9af2-4235-82f4-823b3f7a2ed5\\subagents\\99a2ce2f-908f-42f7-bf8b-ddb704f8a9de.jsonl": {
             "mtimeMs": 1789457256647.8965,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\8cc43b5c-536a-454a-830e-63d683f297f4\\8cc43b5c-536a-454a-830e-63d683f297f4.jsonl": {
             "mtimeMs": 1789042836072.5798,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\8cc43b5c-536a-454a-830e-63d683f297f4\\subagents\\99c6139c-a205-4a95-bc7b-13c52febb302.jsonl": {
             "mtimeMs": 1789042824362.5293,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\8cec3d2e-f13d-4920-b0b3-a8f5b82c9363\\8cec3d2e-f13d-4920-b0b3-a8f5b82c9363.jsonl": {
             "mtimeMs": 1789028522446.154,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\8e5674fc-f709-4841-b021-46853d499411\\8e5674fc-f709-4841-b021-46853d499411.jsonl": {
             "mtimeMs": 1789048625409.12,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\8f2c2dc3-cc08-4d5e-aaed-a4ce53e2060b\\8f2c2dc3-cc08-4d5e-aaed-a4ce53e2060b.jsonl": {
-            "mtimeMs": 1790403440367.6477,
-            "lastProcessedAt": "2026-09-26T09:00:49.370Z"
+            "mtimeMs": 1790593448482.581,
+            "lastProcessedAt": "2026-09-28T11:50:51.571Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\8f2c2dc3-cc08-4d5e-aaed-a4ce53e2060b\\subagents\\24e9f419-cc09-4cc6-ac93-3a93f5049bd3.jsonl": {
+            "mtimeMs": 1790503778281.6035,
+            "lastProcessedAt": "2026-09-28T11:50:51.571Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\8f2c2dc3-cc08-4d5e-aaed-a4ce53e2060b\\subagents\\a803fd0c-3494-4afb-988f-ff797f10e34c.jsonl": {
             "mtimeMs": 1790402255786.5552,
-            "lastProcessedAt": "2026-09-26T09:00:49.370Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\94fd90bc-e28f-49a2-bc3b-664f6148509e\\94fd90bc-e28f-49a2-bc3b-664f6148509e.jsonl": {
             "mtimeMs": 1789028481631.5386,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\97154b6a-c4f1-4c49-acf9-d70d851d0fb3\\97154b6a-c4f1-4c49-acf9-d70d851d0fb3.jsonl": {
             "mtimeMs": 1789049209790.9019,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\99bf0491-8193-4446-91b3-12f1ed318833\\99bf0491-8193-4446-91b3-12f1ed318833.jsonl": {
             "mtimeMs": 1789046504024.4197,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\a16bb40d-50dd-4089-841c-43a3c8be80ee\\a16bb40d-50dd-4089-841c-43a3c8be80ee.jsonl": {
             "mtimeMs": 1789458992437.3933,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\a3780139-f7ed-419e-8417-7009cf64b645\\a3780139-f7ed-419e-8417-7009cf64b645.jsonl": {
             "mtimeMs": 1789217117477.7292,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\a3780139-f7ed-419e-8417-7009cf64b645\\subagents\\184e14d2-fc05-423b-85a9-3713a096bfe2.jsonl": {
             "mtimeMs": 1789044432179.7134,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\a3780139-f7ed-419e-8417-7009cf64b645\\subagents\\3993f296-7e9f-452a-9bb6-4f69e7d3ddc1.jsonl": {
             "mtimeMs": 1789210854563.4321,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\a4c5dea6-1ad3-43ba-aa88-8bb2ea062eac\\a4c5dea6-1ad3-43ba-aa88-8bb2ea062eac.jsonl": {
             "mtimeMs": 1789984356493.912,
-            "lastProcessedAt": "2026-09-26T05:57:21.408Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\a4c5dea6-1ad3-43ba-aa88-8bb2ea062eac\\subagents\\e4e828d8-f85b-4752-ba99-b807614136a3.jsonl": {
             "mtimeMs": 1789984350565.8726,
-            "lastProcessedAt": "2026-09-26T05:57:21.408Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\a4c7a59b-be1b-42a6-bc8a-fe77f8e7c664\\a4c7a59b-be1b-42a6-bc8a-fe77f8e7c664.jsonl": {
             "mtimeMs": 1789810483378.9717,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\b12ed7c4-72b2-4dd1-9782-e30539a15525.jsonl": {
-            "mtimeMs": 1790420346441.1506,
-            "lastProcessedAt": "2026-09-26T11:01:15.343Z"
+            "mtimeMs": 1790596075385.7288,
+            "lastProcessedAt": "2026-09-28T11:50:51.571Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\subagents\\1b3532e8-c5b2-4895-9d8a-de2cf74d75e3.jsonl": {
+            "mtimeMs": 1790422503808.9507,
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\subagents\\1e9c4df7-986c-4819-b742-ee5299091f96.jsonl": {
+            "mtimeMs": 1790422997151.1162,
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\subagents\\41b252b3-1efd-46bf-ae3f-9d9796fc508c.jsonl": {
             "mtimeMs": 1790413261087.369,
-            "lastProcessedAt": "2026-09-26T11:01:15.343Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\subagents\\72c599fd-94c5-4076-be99-ee0f475b4923.jsonl": {
+            "mtimeMs": 1790421363682.1284,
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\subagents\\af0eafbf-d15b-4d1e-957c-559d2b296746.jsonl": {
+            "mtimeMs": 1790421803651.4963,
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\subagents\\c48abc16-91ad-4146-a548-806a4ea3cce2.jsonl": {
+            "mtimeMs": 1790422360106.4531,
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\subagents\\c59e485c-35b2-4e18-b092-646ef22ef0c2.jsonl": {
-            "mtimeMs": 1790420364659.043,
-            "lastProcessedAt": "2026-09-26T11:01:15.343Z"
+            "mtimeMs": 1790420483943.4966,
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\subagents\\e6ff7fe6-ece7-43ab-9d19-a04063e95f3a.jsonl": {
+            "mtimeMs": 1790496460348.193,
+            "lastProcessedAt": "2026-09-27T10:09:24.318Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b1f80dad-ee28-4037-9863-b74ffd9bfa18\\b1f80dad-ee28-4037-9863-b74ffd9bfa18.jsonl": {
             "mtimeMs": 1789283965372.7913,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b8f30b63-b955-4198-bb75-85f225143e63\\b8f30b63-b955-4198-bb75-85f225143e63.jsonl": {
             "mtimeMs": 1789040180800.806,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b8f30b63-b955-4198-bb75-85f225143e63\\subagents\\52acdca7-3225-4da1-8c2f-edb0f0e43753.jsonl": {
             "mtimeMs": 1789035476434.5933,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b8f30b63-b955-4198-bb75-85f225143e63\\subagents\\f4049563-90cd-44f3-a5c5-013cae43d4b2.jsonl": {
             "mtimeMs": 1789026244709.954,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\bec7c8bd-3a6b-4f2f-8e2e-ed52d27115a2\\bec7c8bd-3a6b-4f2f-8e2e-ed52d27115a2.jsonl": {
             "mtimeMs": 1790407970162.1636,
-            "lastProcessedAt": "2026-09-26T09:00:49.370Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\c47c2f76-513e-4f6f-8534-d95c02a67e43\\c47c2f76-513e-4f6f-8534-d95c02a67e43.jsonl": {
             "mtimeMs": 1789031835040.8582,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\ce0e81d4-57bf-4b1a-aa90-ac9ba6c56a10\\ce0e81d4-57bf-4b1a-aa90-ac9ba6c56a10.jsonl": {
             "mtimeMs": 1789048068897.1719,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\d49830d2-829d-4580-b6e7-23a7f258b87e\\d49830d2-829d-4580-b6e7-23a7f258b87e.jsonl": {
             "mtimeMs": 1788868092802.5425,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\d500a5f1-4d7c-425c-b248-87a8171c00b5\\d500a5f1-4d7c-425c-b248-87a8171c00b5.jsonl": {
             "mtimeMs": 1789200895580.0308,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\d5cf5f72-5f87-412d-afbd-f0ca14bc36ac\\d5cf5f72-5f87-412d-afbd-f0ca14bc36ac.jsonl": {
             "mtimeMs": 1788867138830.2239,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\d627a97b-4f97-4171-8de8-fd71dd3914f1\\d627a97b-4f97-4171-8de8-fd71dd3914f1.jsonl": {
             "mtimeMs": 1789377771870.4792,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\d67b3571-9b6f-4137-9208-f6768ca4a2b2\\d67b3571-9b6f-4137-9208-f6768ca4a2b2.jsonl": {
             "mtimeMs": 1789043114456.8733,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\dd2e5140-970e-46c9-8c93-305208c0c5b7\\dd2e5140-970e-46c9-8c93-305208c0c5b7.jsonl": {
             "mtimeMs": 1789979710482.539,
-            "lastProcessedAt": "2026-09-21T09:52:18.615Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\def23b3c-a4df-4ff6-a93b-b13087507b66\\def23b3c-a4df-4ff6-a93b-b13087507b66.jsonl": {
             "mtimeMs": 1789286892442.796,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\def23b3c-a4df-4ff6-a93b-b13087507b66\\subagents\\8b5e6946-d6d5-4b60-875e-c18db702405a.jsonl": {
             "mtimeMs": 1789281435298.4504,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\def23b3c-a4df-4ff6-a93b-b13087507b66\\subagents\\99cbee1d-7174-4977-bb50-46c1ed5f37b7.jsonl": {
             "mtimeMs": 1789282006452.025,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\e1774886-ca0a-45d7-b77c-dbbf3bfccf5e\\e1774886-ca0a-45d7-b77c-dbbf3bfccf5e.jsonl": {
             "mtimeMs": 1789893320964.4734,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\e80d1d7d-9ce0-4a6b-af0d-7cf48310313f\\e80d1d7d-9ce0-4a6b-af0d-7cf48310313f.jsonl": {
             "mtimeMs": 1789284786871.1194,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\e80d1d7d-9ce0-4a6b-af0d-7cf48310313f\\subagents\\0963409d-b6c9-459a-b42b-169ca7671a46.jsonl": {
             "mtimeMs": 1789216993841.462,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\e80d1d7d-9ce0-4a6b-af0d-7cf48310313f\\subagents\\e14f3fab-9f98-4264-915e-54ba2e188f55.jsonl": {
             "mtimeMs": 1789218110768.4465,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\e80d1d7d-9ce0-4a6b-af0d-7cf48310313f\\subagents\\f8589af8-bffa-4c9c-9a57-d2ffb1e2ef25.jsonl": {
             "mtimeMs": 1789216491240.1152,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\effa093e-b2c2-42bd-9be8-c526d4084f13\\effa093e-b2c2-42bd-9be8-c526d4084f13.jsonl": {
             "mtimeMs": 1789995314596.5305,
-            "lastProcessedAt": "2026-09-26T05:57:21.408Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\f1797ff8-41d1-4a91-b488-fe6d66fa5850\\f1797ff8-41d1-4a91-b488-fe6d66fa5850.jsonl": {
             "mtimeMs": 1789904180552.456,
-            "lastProcessedAt": "2026-09-21T09:52:18.615Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\f2ec7527-016e-41b9-8e0e-0e919ee6c0cf\\f2ec7527-016e-41b9-8e0e-0e919ee6c0cf.jsonl": {
             "mtimeMs": 1789646223023.6084,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\f2ec7527-016e-41b9-8e0e-0e919ee6c0cf\\subagents\\66cbc23b-4715-4388-83ea-72ee05f66a55.jsonl": {
             "mtimeMs": 1789377841467.5503,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\f2ec7527-016e-41b9-8e0e-0e919ee6c0cf\\subagents\\6add6e82-e956-4e2d-b2f5-400f2de7c9fa.jsonl": {
             "mtimeMs": 1789645396387.618,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\f2ec7527-016e-41b9-8e0e-0e919ee6c0cf\\subagents\\8cc137d6-ba2e-4207-9b04-39aac6dda1f7.jsonl": {
             "mtimeMs": 1789381497628.0894,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\f2ec7527-016e-41b9-8e0e-0e919ee6c0cf\\subagents\\efe2d993-db6f-4848-9605-db8a9d85ff42.jsonl": {
             "mtimeMs": 1789377147758.2449,
-            "lastProcessedAt": "2026-09-20T11:10:56.470Z"
+            "lastProcessedAt": "2026-09-26T13:05:06.345Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\subagents\\1a4016aa-4596-48ca-ab88-d846de299d60.jsonl": {
+            "mtimeMs": 1790596102712.9612,
+            "lastProcessedAt": "2026-09-28T11:50:51.571Z"
         }
     }
 }

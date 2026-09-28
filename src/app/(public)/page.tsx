@@ -8,6 +8,7 @@ import { MessageFromExecutive } from '@/components/home/MessageFromExecutive';
 import { NoticesAndEvents } from '@/components/home/NoticesAndEvents';
 import { NoticesNewsCarousel } from '@/components/home/NoticesNewsCarousel';
 import { OurPrograms } from '@/components/home/OurPrograms';
+import { ResearcherSay } from '@/components/home/ResearcherSay';
 import { StatsMarquee } from '@/components/home/StatsMarquee';
 import { TeamMemberCard } from '@/components/home/TeamMemberCard';
 import { WhoWeAre } from '@/components/home/WhoWeAre';
@@ -24,6 +25,7 @@ import {
   getNotices,
   getPeople,
   getPersonById,
+  getMediaClippings,
   getPublications,
   getResearchAreas,
   getResearchProjects,
@@ -36,16 +38,29 @@ import {
 import {
   ABOUT_HEADLINE,
   ABOUT_OVERVIEW_IDENTITY,
+  WHAT_WE_DO_PILLARS,
 } from '@/content/about-hub';
 import { withResearchExternalUrls, researchProjectVenueLine } from '@/lib/content/research-links';
 import { publicationCardSupportingLine } from '@/lib/content/publication-card';
+import { demoResearcherQuotes } from '@/content/seed/demo-roster';
+import { siteSettings } from '@/content/seed/site-settings';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = buildPageMetadata(
-  'BK School of Research',
-  'Interdisciplinary research shaping evidence-based policy across education, public policy, social development, and related fields.',
+  siteSettings.defaultSeo.title,
+  siteSettings.defaultSeo.description,
   '/',
 );
+
+function orderedPicks<T extends { id: string }>(
+  ids: string[] | undefined,
+  items: T[],
+): T[] {
+  if (!ids?.length) return [];
+  return ids
+    .map((id) => items.find((item) => item.id === id))
+    .filter((item): item is T => Boolean(item));
+}
 
 function HomeSectionIntro({
   title,
@@ -86,10 +101,10 @@ export default async function HomePage() {
     allPublications,
   );
   const opinionPublications = await getPublications({ type: 'opinion' });
-  const pressCoverage = await getPublications({ type: 'press-coverage' });
+  const mediaCoverage = await getMediaClippings();
 
   const archiveVisuals = [
-    ...pressCoverage
+    ...mediaCoverage
       .map((item) => item.coverImageUrl)
       .filter((url): url is string => Boolean(url)),
     ...opinionPublications
@@ -108,9 +123,10 @@ export default async function HomePage() {
     .filter((stat) => stat.verified)
     .sort((a, b) => a.order - b.order);
 
-  const featuredByConfig = homepage.featuredResearchProjectIds
-    .map((id) => researchProjects.find((p) => p.id === id))
-    .filter((item): item is NonNullable<typeof item> => Boolean(item));
+  const featuredByConfig = orderedPicks(
+    homepage.featuredResearchProjectIds,
+    researchProjects,
+  );
 
   const showcaseRank = (p: (typeof researchProjects)[number]) => {
     let score = 0;
@@ -128,20 +144,15 @@ export default async function HomePage() {
   ) =>
     showcaseRank(b) - showcaseRank(a) || (b.year ?? 0) - (a.year ?? 0);
 
-  /** Admin picks first (re-ranked for strength), then remaining strong items. */
-  const researchShowcasePool = [
-    ...[...featuredByConfig].sort(byShowcase),
-    ...[...researchProjects]
-      .filter((p) => !featuredByConfig.some((f) => f.id === p.id))
-      .sort(byShowcase),
-  ];
+  /** Checked homepage picks, in the saved order. If none are checked, fill from the research library. */
+  const researchShowcasePool = featuredByConfig.length
+    ? featuredByConfig
+    : [...researchProjects].sort(byShowcase);
   const researchFeatured = researchShowcasePool.slice(0, 2);
   const researchFeaturedIds = new Set(researchFeatured.map((item) => item.id));
   const researchSidebar = researchShowcasePool
     .filter((item) => !researchFeaturedIds.has(item.id))
     .slice(0, 3);
-
-  const mediaCoverage = pressCoverage;
 
   const people = await getPeople();
   const director =
@@ -176,11 +187,13 @@ export default async function HomePage() {
     return `${person.name} serves as ${person.role} at BK School of Research.`;
   };
 
-  /**
-   * Homepage team row: CMS-published people only (no fictional demo roster).
-   */
-  const publishedTeamMembers = people
-    .filter((person) => person.id !== director?.id)
+  const pickedTeam = orderedPicks(homepage.featuredPersonIds, people).filter(
+    (person) => person.id !== director?.id,
+  );
+  const teamSource = pickedTeam.length
+    ? pickedTeam
+    : people.filter((person) => person.id !== director?.id);
+  const publishedTeamMembers = teamSource
     .map((person) => ({
       href: `/people/${person.slug}`,
       name: person.name,
@@ -193,23 +206,19 @@ export default async function HomePage() {
     }));
 
   const teamMembers = publishedTeamMembers.slice(0, 4);
+  const researcherQuotes =
+    homepage.researcherQuotes?.length
+      ? homepage.researcherQuotes
+      : [...demoResearcherQuotes];
 
-  const featuredEventPool = (
-    homepage.featuredEventIds.length
-      ? [
-          ...homepage.featuredEventIds.map((id) =>
-            events.find((item) => item.id === id),
-          ),
-          ...events.filter(
-            (item) => !homepage.featuredEventIds.includes(item.id),
-          ),
-        ]
-      : events
-  ).filter((item): item is NonNullable<typeof item> => Boolean(item));
+  const pickedEvents = orderedPicks(homepage.featuredEventIds, events);
+  const featuredEventPool = pickedEvents.length ? pickedEvents : events;
 
   const eventItems = featuredEventPool.slice(0, 3);
 
-  const noticeSlides = notices.slice(0, 3).map((item, index) => ({
+  const pickedNotices = orderedPicks(homepage.featuredNoticeIds, notices);
+  const noticeSource = pickedNotices.length ? pickedNotices : notices;
+  const noticeSlides = noticeSource.slice(0, 3).map((item, index) => ({
     id: item.id,
     href: `/notices/${item.slug}`,
     title: item.title,
@@ -265,7 +274,21 @@ export default async function HomePage() {
     },
   ];
 
-  const opinionSlides = opinionPublications.slice(0, 3).map((item, index) => ({
+  const pickedOpinions = orderedPicks(
+    homepage.featuredPublicationIds,
+    opinionPublications,
+  );
+  const opinionSource = pickedOpinions.length
+    ? pickedOpinions
+    : opinionPublications;
+  const pickedAreas = orderedPicks(homepage.featuredResearchAreaIds, areas);
+  const homeAreas = pickedAreas.length ? pickedAreas : areas;
+  const pickedMedia = orderedPicks(
+    homepage.featuredMediaClippingIds,
+    mediaCoverage,
+  );
+  const homeMedia = pickedMedia.length ? pickedMedia : mediaCoverage;
+  const opinionSlides = opinionSource.slice(0, 3).map((item, index) => ({
     id: item.id,
     href: `/publications/${item.slug}`,
     title: item.title,
@@ -345,36 +368,12 @@ export default async function HomePage() {
                 archiveVisuals[0] ?? prototypeMedia.researchField.url
               }
               featureImageAlt="BKSR research and academic work"
-              pillars={[
-                {
-                  id: 'research-publications',
-                  title: 'Research & Publications',
-                  description:
-                    'Evidence-based research, shaping policy and building resilient societies.',
-                  href: '/research',
-                },
-                {
-                  id: 'capacity-building',
-                  title: 'Capacity Building',
-                  description:
-                    'Training workshops, fellowships and grants, and structured mentorship.',
-                  href: '/activities/capacity-building',
-                },
-                {
-                  id: 'policy-academic',
-                  title: 'Policy & Academic Engagement',
-                  description:
-                    'Policy dialogues, evidence briefings, seminars, and global partnerships.',
-                  href: '/activities/research-talks',
-                },
-                {
-                  id: 'community-impact',
-                  title: 'Community & Social Impact',
-                  description:
-                    'Field studies, outreach, and impact with local communities.',
-                  href: '/activities/awareness-campaigns',
-                },
-              ]}
+              pillars={WHAT_WE_DO_PILLARS.map((pillar) => ({
+                id: pillar.id,
+                title: pillar.title,
+                description: pillar.description,
+                href: pillar.href,
+              }))}
             />
           </Reveal>
         </Container>
@@ -401,7 +400,7 @@ export default async function HomePage() {
       ) : null}
 
       <FocusAreasCarousel
-        areas={areas.map((area) => ({
+        areas={homeAreas.map((area) => ({
           id: area.id,
           slug: area.slug,
           title: area.title,
@@ -462,7 +461,9 @@ export default async function HomePage() {
             mass media.
           </HomeSectionIntro>
 
-          <BksrInMedia items={mediaCoverage} />
+          <BksrInMedia
+            items={homeMedia}
+          />
         </Container>
       </Section>
 
@@ -510,6 +511,11 @@ export default async function HomePage() {
           </div>
         </Container>
       </Section>
+
+      <ResearcherSay
+        title="What our researchers say"
+        items={researcherQuotes}
+      />
 
       {/* Temporarily hidden — Talks & webinars */}
       {false && (
@@ -611,16 +617,13 @@ export default async function HomePage() {
                   'BKSR remains open to new institutional partnerships that advance research for good.',
                 imageSrc: prototypeMedia.collabComputerScience.url,
               },
-              {
-                id: 'forthcoming-env',
-                shortLabel: 'Worldwide',
-                title: 'Building bridges worldwide',
-                description:
-                  'Partnership details appear here when documented in the BKSR archive.',
-                imageSrc: prototypeMedia.collabEnvironmental.url,
-              },
             ]}
           />
+          <div className="mt-8 flex justify-center sm:mt-10">
+            <Button href="/contact" variant="ink" size="lg" withArrow>
+              Contact us to collaborate
+            </Button>
+          </div>
         </Container>
       </Section>
     </>

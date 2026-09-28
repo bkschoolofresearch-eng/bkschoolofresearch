@@ -5,7 +5,10 @@ import {
   VacancyAside,
 } from '@/components/editorial/ArticleReading';
 import { getContentDatabase } from '@/lib/cms/get-content-database';
-import { resolveFormForVacancy } from '@/lib/content/registration-forms';
+import {
+  noticeApplyHref,
+  resolveFormForVacancy,
+} from '@/lib/content/registration-forms';
 import { getNoticeBySlug, getNotices } from '@/lib/content/queries';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { formatDate } from '@/lib/utils';
@@ -43,12 +46,7 @@ export default async function DetailPage({ params }: Props) {
   const isVacancy = item.noticeType === 'vacancy';
   const db = await getContentDatabase();
   const form = isVacancy ? resolveFormForVacancy(db, item) : undefined;
-  const applyHref =
-    form && form.status === 'published'
-      ? `/forms/${form.slug}`
-      : item.slug === 'job-vacancy'
-        ? 'https://forms.gle/cCDhgnxEt5kHwX1v9'
-        : null;
+  const applyHref = isVacancy ? noticeApplyHref(item, form) : null;
 
   const deadlineLabel = item.deadlineAt
     ? formatDate(item.deadlineAt, 'd MMMM yyyy')

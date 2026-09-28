@@ -17,6 +17,7 @@ import type {
   GalleryImage,
   HomepageConfig,
   MediaAsset,
+  MediaClipping,
   NavigationItem,
   NewsArticle,
   Notice,
@@ -209,6 +210,15 @@ export async function getPublicationById(
   options?: PublishedFilter,
 ): Promise<Publication | undefined> {
   return (await getPublications(options)).find((pub) => pub.id === id);
+}
+
+export async function getMediaClippings(
+  options?: PublishedFilter,
+): Promise<MediaClipping[]> {
+  return filterPublished(
+    (await getContentDatabase()).mediaClippings ?? [],
+    options,
+  ).sort((a, b) => b.year - a.year || a.title.localeCompare(b.title));
 }
 
 export async function getActivities(

@@ -229,6 +229,24 @@ export function resolveFormForEvent(
   return getFormForEntity(db, 'event', event.id);
 }
 
+/** In-site form when one is attached and published; otherwise the external apply link. */
+export function noticeApplyHref(
+  notice: Pick<Notice, 'applicationUrl'>,
+  form: RegistrationForm | undefined,
+  options?: { requireOpen?: boolean },
+): string | null {
+  if (
+    form &&
+    form.status === 'published' &&
+    (!options?.requireOpen || form.isOpen)
+  ) {
+    return `/forms/${form.slug}`;
+  }
+  const url = notice.applicationUrl?.trim() ?? '';
+  if (/^https?:\/\//i.test(url)) return url;
+  return null;
+}
+
 export function resolveFormForVacancy(
   db: ContentDatabase,
   notice: Pick<Notice, 'id' | 'applicationFormId'>,

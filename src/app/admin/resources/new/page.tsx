@@ -1,7 +1,7 @@
 'use client';
 
-import { CollectionEditorPage } from '@/components/admin/CollectionEditorPage';
+import { ResourceEditorPage } from '@/components/admin/ResourceEditorPage';
 
 export default function Page() {
-  return <CollectionEditorPage collectionSlug="resources" mode="new" />;
+  return <ResourceEditorPage mode="new" />;
 }

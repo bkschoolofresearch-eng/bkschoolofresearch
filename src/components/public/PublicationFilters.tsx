@@ -6,15 +6,31 @@ import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { getPublicationCoverUrl } from '@/lib/content/prototype-media';
 import { PUBLICATION_TYPE_LABELS } from '@/lib/public/labels';
-import type { Publication, PublicationType, ResearchArea } from '@/types/content';
+import type { PublicationType, ResearchArea } from '@/types/content';
 import { cn } from '@/lib/utils';
 
+type FilterableItem = {
+  id: string;
+  slug: string;
+  title: string;
+  authors: string[];
+  year: number;
+  citation: string;
+  venue?: string | null;
+  url?: string | null;
+  coverImageUrl?: string | null;
+  areaIds?: string[];
+  type?: PublicationType;
+};
+
 type Props = {
-  publications: Publication[];
+  publications: FilterableItem[];
   areas: ResearchArea[];
   initialType?: PublicationType | 'all';
   /** When true, type cannot change (used on /publications/journals etc.) */
   lockType?: boolean;
+  /** Outlet clippings open the external URL instead of a publication page. */
+  external?: boolean;
 };
 
 const chipScroll =
@@ -91,6 +107,7 @@ export function PublicationFilters({
   areas,
   initialType = 'all',
   lockType = false,
+  external = false,
 }: Props) {
   const baseId = useId();
   const [type, setType] = useState(initialType);
@@ -100,13 +117,13 @@ export function PublicationFilters({
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
   const [refineOpen, setRefineOpen] = useState(false);
 
-  const scoped = useMemo(
-    () =>
-      lockType && initialType !== 'all'
-        ? publications.filter((item) => item.type === initialType)
-        : publications.filter((item) => item.type !== 'press-coverage'),
-    [publications, lockType, initialType],
-  );
+  const scoped = useMemo(() => {
+    if (external) return publications;
+    if (lockType && initialType !== 'all') {
+      return publications.filter((item) => item.type === initialType);
+    }
+    return publications;
+  }, [publications, lockType, initialType, external]);
 
   const years = useMemo(
     () =>
@@ -138,7 +155,7 @@ export function PublicationFilters({
             item.title,
             item.citation,
             item.venue,
-            PUBLICATION_TYPE_LABELS[item.type],
+            item.type ? PUBLICATION_TYPE_LABELS[item.type] : '',
             ...item.authors,
           ]
             .filter(Boolean)
@@ -160,8 +177,9 @@ export function PublicationFilters({
     year !== 'all' ||
     query.trim().length > 0;
 
-  const countLabel =
-    lockType && initialType !== 'all'
+  const countLabel = external
+    ? `${filtered.length} press coverage${filtered.length === 1 ? '' : 's'}`
+    : lockType && initialType !== 'all'
       ? `${filtered.length} ${PUBLICATION_TYPE_LABELS[initialType].toLowerCase()}${filtered.length === 1 ? '' : 's'}`
       : `${filtered.length} publication${filtered.length === 1 ? '' : 's'}`;
 
@@ -183,7 +201,9 @@ export function PublicationFilters({
 
   const renderSearchField = () => (
     <label className="relative block">
-      <span className="sr-only">Search publications</span>
+      <span className="sr-only">
+        {external ? 'Search coverage' : 'Search publications'}
+      </span>
       <Search
         className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted"
         strokeWidth={2}
@@ -482,17 +502,15 @@ export function PublicationFilters({
           <ul className="divide-y divide-border">
             {filtered.map((item) => {
               const cover = getPublicationCoverUrl(item);
+              const outletUrl = item.url?.trim() ?? '';
               const href =
-                item.type === 'press-coverage' && item.url?.trim()
-                  ? item.url.trim()
-                  : `/publications/${item.slug}`;
-              const external =
-                item.type === 'press-coverage' && Boolean(item.url?.trim());
+                external && outletUrl ? outletUrl : `/publications/${item.slug}`;
+              const opensOutlet = external && Boolean(outletUrl);
               return (
                 <li key={item.id}>
                   <Link
                     href={href}
-                    {...(external
+                    {...(opensOutlet
                       ? { target: '_blank', rel: 'noopener noreferrer' }
                       : {})}
                     className="group grid grid-cols-[4.25rem_minmax(0,1fr)] gap-4 py-6 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-7 sm:py-8"
@@ -522,9 +540,12 @@ export function PublicationFilters({
 
                     <span className="min-w-0 self-center sm:self-auto">
                       <span className="font-sans text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-muted sm:text-[0.6875rem] sm:tracking-[0.16em]">
-                        {lockType
-                          ? item.venue || PUBLICATION_TYPE_LABELS[item.type]
-                          : PUBLICATION_TYPE_LABELS[item.type]}
+                        {lockType || external
+                          ? item.venue ||
+                            (item.type ? PUBLICATION_TYPE_LABELS[item.type] : 'Coverage')
+                          : item.type
+                            ? PUBLICATION_TYPE_LABELS[item.type]
+                            : 'Coverage'}
                         <span className="mx-1.5 text-border sm:mx-2" aria-hidden>
                           ·
                         </span>
@@ -536,7 +557,7 @@ export function PublicationFilters({
                       <span className="mt-1.5 block text-sm leading-relaxed text-muted sm:mt-2.5">
                         {item.authors.join(', ')}
                       </span>
-                      {item.venue && !lockType ? (
+                      {item.venue && !lockType && !external ? (
                         <span className="mt-1 hidden font-serif text-sm italic leading-snug text-body/80 sm:mt-1.5 sm:block">
                           {item.venue}
                         </span>
@@ -553,8 +574,12 @@ export function PublicationFilters({
           </ul>
         ) : (
           <EmptyState
-            title="No matching publications"
-            description="Try a different type, year, area, or keyword."
+            title={external ? 'No matching coverage' : 'No matching publications'}
+            description={
+              external
+                ? 'Try a different year or keyword.'
+                : 'Try a different type, year, area, or keyword.'
+            }
           />
         )}
       </div>

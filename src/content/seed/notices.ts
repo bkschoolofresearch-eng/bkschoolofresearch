@@ -12,6 +12,7 @@ export const notices: Notice[] = [
     summary:
       'BKSR is recruiting research scholars and professionals — Research Fellow, Associate, Assistant, Enumerator, and creative roles. Extended deadline: 20 July 2023.',
     applicationFormId: 'form-career-vacancy-shared',
+    applicationUrl: 'https://forms.gle/cCDhgnxEt5kHwX1v9',
     body: `BK School of Research (BKSR) is a non-profit research organization founded in 2015 which aims to aspire youths in innovative research and to contribute to the building of smart Bangladesh and sustainable society through policy-based research. Currently over 350 research scholars and enumerators from 22 countries have been working. Till now BKSR have published over 20 peer-reviewed journal articles and book chapters. Recently BK School of Research has achieved ‘Joy Bangla Youth Award 2022’ for its significant contribution in youth development through quality education and innovative research.
 
 With a view to fostering the growth of the organization’s activities, BK School of Research is looking for passionate, smart-working, and dedicated research scholars and other professionals.

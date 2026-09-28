@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { ArrowLink } from '@/components/ui/ArrowLink';
 import { Container } from '@/components/ui/Container';
 import { ImageFrame } from '@/components/ui/ImageFrame';
+import { HowWeWorkTimeline } from '@/components/home/HowWeWorkTimeline';
 import { Reveal } from '@/components/motion/Reveal';
 import { cn } from '@/lib/utils';
 import {
@@ -16,7 +17,7 @@ import {
   ABOUT_PARTNERS,
   ABOUT_VALUES,
   ABOUT_VISION,
-  ABOUT_WHAT_WE_DO,
+  WHAT_WE_DO_PILLARS,
 } from '@/content/about-hub';
 import type { Person } from '@/types/content';
 
@@ -295,38 +296,27 @@ export function AboutHub({ director, links, storyImage }: AboutHubProps) {
         <Container>
           <Reveal>
             <SectionHead
-              eyebrow="What we do"
-              title="Research that reaches the world"
+              eyebrow="About"
+              title="What we do"
               action={
                 <ArrowLink href="/about/what-we-do">Full What we do</ArrowLink>
               }
             >
-              Funded studies, publishing, capacity building, and community
-              fieldwork — evidence turned into use.
+              Research and publications, capacity building, policy engagement,
+              and community impact.
             </SectionHead>
           </Reveal>
 
-          <div className="mt-8 grid gap-3 sm:mt-10 sm:gap-4 md:grid-cols-2">
-            {ABOUT_WHAT_WE_DO.map((item, index) => (
-              <Reveal key={item.id} delay={0.03 * index}>
-                <article
-                  className={cn(
-                    'flex h-full min-w-0 flex-col rounded-[1.25rem] p-5 text-paper sm:rounded-[1.75rem] sm:p-6 md:p-7',
-                    index % 2 === 0 ? 'bg-ink' : 'bg-accent',
-                  )}
-                >
-                  <MetaChip onInk>
-                    {String(index + 1).padStart(2, '0')}
-                  </MetaChip>
-                  <h3 className="mt-4 font-instrument text-xl font-medium leading-snug sm:text-2xl">
-                    {item.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-paper/70 sm:text-[0.975rem] sm:leading-[1.7]">
-                    {item.body}
-                  </p>
-                </article>
-              </Reveal>
-            ))}
+          <div className="mt-8 sm:mt-10">
+            <HowWeWorkTimeline
+              showLabel={false}
+              steps={WHAT_WE_DO_PILLARS.map((pillar) => ({
+                id: pillar.id,
+                title: pillar.title,
+                description: pillar.description,
+                href: pillar.href,
+              }))}
+            />
           </div>
         </Container>
       </section>

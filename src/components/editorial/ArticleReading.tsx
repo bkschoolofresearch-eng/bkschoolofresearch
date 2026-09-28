@@ -17,6 +17,7 @@ type ArticleReadingProps = {
   backHref?: string;
   backLabel?: string;
   className?: string;
+  bodySlot?: React.ReactNode;
 };
 
 /**
@@ -34,6 +35,7 @@ export function ArticleReading({
   backHref,
   backLabel = 'Back',
   className,
+  bodySlot,
 }: ArticleReadingProps) {
   return (
     <Section
@@ -63,16 +65,18 @@ export function ArticleReading({
               </div>
             ) : null}
 
-            <RichText
-              content={body}
-              className={cn(
-                'max-w-160',
-                '[&_h2]:scroll-mt-28 [&_h3]:scroll-mt-28',
-                'sm:[&>*+*]:mt-6',
-                '[&_h2]:mt-11 sm:[&_h2]:mt-12',
-                '[&_h3]:mt-9',
-              )}
-            />
+            {bodySlot ?? (
+              <RichText
+                content={body}
+                className={cn(
+                  'max-w-160',
+                  '[&_h2]:scroll-mt-28 [&_h3]:scroll-mt-28',
+                  'sm:[&>*+*]:mt-6',
+                  '[&_h2]:mt-11 sm:[&_h2]:mt-12',
+                  '[&_h3]:mt-9',
+                )}
+              />
+            )}
 
             {legacyUrl || backHref ? (
               <footer className="mt-12 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border pt-8 sm:mt-14">

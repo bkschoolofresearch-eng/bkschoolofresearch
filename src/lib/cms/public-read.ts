@@ -11,6 +11,7 @@ export const CMS_PUBLIC_PUBLISHED_COLLECTIONS = new Set<ContentCollectionKey>([
   'researchAreas',
   'researchProjects',
   'publications',
+  'mediaClippings',
   'activities',
   'news',
   'events',

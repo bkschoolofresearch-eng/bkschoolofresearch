@@ -19,6 +19,7 @@ const CATEGORIES: { label: string; value: SearchCategory }[] = [
   { label: 'Events', value: 'events' },
   { label: 'Notices', value: 'notices' },
   { label: 'Resources', value: 'resources' },
+  { label: 'BKSR in Media', value: 'media' },
 ];
 
 type SearchPanelProps = {
@@ -116,6 +117,9 @@ export function SearchPanel({
                 </p>
                 <Link
                   href={item.href}
+                  {...(item.href.startsWith('http')
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {})}
                   className="mt-1 block font-display text-2xl text-ink transition-colors hover:text-accent"
                 >
                   {item.title}

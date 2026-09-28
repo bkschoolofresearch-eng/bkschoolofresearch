@@ -1,4 +1,5 @@
 import type { Person } from '@/types/content';
+import { demoPeople } from './demo-roster';
 
 const now = '2026-08-30T00:00:00.000Z';
 const published = '2016-12-01T00:00:00.000Z';
@@ -46,6 +47,7 @@ He founded BK School of Research in October 2015; the organization began its off
       canonicalPath: '/people/bezon-kumar',
     },
   },
+  ...demoPeople,
 ];
 
 /** Empty structural collections — populate when real profiles are available */

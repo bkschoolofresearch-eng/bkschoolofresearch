@@ -77,7 +77,6 @@ export const PUBLICATION_TYPE_LABELS: Record<PublicationType, string> = {
   'book-chapter': 'Book chapter',
   conference: 'Conference',
   opinion: 'Opinion',
-  'press-coverage': 'Press coverage',
   report: 'Report',
   newsletter: 'Newsletter',
   'annual-report': 'Annual report',

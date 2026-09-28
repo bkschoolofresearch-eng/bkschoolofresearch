@@ -1,5 +1,4 @@
 import type { Publication } from '@/types/content';
-import { pressCoveragePublications } from './press-coverage';
 
 const base = {
   status: 'published' as const,
@@ -983,7 +982,4 @@ const scholarlyPublications: Publication[] = [
   },
 ];
 
-export const publications: Publication[] = [
-  ...scholarlyPublications,
-  ...pressCoveragePublications,
-];
+export const publications: Publication[] = scholarlyPublications;

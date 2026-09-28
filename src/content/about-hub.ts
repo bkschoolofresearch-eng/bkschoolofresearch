@@ -75,26 +75,50 @@ export const ABOUT_VALUES = [
   },
 ] as const;
 
-export const ABOUT_WHAT_WE_DO = [
+/** Homepage What we do column, the /about section, and /about/what-we-do. */
+export const WHAT_WE_DO_PILLARS = [
   {
-    id: 'do-research',
-    title: 'Research',
-    body: 'Evidence-based research across health, business, policy, and culture — through funded projects and contract research for government bodies, NGOs, and development partners.',
+    id: 'research-publications',
+    title: 'Research & Publications',
+    description:
+      'Evidence-based research, shaping policy and building resilient societies.',
+    href: '/research',
+    paragraphs: [
+      'BK School of Research conducts evidence-based research across health, business, policy, and culture, through both funded projects and contract research for government bodies, NGOs, and development partners.',
+      'We publish peer-reviewed articles in scholarly journals, along with policy briefs, research reports, and working paper series to reach practitioners and policymakers directly, ensuring our research translates into real-world use.',
+    ],
   },
   {
-    id: 'do-publish',
-    title: 'Publish',
-    body: 'Peer-reviewed articles in scholarly journals, plus policy briefs, research reports, and working papers that reach practitioners and policymakers directly.',
+    id: 'capacity-building',
+    title: 'Capacity Building',
+    description:
+      'Training workshops, fellowships and grants, and structured mentorship.',
+    href: '/activities/capacity-building',
+    paragraphs: [
+      'BK School of Research offers training workshops on research methodology and data analysis to strengthen technical and analytical skills, alongside fellowships and grants that support early-career researchers in pursuing independent and collaborative research.',
+      'To bridge experience across career stages, we pair senior faculty with junior researchers through structured mentorship, fostering the transfer of expertise and the growth of a new generation of scholars.',
+    ],
   },
   {
-    id: 'do-capacity',
-    title: 'Build capacity',
-    body: 'Training, fellowships, and mentorship for early-career researchers, with roundtables, briefings, seminars, and international partnerships.',
+    id: 'policy-academic',
+    title: 'Policy & Academic Engagement',
+    description:
+      'Policy dialogues, evidence briefings, seminars, and global partnerships.',
+    href: '/activities/research-talks',
+    paragraphs: [
+      'BK School of Research facilitates policy dialogues and roundtables that bring together government and industry stakeholders to exchange ideas and address shared challenges. Through evidence-to-policy briefings, we translate research findings into actionable recommendations that inform real-world decisions.',
+      'We sustain an active academic community through regular seminars, conferences, colloquia, research talk and guest lectures, in addition to building collaborative partnerships with international universities and research institutes to broaden the reach and rigor of our work.',
+    ],
   },
   {
-    id: 'do-community',
-    title: 'Engage communities',
-    body: 'Field studies, public health surveys, and partnerships with civil society so research leads to real, lasting impact.',
+    id: 'community-impact',
+    title: 'Community & Social Impact',
+    description: 'Field studies, outreach, and impact with local communities.',
+    href: '/activities/awareness-campaigns',
+    paragraphs: [
+      'BK School of Research conducts field-based studies and public health surveys grounded in local communities. Through outreach initiatives, we translate research into public awareness.',
+      'We also collaborate with civil society organizations to extend the impact of our research to local communities.',
+    ],
   },
 ] as const;
 

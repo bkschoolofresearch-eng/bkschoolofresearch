@@ -6,7 +6,10 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Section } from '@/components/ui/Section';
 import { getContentDatabase } from '@/lib/cms/get-content-database';
 import { pageHeroMedia } from '@/lib/content/page-heroes';
-import { resolveFormForVacancy } from '@/lib/content/registration-forms';
+import {
+  noticeApplyHref,
+  resolveFormForVacancy,
+} from '@/lib/content/registration-forms';
 import { getNotices } from '@/lib/content/queries';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { formatDate } from '@/lib/utils';
@@ -43,10 +46,9 @@ export default async function CareerPage() {
             <ul className="grid gap-5 md:grid-cols-2">
               {vacancies.map((item) => {
                 const form = resolveFormForVacancy(db, item);
-                const applyHref =
-                  form && form.status === 'published' && form.isOpen
-                    ? `/forms/${form.slug}`
-                    : null;
+                const applyHref = noticeApplyHref(item, form, {
+                  requireOpen: true,
+                });
 
                 return (
                   <li key={item.id}>
@@ -78,6 +80,9 @@ export default async function CareerPage() {
                         {applyHref ? (
                           <Link
                             href={applyHref}
+                            {...(/^https?:\/\//i.test(applyHref)
+                              ? { target: '_blank', rel: 'noopener noreferrer' }
+                              : {})}
                             className="inline-flex rounded-full bg-ink px-4 py-2 font-sans text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-accent"
                           >
                             Apply

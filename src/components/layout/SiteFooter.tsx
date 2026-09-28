@@ -18,6 +18,8 @@ type SiteFooterProps = {
  */
 const FOOTER_ILLUSTRATION = '/media/brand/bksr-footer-fruitful.png';
 const FOOTER_SURFACE = '#F7F1E6';
+/** Public inbox connected to Resend. */
+const FOOTER_EMAIL = 'bkschoolofresearch@gmail.com';
 
 const exploreLinks = [
   { id: 'ex-about', label: 'About BKSR', href: '/about' },
@@ -48,6 +50,18 @@ const instituteLinks = [
 /** Scene stays quiet behind type, then opens in the art band. */
 const ILLUSTRATION_MASK =
   'linear-gradient(180deg, transparent 0%, transparent 20%, rgba(0,0,0,0.04) 38%, rgba(0,0,0,0.14) 52%, rgba(0,0,0,0.4) 64%, rgba(0,0,0,0.75) 76%, rgba(0,0,0,0.95) 88%, #000 96%)';
+
+function FooterEmail({ address }: { address: string }) {
+  const at = address.indexOf('@');
+  if (at < 1) return <span className="min-w-0 leading-snug">{address}</span>;
+
+  return (
+    <span className="leading-snug">
+      {address.slice(0, at)}@<wbr />
+      {address.slice(at + 1)}
+    </span>
+  );
+}
 
 function ContactIcon({ kind }: { kind: 'phone' | 'mail' }) {
   if (kind === 'phone') {
@@ -160,13 +174,13 @@ export function SiteFooter({
                 </li>
                 <li>
                   <a
-                    href={`mailto:${settings.emails.general}`}
-                    className="inline-flex items-center gap-3 font-instrument text-[0.9375rem] text-ink transition-colors hover:text-accent sm:text-base"
+                    href={`mailto:${FOOTER_EMAIL}`}
+                    className="inline-flex items-start gap-3 font-instrument text-[0.9375rem] text-ink transition-colors hover:text-accent sm:text-base"
                   >
-                    <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-ink/8 text-accent">
+                    <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-ink/8 text-accent">
                       <ContactIcon kind="mail" />
                     </span>
-                    <span className="break-all">{settings.emails.general}</span>
+                    <FooterEmail address={FOOTER_EMAIL} />
                   </a>
                 </li>
               </ul>

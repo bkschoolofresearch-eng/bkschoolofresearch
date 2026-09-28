@@ -19,6 +19,7 @@ const COLLECTION_KEYS: ContentCollectionKey[] = [
   'researchAreas',
   'researchProjects',
   'publications',
+  'mediaClippings',
   'activities',
   'news',
   'events',
