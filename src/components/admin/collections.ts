@@ -19,6 +19,7 @@
 
 export type AdminCollectionSlug =
   | 'publications'
+  | 'bksr-in-media'
   | 'research'
   | 'news'
   | 'events'
@@ -73,7 +74,12 @@ export interface CollectionConfig {
   /** Field used as card excerpt */
   cardExcerptKey?: string;
   searchFields: string[];
-  previewPath?: (item: { slug?: string; status?: ContentStatus; researchStatus?: string }) => string | null;
+  previewPath?: (item: {
+    slug?: string;
+    status?: ContentStatus;
+    researchStatus?: string;
+    url?: string | null;
+  }) => string | null;
   listColumns: {
     key: string;
     label: string;
@@ -149,7 +155,6 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
           { value: 'book-chapter', label: 'Book chapter' },
           { value: 'conference', label: 'Conference' },
           { value: 'opinion', label: 'Opinion' },
-          { value: 'press-coverage', label: 'Press coverage' },
           { value: 'report', label: 'Report' },
           { value: 'newsletter', label: 'Newsletter' },
           { value: 'annual-report', label: 'Annual report' },
@@ -195,7 +200,6 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
           { value: 'book-chapter', label: 'Book chapter' },
           { value: 'conference', label: 'Conference' },
           { value: 'opinion', label: 'Opinion' },
-          { value: 'press-coverage', label: 'Press coverage' },
           { value: 'report', label: 'Report' },
           { value: 'newsletter', label: 'Newsletter' },
           { value: 'annual-report', label: 'Annual report' },
@@ -224,6 +228,58 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
         help: 'Focus area IDs from the Focus areas list (comma-separated)',
       },
       { name: 'projectId', label: 'Related research project', type: 'text', tab: 'relations' },
+    ],
+  },
+
+  'bksr-in-media': {
+    slug: 'bksr-in-media',
+    key: 'mediaClippings',
+    singular: 'Clipping',
+    plural: 'BKSR in Media',
+    addLabel: 'Add clipping',
+    helpText: 'Newspaper, television, and online coverage of BKSR. These are not publications.',
+    publicHint: '/media',
+    cardImageKey: 'coverImageUrl',
+    cardExcerptKey: 'abstract',
+    searchFields: ['title', 'citation', 'authors', 'venue'],
+    previewPath: (item) => item.url?.trim() || null,
+    canDuplicate: false,
+    listColumns: [
+      { key: 'title', label: 'Headline' },
+      { key: 'venue', label: 'Outlet' },
+      { key: 'year', label: 'Year' },
+      { key: 'status', label: 'Status', render: 'status' },
+      { key: 'updatedAt', label: 'Updated', render: 'date' },
+    ],
+    filters: [{ name: 'status', label: 'Status', options: statusOptions }],
+    getTitle: (item) => String(item.title ?? 'Untitled clipping'),
+    defaults: () => ({
+      title: '',
+      slug: '',
+      status: 'draft',
+      authors: [],
+      year: new Date().getFullYear(),
+      citation: '',
+      venue: '',
+      abstract: '',
+      language: '',
+      coverImageUrl: null,
+      url: null,
+      seo: {},
+    }),
+    fields: [
+      { name: 'title', label: 'Headline', type: 'text', tab: 'content', required: true },
+      { name: 'slug', label: 'Page URL name', type: 'slug', tab: 'content' },
+      { name: 'status', label: 'On the site', type: 'status', tab: 'content' },
+      { name: 'venue', label: 'Outlet', type: 'text', tab: 'content', help: 'Newspaper, television channel, or site' },
+      { name: 'url', label: 'Outlet link', type: 'url', tab: 'content', required: true },
+      { name: 'authors', label: 'Byline', type: 'tags', tab: 'content', help: 'Comma-separated. Leave empty if the outlet has no byline.' },
+      { name: 'year', label: 'Year', type: 'number', tab: 'content' },
+      { name: 'publishedAt', label: 'Published date', type: 'datetime', tab: 'content' },
+      { name: 'citation', label: 'Citation', type: 'textarea', tab: 'content', rows: 3 },
+      { name: 'abstract', label: 'Short description', type: 'textarea', tab: 'content', rows: 4 },
+      { name: 'language', label: 'Language', type: 'text', tab: 'metadata' },
+      { name: 'coverImageUrl', label: 'Clipping image', type: 'image', tab: 'media' },
     ],
   },
 
@@ -435,7 +491,7 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
     cardExcerptKey: 'excerpt',
     searchFields: ['title', 'excerpt', 'body', 'author'],
     previewPath: (item) => (item.slug ? `/news/${item.slug}` : null),
-    canDuplicate: true,
+    canDuplicate: false,
     listColumns: [
       { key: 'title', label: 'Title' },
       { key: 'status', label: 'Status', render: 'status' },
@@ -486,7 +542,7 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
     cardExcerptKey: 'summary',
     searchFields: ['title', 'summary', 'location', 'speakers'],
     previewPath: (item) => (item.slug ? `/events/${item.slug}` : null),
-    canDuplicate: true,
+    canDuplicate: false,
     personLink: { entityType: 'event', defaultRole: 'speaker' },
     listColumns: [
       { key: 'title', label: 'Title' },
@@ -586,7 +642,7 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
     cardExcerptKey: 'summary',
     searchFields: ['title', 'summary', 'body'],
     previewPath: (item) => (item.slug ? `/notices/${item.slug}` : null),
-    canDuplicate: true,
+    canDuplicate: false,
     listColumns: [
       { key: 'title', label: 'Title' },
       { key: 'noticeType', label: 'Type' },
@@ -616,6 +672,7 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
       noticeType: 'announcement',
       deadlineAt: null,
       applicationFormId: null,
+      applicationUrl: null,
       featuredImageUrl: null,
       seo: {},
     }),
@@ -763,7 +820,7 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
     cardExcerptKey: 'summary',
     searchFields: ['title', 'summary', 'description'],
     previewPath: (item) => (item.slug ? `/activities/${item.slug}` : null),
-    canDuplicate: true,
+    canDuplicate: false,
     personLink: { entityType: 'activity', defaultRole: 'organizer' },
     listColumns: [
       { key: 'title', label: 'Title' },
@@ -842,7 +899,7 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
     cardExcerptKey: 'summary',
     searchFields: ['title', 'summary', 'topics', 'software'],
     previewPath: (item) => (item.slug ? `/resources/${item.slug}` : null),
-    canDuplicate: true,
+    canDuplicate: false,
     listColumns: [
       { key: 'title', label: 'Title' },
       { key: 'resourceType', label: 'Type' },
@@ -910,8 +967,8 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
     singular: 'Page',
     plural: 'Pages',
     addLabel: 'Add page',
-    helpText: 'About and policy pages (Who we are, Governance, Policies...).',
-    publicHint: '/about/...',
+    helpText: 'Legacy page records. About pages are written in the site code.',
+    publicHint: '/contact',
     cardExcerptKey: 'excerpt',
     searchFields: ['title', 'excerpt', 'body'],
     previewPath: (item) => (item.slug ? `/${item.slug}` : null),
@@ -1068,7 +1125,7 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
     publicHint: '/research/areas',
     searchFields: ['title', 'description', 'shortDescription'],
     previewPath: () => '/research/areas',
-    canDuplicate: true,
+    canDuplicate: false,
     listColumns: [
       { key: 'title', label: 'Title' },
       { key: 'order', label: 'Order' },

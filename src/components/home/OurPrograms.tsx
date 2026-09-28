@@ -2,8 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSimplifiedMotion } from '@/hooks/useSimplifiedMotion';
+import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { cn } from '@/lib/utils';
 import './our-programs.css';
@@ -88,6 +89,8 @@ export function OurPrograms({ items, className }: OurProgramsProps) {
   const simplified = useSimplifiedMotion();
   const sectionRef = useRef<HTMLElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const moreShown = useRef(false);
+  const [showMore, setShowMore] = useState(false);
 
   const count = items.length;
   const pinExtra = Math.max(
@@ -157,6 +160,11 @@ export function OurPrograms({ items, className }: OurProgramsProps) {
       const top = section.getBoundingClientRect().top;
       const progress = Math.min(Math.max(-top / scrollable, 0), 1);
       target = progress * count;
+      const finished = progress >= (count - 1) / count;
+      if (finished !== moreShown.current) {
+        moreShown.current = finished;
+        setShowMore(finished);
+      }
     };
 
     const tick = () => {
@@ -228,6 +236,11 @@ export function OurPrograms({ items, className }: OurProgramsProps) {
                 </li>
               ))}
             </ul>
+            <div className="mt-6 flex justify-center sm:mt-8 lg:justify-start">
+              <Button href="/activities" variant="ink" size="lg">
+                View more
+              </Button>
+            </div>
           </div>
         </Container>
       </section>
@@ -277,6 +290,19 @@ export function OurPrograms({ items, className }: OurProgramsProps) {
 
           <div className="relative z-20 order-first min-w-0 text-center lg:order-last lg:self-center lg:text-left">
             <ProgramsCopy />
+            <div
+              className={cn(
+                'mt-6 flex justify-center transition-[opacity,transform] duration-500 ease-out sm:mt-8 lg:justify-start',
+                showMore
+                  ? 'translate-y-0 opacity-100'
+                  : 'pointer-events-none -translate-y-4 opacity-0',
+              )}
+              inert={showMore ? undefined : true}
+            >
+              <Button href="/activities" variant="ink" size="lg">
+                View more
+              </Button>
+            </div>
           </div>
         </Container>
       </div>

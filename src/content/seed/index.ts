@@ -21,6 +21,7 @@ import {
   memberAchievements,
   roleAssignments,
 } from './people-extras';
+import { mediaClippings } from './press-coverage';
 import { publications } from './publications';
 import { registrationEntries, registrationForms } from './registration-forms';
 import { researchAreas } from './research-areas';
@@ -42,6 +43,7 @@ export const seedDatabase: ContentDatabase = {
   researchAreas,
   researchProjects,
   publications,
+  mediaClippings,
   activities,
   news,
   events,
@@ -83,6 +85,7 @@ export {
   registrationForms,
   registrationEntries,
   publications,
+  mediaClippings,
   researchAreas,
   researchProjects,
   resources,

@@ -385,6 +385,635 @@ export async function mongoListPublications(
   };
 }
 
+export async function mongoListEvents(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Event
+  >
+> {
+  const {
+    mongoSortStages,
+    eventHasRegistration,
+    sortEvents,
+    paginateInMemory,
+    buildEventFacets,
+    buildEventYears,
+  } = await import('@/lib/cms/paginated-list');
+  const db = await getDb();
+  const col = db.collection(mongoNameForList('events'));
+
+  const match: Record<string, unknown> = {};
+  if (query.eventStatus) match.eventStatus = query.eventStatus;
+  if (query.status) match.status = query.status;
+  if (query.online === true) match.isOnline = true;
+  if (query.online === false) match.isOnline = { $ne: true };
+  if (query.yearFrom != null || query.yearTo != null) {
+    match.startAt = {
+      ...(query.yearFrom != null ? { $gte: `${query.yearFrom}-01-01` } : {}),
+      ...(query.yearTo != null
+        ? { $lte: `${query.yearTo}-12-31T23:59:59.999Z` }
+        : {}),
+    };
+  }
+  if (query.q) {
+    const re = {
+      $regex: query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      $options: 'i',
+    };
+    match.$or = [
+      { title: re },
+      { summary: re },
+      { description: re },
+      { location: re },
+      { speakers: re },
+    ];
+  }
+
+  const sortKey =
+    !query.sort || query.sort === 'category' || query.sort === 'type'
+      ? 'start_desc'
+      : query.sort;
+
+  let items: import('@/types/content').Event[];
+  let total: number;
+  let page: number;
+
+  if (query.hasRegistration === true || query.hasRegistration === false) {
+    const matched = (await col
+      .find(match)
+      .project({ _id: 0 })
+      .toArray()) as unknown as import('@/types/content').Event[];
+    const filtered = matched.filter((item) => {
+      const has = eventHasRegistration(item);
+      return query.hasRegistration === true ? has : !has;
+    });
+    const sorted = sortEvents(filtered, sortKey);
+    const paged = paginateInMemory(sorted, query.page, query.pageSize);
+    items = paged.items;
+    total = paged.total;
+    page = paged.page;
+  } else {
+    total = await col.countDocuments(match);
+    const totalPages = Math.max(1, Math.ceil(total / query.pageSize) || 1);
+    page = Math.min(query.page, totalPages);
+    const skip = (page - 1) * query.pageSize;
+    items = (await col
+      .aggregate([
+        { $match: match },
+        ...mongoSortStages(sortKey),
+        { $skip: skip },
+        { $limit: query.pageSize },
+        { $project: { _id: 0, _rank: 0 } },
+      ])
+      .toArray()) as unknown as import('@/types/content').Event[];
+  }
+
+  let facets: import('@/lib/cms/paginated-list').EventListFacets | undefined;
+  let options: import('@/lib/cms/paginated-list').ResearchListOptions | undefined;
+  if (query.facets) {
+    const all = (await col
+      .find({})
+      .project({ _id: 0 })
+      .toArray()) as unknown as import('@/types/content').Event[];
+    facets = buildEventFacets(all);
+    options = { years: buildEventYears(all), areas: [] };
+  }
+
+  return {
+    items,
+    total,
+    page,
+    pageSize: query.pageSize,
+    facets,
+    options,
+  };
+}
+
+export async function mongoListNotices(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Notice
+  >
+> {
+  const {
+    mongoSortStages,
+    sortNotices,
+    filterNotices,
+    paginateInMemory,
+    buildNoticeFacets,
+    buildNoticeYears,
+  } = await import('@/lib/cms/paginated-list');
+  const db = await getDb();
+  const col = db.collection(mongoNameForList('notices'));
+
+  const match: Record<string, unknown> = {};
+  if (query.noticeType) match.noticeType = query.noticeType;
+  if (query.status) match.status = query.status;
+  if (query.q) {
+    const re = {
+      $regex: query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      $options: 'i',
+    };
+    match.$or = [
+      { title: re },
+      { summary: re },
+      { body: re },
+      { language: re },
+    ];
+  }
+
+  const sortKey =
+    !query.sort || query.sort === 'category' || query.sort === 'type'
+      ? 'updated_desc'
+      : query.sort;
+
+  const needsMemory =
+    query.hasApplication === true ||
+    query.hasApplication === false ||
+    query.yearFrom != null ||
+    query.yearTo != null ||
+    sortKey === 'deadline_desc' ||
+    sortKey === 'deadline_asc';
+
+  let items: import('@/types/content').Notice[];
+  let total: number;
+  let page: number;
+
+  if (needsMemory) {
+    const matched = (await col
+      .find(match)
+      .project({ _id: 0 })
+      .toArray()) as unknown as import('@/types/content').Notice[];
+    const filtered = filterNotices(matched, {
+      ...query,
+      q: undefined,
+      noticeType: undefined,
+      status: undefined,
+    });
+    const sorted = sortNotices(filtered, sortKey);
+    const paged = paginateInMemory(sorted, query.page, query.pageSize);
+    items = paged.items;
+    total = paged.total;
+    page = paged.page;
+  } else {
+    total = await col.countDocuments(match);
+    const totalPages = Math.max(1, Math.ceil(total / query.pageSize) || 1);
+    page = Math.min(query.page, totalPages);
+    const skip = (page - 1) * query.pageSize;
+    items = (await col
+      .aggregate([
+        { $match: match },
+        ...mongoSortStages(sortKey),
+        { $skip: skip },
+        { $limit: query.pageSize },
+        { $project: { _id: 0, _rank: 0 } },
+      ])
+      .toArray()) as unknown as import('@/types/content').Notice[];
+  }
+
+  let facets: import('@/lib/cms/paginated-list').NoticeListFacets | undefined;
+  let options: import('@/lib/cms/paginated-list').ResearchListOptions | undefined;
+  if (query.facets) {
+    const all = (await col
+      .find({})
+      .project({ _id: 0 })
+      .toArray()) as unknown as import('@/types/content').Notice[];
+    facets = buildNoticeFacets(all);
+    options = { years: buildNoticeYears(all), areas: [] };
+  }
+
+  return {
+    items,
+    total,
+    page,
+    pageSize: query.pageSize,
+    facets,
+    options,
+  };
+}
+
+export async function mongoListActivities(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Activity
+  >
+> {
+  const { mongoSortStages, buildActivityFacets } = await import(
+    '@/lib/cms/paginated-list'
+  );
+  const db = await getDb();
+  const col = db.collection(mongoNameForList('activities'));
+
+  const match: Record<string, unknown> = {};
+  if (query.activityType) match.type = query.activityType;
+  if (query.status) match.status = query.status;
+  if (query.q) {
+    const re = {
+      $regex: query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      $options: 'i',
+    };
+    match.$or = [{ title: re }, { summary: re }, { description: re }];
+  }
+
+  const sortKey =
+    !query.sort ||
+    query.sort === 'category' ||
+    query.sort === 'type' ||
+    query.sort === 'start_desc' ||
+    query.sort === 'start_asc' ||
+    query.sort === 'deadline_desc' ||
+    query.sort === 'deadline_asc'
+      ? 'order_asc'
+      : query.sort;
+
+  const total = await col.countDocuments(match);
+  const totalPages = Math.max(1, Math.ceil(total / query.pageSize) || 1);
+  const page = Math.min(query.page, totalPages);
+  const skip = (page - 1) * query.pageSize;
+  const items = (await col
+    .aggregate([
+      { $match: match },
+      ...mongoSortStages(sortKey),
+      { $skip: skip },
+      { $limit: query.pageSize },
+      { $project: { _id: 0, _rank: 0 } },
+    ])
+    .toArray()) as unknown as import('@/types/content').Activity[];
+
+  const facets = query.facets
+    ? buildActivityFacets(
+        (await col.find({}).project({ _id: 0 }).toArray()) as unknown as import(
+          '@/types/content'
+        ).Activity[],
+      )
+    : undefined;
+
+  return {
+    items,
+    total,
+    page,
+    pageSize: query.pageSize,
+    facets,
+  };
+}
+
+export async function mongoListResources(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Resource
+  >
+> {
+  const { mongoSortStages, buildResourceFacets } = await import(
+    '@/lib/cms/paginated-list'
+  );
+  const db = await getDb();
+  const col = db.collection(mongoNameForList('resources'));
+
+  const match: Record<string, unknown> = {};
+  if (query.resourceType) match.resourceType = query.resourceType;
+  if (query.status) match.status = query.status;
+  if (query.software) match.software = query.software;
+  if (query.q) {
+    const re = {
+      $regex: query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      $options: 'i',
+    };
+    match.$or = [
+      { title: re },
+      { summary: re },
+      { description: re },
+      { topics: re },
+      { software: re },
+    ];
+  }
+
+  const sortKey =
+    !query.sort ||
+    query.sort === 'category' ||
+    query.sort === 'type' ||
+    query.sort === 'start_desc' ||
+    query.sort === 'start_asc' ||
+    query.sort === 'deadline_desc' ||
+    query.sort === 'deadline_asc' ||
+    query.sort === 'order_asc'
+      ? 'title_asc'
+      : query.sort;
+
+  const total = await col.countDocuments(match);
+  const totalPages = Math.max(1, Math.ceil(total / query.pageSize) || 1);
+  const page = Math.min(query.page, totalPages);
+  const skip = (page - 1) * query.pageSize;
+  const items = (await col
+    .aggregate([
+      { $match: match },
+      ...mongoSortStages(sortKey),
+      { $skip: skip },
+      { $limit: query.pageSize },
+      { $project: { _id: 0, _rank: 0 } },
+    ])
+    .toArray()) as unknown as import('@/types/content').Resource[];
+
+  const facets = query.facets
+    ? buildResourceFacets(
+        (await col.find({}).project({ _id: 0 }).toArray()) as unknown as import(
+          '@/types/content'
+        ).Resource[],
+      )
+    : undefined;
+
+  return {
+    items,
+    total,
+    page,
+    pageSize: query.pageSize,
+    facets,
+  };
+}
+
+function newsListSort(
+  sort: import('@/lib/cms/paginated-list').CollectionListQuery['sort'],
+): import('@/lib/cms/paginated-list').ResearchListSort {
+  if (
+    !sort ||
+    sort === 'category' ||
+    sort === 'type' ||
+    sort === 'start_desc' ||
+    sort === 'start_asc' ||
+    sort === 'deadline_desc' ||
+    sort === 'deadline_asc' ||
+    sort === 'order_asc'
+  ) {
+    return 'published_desc';
+  }
+  return sort;
+}
+
+export async function mongoListNews(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').NewsArticle
+  >
+> {
+  const {
+    mongoSortStages,
+    sortNews,
+    filterNews,
+    paginateInMemory,
+    buildNewsFacets,
+    buildNewsYears,
+  } = await import('@/lib/cms/paginated-list');
+  const db = await getDb();
+  const col = db.collection(mongoNameForList('news'));
+
+  const match: Record<string, unknown> = {};
+  if (query.newsLanguage) match.language = query.newsLanguage;
+  if (query.newsCategory) match.categoryLabels = query.newsCategory;
+  if (query.status) match.status = query.status;
+  if (query.q) {
+    const re = {
+      $regex: query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      $options: 'i',
+    };
+    match.$or = [
+      { title: re },
+      { excerpt: re },
+      { body: re },
+      { author: re },
+      { categoryLabels: re },
+    ];
+  }
+
+  const sortKey = newsListSort(query.sort);
+  const needsMemory = query.yearFrom != null || query.yearTo != null;
+
+  let items: import('@/types/content').NewsArticle[];
+  let total: number;
+  let page: number;
+
+  if (needsMemory) {
+    const matched = (await col
+      .find(match)
+      .project({ _id: 0 })
+      .toArray()) as unknown as import('@/types/content').NewsArticle[];
+    const filtered = filterNews(matched, {
+      ...query,
+      q: undefined,
+      newsLanguage: undefined,
+      newsCategory: undefined,
+      status: undefined,
+    });
+    const sorted = sortNews(filtered, sortKey);
+    const paged = paginateInMemory(sorted, query.page, query.pageSize);
+    items = paged.items;
+    total = paged.total;
+    page = paged.page;
+  } else {
+    total = await col.countDocuments(match);
+    const totalPages = Math.max(1, Math.ceil(total / query.pageSize) || 1);
+    page = Math.min(query.page, totalPages);
+    const skip = (page - 1) * query.pageSize;
+    items = (await col
+      .aggregate([
+        { $match: match },
+        ...mongoSortStages(sortKey),
+        { $skip: skip },
+        { $limit: query.pageSize },
+        { $project: { _id: 0, _rank: 0 } },
+      ])
+      .toArray()) as unknown as import('@/types/content').NewsArticle[];
+  }
+
+  let facets: import('@/lib/cms/paginated-list').NewsListFacets | undefined;
+  let options: import('@/lib/cms/paginated-list').ResearchListOptions | undefined;
+  if (query.facets) {
+    const all = (await col
+      .find({})
+      .project({ _id: 0 })
+      .toArray()) as unknown as import('@/types/content').NewsArticle[];
+    facets = buildNewsFacets(all);
+    options = { years: buildNewsYears(all), areas: [] };
+  }
+
+  return {
+    items,
+    total,
+    page,
+    pageSize: query.pageSize,
+    facets,
+    options,
+  };
+}
+
+function clippingListSort(
+  sort: import('@/lib/cms/paginated-list').CollectionListQuery['sort'],
+): import('@/lib/cms/paginated-list').ResearchListSort {
+  if (
+    !sort ||
+    sort === 'category' ||
+    sort === 'type' ||
+    sort === 'start_desc' ||
+    sort === 'start_asc' ||
+    sort === 'deadline_desc' ||
+    sort === 'deadline_asc' ||
+    sort === 'order_asc' ||
+    sort === 'published_desc' ||
+    sort === 'published_asc'
+  ) {
+    return 'year_desc';
+  }
+  return sort;
+}
+
+export async function mongoListMediaClippings(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').MediaClipping
+  >
+> {
+  const { mongoSortStages, buildMediaClippingFacets, buildMediaClippingYears } =
+    await import('@/lib/cms/paginated-list');
+  const db = await getDb();
+  const col = db.collection(mongoNameForList('mediaClippings'));
+
+  const match: Record<string, unknown> = {};
+  if (query.clippingLanguage) match.language = query.clippingLanguage;
+  if (query.outlet) match.venue = query.outlet;
+  if (query.status) match.status = query.status;
+  if (query.yearFrom != null || query.yearTo != null) {
+    const year: Record<string, number> = {};
+    if (query.yearFrom != null) year.$gte = query.yearFrom;
+    if (query.yearTo != null) year.$lte = query.yearTo;
+    match.year = year;
+  }
+  if (query.q) {
+    const re = {
+      $regex: query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      $options: 'i',
+    };
+    match.$or = [
+      { title: re },
+      { citation: re },
+      { abstract: re },
+      { venue: re },
+      { authors: re },
+    ];
+  }
+
+  const sortKey = clippingListSort(query.sort);
+  const total = await col.countDocuments(match);
+  const totalPages = Math.max(1, Math.ceil(total / query.pageSize) || 1);
+  const page = Math.min(query.page, totalPages);
+  const skip = (page - 1) * query.pageSize;
+  const items = (await col
+    .aggregate([
+      { $match: match },
+      ...mongoSortStages(sortKey),
+      { $skip: skip },
+      { $limit: query.pageSize },
+      { $project: { _id: 0, _rank: 0 } },
+    ])
+    .toArray()) as unknown as import('@/types/content').MediaClipping[];
+
+  let facets: import('@/lib/cms/paginated-list').MediaClippingListFacets | undefined;
+  let options: import('@/lib/cms/paginated-list').ResearchListOptions | undefined;
+  if (query.facets) {
+    const all = (await col
+      .find({})
+      .project({ _id: 0 })
+      .toArray()) as unknown as import('@/types/content').MediaClipping[];
+    facets = buildMediaClippingFacets(all);
+    options = { years: buildMediaClippingYears(all), areas: [] };
+  }
+
+  return {
+    items,
+    total,
+    page,
+    pageSize: query.pageSize,
+    facets,
+    options,
+  };
+}
+
+function areaListSort(
+  sort: import('@/lib/cms/paginated-list').CollectionListQuery['sort'],
+): import('@/lib/cms/paginated-list').ResearchListSort {
+  if (
+    sort === 'updated_asc' ||
+    sort === 'updated_desc' ||
+    sort === 'title_asc' ||
+    sort === 'order_asc'
+  ) {
+    return sort;
+  }
+  return 'order_asc';
+}
+
+export async function mongoListResearchAreas(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').ResearchArea
+  >
+> {
+  const { mongoSortStages, buildResearchAreaFacets } = await import(
+    '@/lib/cms/paginated-list'
+  );
+  const db = await getDb();
+  const col = db.collection(mongoNameForList('researchAreas'));
+
+  const match: Record<string, unknown> = {};
+  if (query.status) match.status = query.status;
+  if (query.q) {
+    const re = {
+      $regex: query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      $options: 'i',
+    };
+    match.$or = [
+      { title: re },
+      { shortDescription: re },
+      { description: re },
+    ];
+  }
+
+  const sortKey = areaListSort(query.sort);
+  const total = await col.countDocuments(match);
+  const totalPages = Math.max(1, Math.ceil(total / query.pageSize) || 1);
+  const page = Math.min(query.page, totalPages);
+  const skip = (page - 1) * query.pageSize;
+  const items = (await col
+    .aggregate([
+      { $match: match },
+      ...mongoSortStages(sortKey),
+      { $skip: skip },
+      { $limit: query.pageSize },
+      { $project: { _id: 0, _rank: 0 } },
+    ])
+    .toArray()) as unknown as import('@/types/content').ResearchArea[];
+
+  const facets = query.facets
+    ? buildResearchAreaFacets(
+        (await col.find({}).project({ _id: 0 }).toArray()) as unknown as import(
+          '@/types/content'
+        ).ResearchArea[],
+      )
+    : undefined;
+
+  return {
+    items,
+    total,
+    page,
+    pageSize: query.pageSize,
+    facets,
+  };
+}
+
 async function loadResearchListRelated(
   items: import('@/types/content').ResearchProject[],
 ) {

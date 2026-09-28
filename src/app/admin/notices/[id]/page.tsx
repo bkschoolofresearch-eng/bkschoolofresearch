@@ -1,7 +1,7 @@
 'use client';
 
 import { use } from 'react';
-import { CollectionEditorPage } from '@/components/admin/CollectionEditorPage';
+import { NoticeEditorPage } from '@/components/admin/NoticeEditorPage';
 
 export default function Page({
   params,
@@ -9,7 +9,5 @@ export default function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  return (
-    <CollectionEditorPage collectionSlug="notices" mode="edit" id={id} />
-  );
+  return <NoticeEditorPage mode="edit" id={id} />;
 }

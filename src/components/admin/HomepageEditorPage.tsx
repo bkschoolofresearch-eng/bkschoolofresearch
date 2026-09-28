@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import type { HomepageConfig, HomepageStat } from '@/types/content';
+import type { HomepageConfig } from '@/types/content';
 import {
   AdminLockedState,
   AdminPageHeader,
@@ -11,73 +10,34 @@ import {
 } from './AdminUI';
 import { useCms } from './CmsProvider';
 
-type Tab = 'banner' | 'featured' | 'director' | 'stats' | 'map';
+type PickKey =
+  | 'featuredResearchProjectIds'
+  | 'featuredResearchAreaIds'
+  | 'featuredNoticeIds'
+  | 'featuredEventIds'
+  | 'featuredMediaClippingIds'
+  | 'featuredPersonIds'
+  | 'featuredPublicationIds';
 
-const LIVE_HOMEPAGE_MAP: { title: string; note: string; editable: string }[] = [
-  {
-    title: 'Welcome banner',
-    note: 'Brand name stays “BK School of Research”. You edit the short line and button labels/links.',
-    editable: 'Supporting line, button text & links, banner image',
-  },
-  {
-    title: 'Scrolling stats strip',
-    note: 'Numbers that scroll under the banner.',
-    editable: 'Add / edit / remove verified figures',
-  },
-  {
-    title: 'Who we are + How we work',
-    note: 'Section titles and layout are fixed in the design.',
-    editable: 'Organisation profile (mission/vision) & founder card from Team',
-  },
-  {
-    title: 'At a glance (3 cards)',
-    note: 'Research / Publication / Events cards — labels fixed.',
-    editable: 'Not CMS titles — links go to those library sections',
-  },
-  {
-    title: 'Focus areas',
-    note: 'Carousel of research areas.',
-    editable: 'Manage under Focus areas',
-  },
-  {
-    title: 'Programmes',
-    note: 'Activities stack.',
-    editable: 'Manage under Programmes & activities',
-  },
-  {
-    title: 'Director’s message',
-    note: 'Photo + excerpt on the homepage.',
-    editable: 'Person + message excerpt (this page)',
-  },
-  {
-    title: 'Team',
-    note: 'Featured team cards.',
-    editable: 'Manage under Team directory',
-  },
-  {
-    title: 'Our Research (homepage)',
-    note: 'Curated research projects — featured rows + “In case you missed it”.',
-    editable: 'Featured research picks (this page) + Research CRUD',
-  },
-];
+function withPickLists(home: HomepageConfig): HomepageConfig {
+  return {
+    ...home,
+    featuredResearchAreaIds: home.featuredResearchAreaIds ?? [],
+    featuredMediaClippingIds: home.featuredMediaClippingIds ?? [],
+    featuredPersonIds: home.featuredPersonIds ?? [],
+    featuredNoticeIds: home.featuredNoticeIds ?? [],
+  };
+}
 
 export function HomepageEditorPage() {
   const { database, ready, saveHomepage, apiAuthenticated } = useCms();
-  const searchParams = useSearchParams();
-  const initialTab = (searchParams.get('tab') as Tab) || 'banner';
-  const [tab, setTab] = useState<Tab>(initialTab);
   const [form, setForm] = useState<HomepageConfig | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (database) setForm(structuredClone(database.homepage));
+    if (database) setForm(withPickLists(structuredClone(database.homepage)));
   }, [database]);
-
-  useEffect(() => {
-    const allowed: Tab[] = ['banner', 'featured', 'director', 'stats', 'map'];
-    setTab(allowed.includes(initialTab) ? initialTab : 'banner');
-  }, [initialTab]);
 
   const publishedPeople = useMemo(
     () => (database?.people ?? []).filter((p) => p.status === 'published'),
@@ -88,13 +48,30 @@ export function HomepageEditorPage() {
       (database?.researchProjects ?? []).filter((p) => p.status === 'published'),
     [database],
   );
-  const publishedPublications = useMemo(
+  const publishedAreas = useMemo(
     () =>
-      (database?.publications ?? []).filter((p) => p.status === 'published'),
+      [...(database?.researchAreas ?? [])]
+        .filter((p) => p.status === 'published')
+        .sort((a, b) => (a.order ?? 999) - (b.order ?? 999)),
+    [database],
+  );
+  const publishedNotices = useMemo(
+    () => (database?.notices ?? []).filter((p) => p.status === 'published'),
     [database],
   );
   const publishedEvents = useMemo(
     () => (database?.events ?? []).filter((p) => p.status === 'published'),
+    [database],
+  );
+  const publishedMedia = useMemo(
+    () => (database?.mediaClippings ?? []).filter((p) => p.status === 'published'),
+    [database],
+  );
+  const publishedOpinions = useMemo(
+    () =>
+      (database?.publications ?? []).filter(
+        (p) => p.status === 'published' && p.type === 'opinion',
+      ),
     [database],
   );
 
@@ -103,49 +80,16 @@ export function HomepageEditorPage() {
   }
 
   if (!apiAuthenticated || !database || !form) {
-    return <AdminLockedState noun="homepage content" />;
+    return <AdminLockedState noun="homepage picks" />;
   }
 
-  const tabs: { id: Tab; label: string; hint: string }[] = [
-    {
-      id: 'banner',
-      label: 'Welcome banner',
-      hint: 'Short line and button links under the brand name (name itself is fixed).',
-    },
-    {
-      id: 'featured',
-      label: 'Featured picks',
-      hint: 'Which library items appear in homepage highlight areas.',
-    },
-    {
-      id: 'director',
-      label: 'Director’s message',
-      hint: 'Who appears and what excerpt is shown.',
-    },
-    {
-      id: 'stats',
-      label: 'Scrolling stats',
-      hint: 'Numbers in the strip under the banner — not the At a glance cards.',
-    },
-    {
-      id: 'map',
-      label: 'What appears on the live site',
-      hint: 'Section titles stay in the design; you manage content behind them.',
-    },
-  ];
-
   const save = async () => {
-    if (!form) return;
     setSaving(true);
+    setMessage(null);
     try {
-      const heroCtas = form.heroCtas.map((cta, index) => ({
-        ...cta,
-        variant: (index === 0 ? 'primary' : 'secondary') as
-          | 'primary'
-          | 'secondary',
-      }));
-      await saveHomepage({ ...form, heroCtas });
-      setForm({ ...form, heroCtas });
+      const next = withPickLists(form);
+      await saveHomepage(next);
+      setForm(next);
       setMessage('Saved — public homepage will refresh shortly');
       window.setTimeout(() => setMessage(null), 2500);
     } catch (err) {
@@ -155,59 +99,28 @@ export function HomepageEditorPage() {
     }
   };
 
-  const toggleId = (
-    key:
-      | 'featuredResearchProjectIds'
-      | 'featuredPublicationIds'
-      | 'featuredEventIds',
-    id: string,
-  ) => {
-    const current = form[key];
+  const toggleId = (key: PickKey, id: string) => {
+    const current = form[key] ?? [];
     const next = current.includes(id)
       ? current.filter((x) => x !== id)
       : [...current, id];
     setForm({ ...form, [key]: next });
   };
 
-  const updateStat = (id: string, patch: Partial<HomepageStat>) => {
-    setForm({
-      ...form,
-      stats: form.stats.map((s) => (s.id === id ? { ...s, ...patch } : s)),
-    });
+  const clearIds = (key: PickKey) => {
+    setForm({ ...form, [key]: [] });
   };
 
-  const addStat = () => {
-    const id = `stat-${Date.now()}`;
-    setForm({
-      ...form,
-      stats: [
-        ...form.stats,
-        {
-          id,
-          label: 'New figure',
-          value: '0',
-          verified: false,
-          order: form.stats.length + 1,
-        },
-      ],
-    });
-  };
-
-  const removeStat = (id: string) => {
-    setForm({
-      ...form,
-      stats: form.stats
-        .filter((s) => s.id !== id)
-        .map((s, i) => ({ ...s, order: i + 1 })),
-    });
-  };
+  const teamPeople = publishedPeople.filter(
+    (person) => person.id !== form.directorPersonId,
+  );
 
   return (
     <div className="space-y-6">
       <AdminPageHeader
         eyebrow="Homepage"
-        title="Homepage content"
-        description="Edit only what the live homepage actually uses. Section headings like “Who we are” or “At a glance” stay in the design — manage cards and library items instead."
+        title="What the homepage shows"
+        description="Choose which items already in the library appear on the homepage. Titles, bios, and images stay in their own sections. Leave a list unchecked to keep the automatic set."
         action={
           <>
             {message ? (
@@ -215,245 +128,168 @@ export function HomepageEditorPage() {
                 {message}
               </span>
             ) : null}
-            {tab !== 'map' ? (
-              <AdminPrimaryButton
-                onClick={() => void save()}
-                disabled={saving}
-              >
-                {saving ? 'Saving…' : 'Save homepage'}
-              </AdminPrimaryButton>
-            ) : null}
+            <AdminPrimaryButton onClick={() => void save()} disabled={saving}>
+              {saving ? 'Saving…' : 'Save homepage'}
+            </AdminPrimaryButton>
           </>
         }
       />
 
-      <div className="flex flex-wrap gap-1 border-b border-[#E2E8F0]">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            title={t.hint}
-            onClick={() => setTab(t.id)}
-            className={`-mb-px border-b-2 px-3 py-2.5 text-sm font-medium ${
-              tab === t.id
-                ? 'border-[#173B6C] text-[#173B6C]'
-                : 'border-transparent text-[#68727D]'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      <p className="text-xs text-[#68727D]">
-        {tabs.find((t) => t.id === tab)?.hint}
-      </p>
-
-      <div className="rounded-xl border border-[#D9DEE5] bg-[#F8F7F3] p-4 sm:p-5">
-        {tab === 'banner' ? (
-          <div className="grid max-w-3xl gap-4">
-            <p className="rounded-lg border border-[#D9DEE5] bg-white px-3 py-2 text-sm text-[#68727D]">
-              On the site, the large title is always{' '}
-              <strong className="text-[#0D2745]">BK School of Research</strong>.
-              That cannot be changed here (brand rule).
+      <div className="grid max-w-3xl gap-6">
+        <section className="space-y-4 rounded-xl border border-[#D9DEE5] bg-[#F8F7F3] p-4 sm:p-5">
+          <div>
+            <p className="text-sm font-medium text-[#0D2745]">
+              Message from the Executive Director
             </p>
-            <Field
-              label="Supporting line under the brand"
-              help="Shown under the brand name on the welcome banner"
-              value={form.heroSubtitle}
-              onChange={(v) => setForm({ ...form, heroSubtitle: v })}
-            />
-            <Field
-              label="Banner image URL"
-              help="From Photo & file library, or a site path"
-              value={form.heroImageUrl ?? ''}
-              onChange={(v) =>
-                setForm({ ...form, heroImageUrl: v || null })
-              }
-            />
-            <div className="space-y-3 border-t border-[#E8ECE8] pt-4">
-              <p className="text-sm font-medium text-[#0B1F36]">Banner buttons</p>
-              <p className="text-xs text-[#5B6B7C]">
-                Edit the button text and where it goes. Look and colour stay
-                fixed in the website design.
-              </p>
-              {form.heroCtas.map((cta, index) => (
-                <div
-                  key={`cta-${index}`}
-                  className="grid gap-3 rounded-lg border border-[#E8ECE8] bg-white p-3 sm:grid-cols-2"
-                >
-                  <Field
-                    label="Button text"
-                    value={cta.label}
-                    onChange={(v) => {
-                      const heroCtas = [...form.heroCtas];
-                      heroCtas[index] = { ...cta, label: v };
-                      setForm({ ...form, heroCtas });
-                    }}
-                  />
-                  <Field
-                    label="Goes to"
-                    help="e.g. /research"
-                    value={cta.href}
-                    onChange={(v) => {
-                      const heroCtas = [...form.heroCtas];
-                      heroCtas[index] = { ...cta, href: v };
-                      setForm({ ...form, heroCtas });
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {tab === 'featured' ? (
-          <div className="grid max-w-3xl gap-6">
-            <Picker
-              title="Featured research"
-              help="Homepage “Our Research” — strongest picks surface as featured rows; the next fill More research. Manage items under Research."
-              items={publishedResearch.map((p) => ({
-                id: p.id,
-                label: p.title,
-              }))}
-              selected={form.featuredResearchProjectIds}
-              onToggle={(id) => toggleId('featuredResearchProjectIds', id)}
-              manageHref="/admin/research"
-            />
-            <Picker
-              title="Featured publications"
-              help="Optional library picks for other surfaces — not used in the Our Research homepage block."
-              items={publishedPublications.map((p) => ({
-                id: p.id,
-                label: `${p.title} (${p.year})`,
-              }))}
-              selected={form.featuredPublicationIds}
-              onToggle={(id) => toggleId('featuredPublicationIds', id)}
-              manageHref="/admin/publications"
-            />
-            <Picker
-              title="Featured events"
-              help="Preferred events in Notices & Events"
-              items={publishedEvents.map((p) => ({
-                id: p.id,
-                label: p.title,
-              }))}
-              selected={form.featuredEventIds}
-              onToggle={(id) => toggleId('featuredEventIds', id)}
-              manageHref="/admin/events"
-            />
-          </div>
-        ) : null}
-
-        {tab === 'director' ? (
-          <div className="grid max-w-3xl gap-4">
-            <label className="space-y-1.5 text-sm">
-              <span className="font-medium text-[#0D2745]">
-                Whose message is shown
-              </span>
-              <select
-                value={form.directorPersonId}
-                onChange={(e) =>
-                  setForm({ ...form, directorPersonId: e.target.value })
-                }
-                className="w-full rounded-lg border border-[#D9DEE5] bg-white px-3 py-2"
-              >
-                {publishedPeople.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} — {p.role}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <TextArea
-              label="Message excerpt on the homepage"
-              help="Short paragraph visitors read — not the full profile bio"
-              value={form.directorMessageExcerpt}
-              onChange={(v) =>
-                setForm({ ...form, directorMessageExcerpt: v })
-              }
-              rows={6}
-            />
-          </div>
-        ) : null}
-
-        {tab === 'stats' ? (
-          <div className="space-y-3">
-            <p className="text-sm text-[#68727D]">
-              These power the scrolling strip under the banner. The separate “At
-              a glance” photo cards are fixed links to Research, Publications,
-              and Events.
+            <p className="text-xs text-[#68727D]">
+              The portrait and name come from Team. This page only chooses who
+              appears, and the short message visitors read.
             </p>
-            {form.stats
-              .slice()
-              .sort((a, b) => a.order - b.order)
-              .map((stat) => (
-                <div
-                  key={stat.id}
-                  className="grid gap-3 rounded-lg border border-[#E8ECE8] bg-white p-3 sm:grid-cols-[1fr_1fr_auto_1fr_auto]"
-                >
-                  <Field
-                    label="Number / value"
-                    value={stat.value}
-                    onChange={(v) => updateStat(stat.id, { value: v })}
-                  />
-                  <Field
-                    label="Label"
-                    value={stat.label}
-                    onChange={(v) => updateStat(stat.id, { label: v })}
-                  />
-                  <label className="flex items-end gap-2 pb-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={stat.verified}
-                      onChange={(e) =>
-                        updateStat(stat.id, { verified: e.target.checked })
-                      }
-                    />
-                    Show on site
-                  </label>
-                  <Field
-                    label="Internal note"
-                    value={stat.note ?? ''}
-                    onChange={(v) => updateStat(stat.id, { note: v })}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeStat(stat.id)}
-                    className="self-end rounded-lg border border-[#E8C4C4] px-2 py-2 text-xs text-[#8A3B3B]"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            <button
-              type="button"
-              onClick={addStat}
-              className="rounded-lg border border-dashed border-[#C5DCD4] px-3 py-2 text-sm font-medium text-[#173B6C]"
+          </div>
+          <label className="block space-y-1.5 text-sm">
+            <span className="font-medium text-[#0D2745]">Person</span>
+            <select
+              value={form.directorPersonId}
+              onChange={(e) =>
+                setForm({ ...form, directorPersonId: e.target.value })
+              }
+              className="w-full rounded-lg border border-[#D9DEE5] bg-white px-3 py-2"
             >
-              Add figure
-            </button>
-          </div>
-        ) : null}
+              {publishedPeople.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} — {p.role}
+                </option>
+              ))}
+            </select>
+          </label>
+          <TextArea
+            label="Homepage message"
+            help="The paragraph on the homepage. The full profile stays on the person page."
+            value={form.directorMessageExcerpt}
+            onChange={(v) => setForm({ ...form, directorMessageExcerpt: v })}
+            rows={6}
+          />
+          <Link
+            href="/admin/people"
+            className="text-xs font-medium text-[#173B6C] underline"
+          >
+            Manage team
+          </Link>
+        </section>
 
-        {tab === 'map' ? (
-          <ul className="space-y-3">
-            {LIVE_HOMEPAGE_MAP.map((row) => (
-              <li
-                key={row.title}
-                className="rounded-lg border border-[#E8ECE8] bg-white px-4 py-3"
-              >
-                <p className="text-sm font-semibold text-[#0D2745]">
-                  {row.title}
-                </p>
-                <p className="mt-1 text-sm text-[#68727D]">{row.note}</p>
-                <p className="mt-2 text-xs font-medium uppercase tracking-wide text-[#173B6C]">
-                  Edit: {row.editable}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : null}
+        <Picker
+          title="Focus areas"
+          help="Checked areas appear in this order. If none are checked, every on-site focus area appears in its display order."
+          items={publishedAreas.map((area) => ({
+            id: area.id,
+            label: area.title,
+          }))}
+          selected={form.featuredResearchAreaIds ?? []}
+          onToggle={(id) => toggleId('featuredResearchAreaIds', id)}
+          onClear={() => clearIds('featuredResearchAreaIds')}
+          manageHref="/admin/research-areas"
+        />
+
+        <Picker
+          title="Our Research"
+          help="The first two checked items are the main cards. The next three sit beside them. If none are checked, the homepage fills from the research library."
+          items={publishedResearch.map((item) => ({
+            id: item.id,
+            label: item.title,
+          }))}
+          selected={form.featuredResearchProjectIds}
+          onToggle={(id) => toggleId('featuredResearchProjectIds', id)}
+          onClear={() => clearIds('featuredResearchProjectIds')}
+          manageHref="/admin/research"
+        />
+
+        <section className="rounded-xl border border-[#D9DEE5] bg-[#F8F7F3] p-4 sm:p-5">
+          <p className="text-sm font-medium text-[#0D2745]">Our Programs</p>
+          <p className="mt-1 text-xs text-[#68727D]">
+            The homepage shows the programmes that are on site. Photos come
+            from each programme. Edit them in Programmes.
+          </p>
+          <Link
+            href="/admin/activities"
+            className="mt-3 inline-block text-xs font-medium text-[#173B6C] underline"
+          >
+            Manage programmes
+          </Link>
+        </section>
+
+        <Picker
+          title="Notices"
+          help="The first three checked notices appear. If none are checked, the homepage uses the latest published notices."
+          items={publishedNotices.map((item) => ({
+            id: item.id,
+            label: item.title,
+          }))}
+          selected={form.featuredNoticeIds ?? []}
+          onToggle={(id) => toggleId('featuredNoticeIds', id)}
+          onClear={() => clearIds('featuredNoticeIds')}
+          manageHref="/admin/notices"
+        />
+
+        <Picker
+          title="Events"
+          help="The first three checked events appear. If none are checked, the homepage uses published events."
+          items={publishedEvents.map((item) => ({
+            id: item.id,
+            label: item.title,
+          }))}
+          selected={form.featuredEventIds}
+          onToggle={(id) => toggleId('featuredEventIds', id)}
+          onClear={() => clearIds('featuredEventIds')}
+          manageHref="/admin/events"
+        />
+
+        <Picker
+          title="BKSR in Media"
+          help="The first six checked clippings appear. If none are checked, published coverage appears."
+          items={publishedMedia.map((item) => ({
+            id: item.id,
+            label: item.venue ? `${item.title} — ${item.venue}` : item.title,
+          }))}
+          selected={form.featuredMediaClippingIds ?? []}
+          onToggle={(id) => toggleId('featuredMediaClippingIds', id)}
+          onClear={() => clearIds('featuredMediaClippingIds')}
+          manageHref="/admin/bksr-in-media"
+        />
+
+        <Picker
+          title="Meet our team"
+          help="The first four checked people appear under the director. If none are checked, the homepage uses the first published profiles."
+          items={teamPeople.map((person) => ({
+            id: person.id,
+            label: `${person.name} — ${person.role}`,
+          }))}
+          selected={form.featuredPersonIds ?? []}
+          onToggle={(id) => toggleId('featuredPersonIds', id)}
+          onClear={() => clearIds('featuredPersonIds')}
+          manageHref="/admin/people"
+        />
+
+        <Picker
+          title="Opinions"
+          help="The first three checked opinion pieces appear. If none are checked, the homepage uses the latest published opinions."
+          items={publishedOpinions.map((item) => ({
+            id: item.id,
+            label: item.title,
+          }))}
+          selected={form.featuredPublicationIds.filter((id) =>
+            publishedOpinions.some((item) => item.id === id),
+          )}
+          onToggle={(id) => toggleId('featuredPublicationIds', id)}
+          onClear={() =>
+            setForm({
+              ...form,
+              featuredPublicationIds: form.featuredPublicationIds.filter(
+                (id) => !publishedOpinions.some((item) => item.id === id),
+              ),
+            })
+          }
+          manageHref="/admin/publications"
+        />
       </div>
     </div>
   );
@@ -465,6 +301,7 @@ function Picker({
   items,
   selected,
   onToggle,
+  onClear,
   manageHref,
 }: {
   title: string;
@@ -472,69 +309,67 @@ function Picker({
   items: { id: string; label: string }[];
   selected: string[];
   onToggle: (id: string) => void;
+  onClear: () => void;
   manageHref: string;
 }) {
+  const order = new Map(selected.map((id, index) => [id, index + 1]));
+
   return (
-    <div className="space-y-2">
+    <section className="space-y-2 rounded-xl border border-[#D9DEE5] bg-[#F8F7F3] p-4 sm:p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <p className="text-sm font-medium text-[#0D2745]">{title}</p>
           <p className="text-xs text-[#68727D]">{help}</p>
         </div>
-        <Link
-          href={manageHref}
-          className="text-xs font-medium text-[#173B6C] underline"
-        >
-          Manage library
-        </Link>
+        <div className="flex items-center gap-3">
+          {selected.length ? (
+            <button
+              type="button"
+              onClick={onClear}
+              className="text-xs font-medium text-[#68727D] underline"
+            >
+              Use automatic set
+            </button>
+          ) : null}
+          <Link
+            href={manageHref}
+            className="text-xs font-medium text-[#173B6C] underline"
+          >
+            Manage library
+          </Link>
+        </div>
       </div>
       <div className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-[#E8ECE8] bg-white p-2">
         {items.length === 0 ? (
           <p className="px-2 py-3 text-sm text-[#68727D]">
-            No published items yet.
+            Nothing is on site yet.
           </p>
         ) : (
-          items.map((item) => (
-            <label
-              key={item.id}
-              className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-[#F6F4EE]"
-            >
-              <input
-                type="checkbox"
-                className="mt-1"
-                checked={selected.includes(item.id)}
-                onChange={() => onToggle(item.id)}
-              />
-              <span className="text-[#0D2745]">{item.label}</span>
-            </label>
-          ))
+          items.map((item) => {
+            const place = order.get(item.id);
+            return (
+              <label
+                key={item.id}
+                className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-[#F6F4EE]"
+              >
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={place !== undefined}
+                  onChange={() => onToggle(item.id)}
+                />
+                {place ? (
+                  <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#173B6C] px-1.5 text-[11px] font-semibold text-white">
+                    {place}
+                  </span>
+                ) : null}
+                <span className="text-[#0D2745]">{item.label}</span>
+              </label>
+            );
+          })
         )}
       </div>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  help,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  help?: string;
-}) {
-  return (
-    <label className="block space-y-1.5 text-sm">
-      <span className="font-medium text-[#0D2745]">{label}</span>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-[#D9DEE5] bg-white px-3 py-2 outline-none focus:border-[#173B6C]"
-      />
-      {help ? <span className="text-xs text-[#68727D]">{help}</span> : null}
-    </label>
+    </section>
   );
 }
 

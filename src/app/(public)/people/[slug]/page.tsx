@@ -1,14 +1,7 @@
 import { notFound } from 'next/navigation';
-import { PersonProfile } from '@/components/editorial/PersonProfile';
 import { PersonProfileClaimBridge } from '@/components/editorial/PersonProfileClaimBridge';
 import { ExecutiveDirectorSolo } from '@/components/home/ExecutiveDirectorSolo';
 import { PeopleCategoryHub } from '@/components/home/PeopleCategoryHub';
-import {
-  getDemoPeopleSlugs,
-  getDemoPersonBySlug,
-  peopleDemoRoster,
-  PEOPLE_DEMO_SECTION_COPY,
-} from '@/content/seed/people-demo';
 import { prototypeMedia } from '@/lib/content/prototype-media';
 import { RESERVED_PEOPLE_CATEGORY_SLUGS } from '@/lib/content/people-slugs';
 import {
@@ -56,7 +49,6 @@ export async function generateStaticParams() {
   return [
     ...Object.keys(RESERVED_PEOPLE_CATEGORY_SLUGS).map((slug) => ({ slug })),
     ...people.map((person) => ({ slug: person.slug })),
-    ...getDemoPeopleSlugs().map((slug) => ({ slug })),
   ];
 }
 
@@ -77,15 +69,6 @@ export async function generateMetadata({ params }: Props) {
     );
   }
 
-  const demo = getDemoPersonBySlug(slug);
-  if (demo) {
-    return buildPageMetadata(
-      demo.name,
-      demo.description.slice(0, 160),
-      `/people/${demo.slug}`,
-    );
-  }
-
   return {};
 }
 
@@ -95,35 +78,22 @@ export default async function PeopleSlugPage({ params }: Props) {
   const category = RESERVED_PEOPLE_CATEGORY_SLUGS[slug];
   if (category) {
     const members = await getPeople({ category });
-    const demoMembers = peopleDemoRoster.filter(
-      (person) => person.category === category,
-    );
     const meta = PERSON_CATEGORY_META[category];
 
-    const hubPeople = [
-      ...members.map((member) => ({
-        id: member.id,
-        href: `/people/${member.slug}`,
-        name: member.name,
-        role: member.role,
-        imageSrc:
-          member.photoUrl && !member.photoUrl.includes('/prototype/')
-            ? member.photoUrl
-            : (member.photoUrl ?? prototypeMedia.directorPortrait.url),
-        description:
-          member.shortBio?.trim() ||
-          member.bio?.split(/\n\s*\n/)[0]?.replace(/\s+/g, ' ').trim() ||
-          `${member.name} serves as ${member.role} at BK School of Research.`,
-      })),
-      ...demoMembers.map((member) => ({
-        id: member.id,
-        href: `/people/${member.slug}`,
-        name: member.name,
-        role: member.role,
-        imageSrc: member.imageSrc,
-        description: member.description,
-      })),
-    ];
+    const hubPeople = members.map((member) => ({
+      id: member.id,
+      href: `/people/${member.slug}`,
+      name: member.name,
+      role: member.role,
+      imageSrc:
+        member.photoUrl && !member.photoUrl.includes('/prototype/')
+          ? member.photoUrl
+          : (member.photoUrl ?? prototypeMedia.directorPortrait.url),
+      description:
+        member.shortBio?.trim() ||
+        member.bio?.split(/\n\s*\n/)[0]?.replace(/\s+/g, ' ').trim() ||
+        `${member.name} serves as ${member.role} at BK School of Research.`,
+    }));
 
     // Single ED: portrait + director message (not a one-card flip grid).
     if (category === 'executive-director' && hubPeople.length === 1) {
@@ -156,89 +126,63 @@ export default async function PeopleSlugPage({ params }: Props) {
   }
 
   const person = await getPersonBySlug(slug);
-  if (person) {
-    const related = [
-      ...((await getPeople())
-        .filter((item) => item.id !== person.id)
-        .slice(0, 2)
-        .map((item) => ({
-          href: `/people/${item.slug}`,
-          name: item.name,
-          role: item.role,
-          imageSrc: item.photoUrl ?? '/media/prototype/bksr-portrait-director.jpg',
-        }))),
-      ...peopleDemoRoster
-        .filter((item) => item.category === person.category)
-        .slice(0, 3)
-        .map((item) => ({
-          href: `/people/${item.slug}`,
-          name: item.name,
-          role: item.role,
-          imageSrc: item.imageSrc,
-        })),
-    ].slice(0, 3);
+  if (!person) notFound();
 
-    const personPubs = await publicationsForPerson(person.name);
-    const involvements = await getInvolvementsForPerson(person.id);
-    const roleHistory = await getRoleHistoryForPerson(person.id);
-    const achievements = await getAchievementsProfileForPerson(person.id);
-    return (
-      <PersonProfileClaimBridge
-        personId={person.id}
-        initialPerson={{
-          name: person.name,
-          role: person.role,
-          categoryLabel: PERSON_CATEGORY_META[person.category]?.label,
-          affiliation: person.affiliation,
-          photoUrl: person.photoUrl,
-          bio: person.bio,
-          shortBio: person.shortBio,
-          skills: person.researchInterests,
-          researchItems:
-            involvements.length > 0
-              ? []
-              : personPubs.length > 0
-                ? personPubs
-                : researchItemsFromInterests(person.researchInterests),
-          involvements,
-          roleHistory,
-          verifiedAchievements: achievements.verified,
-          memberAchievements: achievements.member,
-          verificationCode: person.verificationCode,
-          appointmentYear: person.appointmentYear,
-        }}
-        related={related}
-      />
-    );
-  }
-
-  const demo = getDemoPersonBySlug(slug);
-  if (!demo) notFound();
-
-  const related = peopleDemoRoster
-    .filter((item) => item.slug !== demo.slug && item.category === demo.category)
+  const related = (await getPeople())
+    .filter((item) => item.id !== person.id)
     .slice(0, 3)
     .map((item) => ({
       href: `/people/${item.slug}`,
       name: item.name,
       role: item.role,
-      imageSrc: item.imageSrc,
+      imageSrc:
+        item.photoUrl ?? '/media/prototype/bksr-portrait-director.jpg',
     }));
 
+  const personPubs = await publicationsForPerson(person.name);
+  const involvements = await getInvolvementsForPerson(person.id);
+  const roleHistory = await getRoleHistoryForPerson(person.id);
+  const achievements = await getAchievementsProfileForPerson(person.id);
   return (
-    <PersonProfile
-      person={{
-        name: demo.name,
-        role: demo.role,
-        categoryLabel: PEOPLE_DEMO_SECTION_COPY[demo.category].label,
-        affiliation: demo.affiliation,
-        photoUrl: demo.imageSrc,
-        bio: demo.bio,
-        shortBio: demo.description,
-        skills: demo.researchInterests,
-        researchItems: researchItemsFromInterests(demo.researchInterests),
-        backHref: PEOPLE_DEMO_SECTION_COPY[demo.category].href,
-        backLabel: `Back to ${PEOPLE_DEMO_SECTION_COPY[demo.category].label}`,
+    <PersonProfileClaimBridge
+      personId={person.id}
+      initialPerson={{
+        name: person.name,
+        role: person.role,
+        categoryLabel: PERSON_CATEGORY_META[person.category]?.label,
+        affiliation: person.affiliation,
+        photoUrl: person.photoUrl,
+        bio: person.bio,
+        shortBio: person.shortBio,
+        skills: person.researchInterests,
+        researchItems:
+          involvements.length > 0
+            ? []
+            : personPubs.length > 0
+              ? personPubs
+              : researchItemsFromInterests(person.researchInterests),
+        involvements,
+        roleHistory,
+        verifiedAchievements: achievements.verified,
+        memberAchievements: achievements.member,
+        verificationCode: person.verificationCode,
+        appointmentYear: person.appointmentYear,
+        backHref: PERSON_CATEGORY_META[person.category]
+          ? `/people/${
+              person.category === 'executive-director'
+                ? 'executive-director'
+                : person.category === 'distinguished-fellow'
+                  ? 'distinguished-fellows'
+                  : person.category === 'research-team'
+                    ? 'research-team'
+                    : person.category === 'administrative-team'
+                      ? 'administrative-team'
+                      : person.category
+            }`
+          : '/people',
+        backLabel: `Back to ${
+          PERSON_CATEGORY_META[person.category]?.label ?? 'People'
+        }`,
       }}
       related={related}
     />

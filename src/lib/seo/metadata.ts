@@ -52,8 +52,16 @@ export function buildMetadata(
 
   const metadata: Metadata = {
     metadataBase: new URL(absoluteUrlBase),
+    applicationName: siteName,
     title,
     description,
+    icons: {
+      icon: [
+        { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { url: '/favicon.ico', type: 'image/x-icon' },
+      ],
+      apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
+    },
     keywords,
     robots: noIndex
       ? { index: false, follow: false }

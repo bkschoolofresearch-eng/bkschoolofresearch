@@ -2,22 +2,28 @@ import Link from 'next/link';
 import { ArticleReading } from '@/components/editorial/ArticleReading';
 import { PageHero } from '@/components/layout/PageHero';
 import { ArrowLink } from '@/components/ui/ArrowLink';
+import { EmptyState } from '@/components/ui/EmptyState';
+import type { AboutPageSlug, AboutStaticPage } from '@/content/about-pages';
 import { pageHeroMedia } from '@/lib/content/page-heroes';
-import type { Page } from '@/types/content';
 
 const ABOUT_LINKS = [
   { href: '/about/who-we-are', label: 'Who We Are', slug: 'who-we-are' },
   { href: '/about/what-we-do', label: 'What We Do', slug: 'what-we-do' },
   { href: '/about/governance', label: 'Governance', slug: 'governance' },
   { href: '/about/policies', label: 'Our Policies', slug: 'policies' },
-] as const;
+] as const satisfies ReadonlyArray<{
+  href: string;
+  label: string;
+  slug: AboutPageSlug;
+}>;
 
 type AboutSubpageViewProps = {
-  page: Page;
-  slug: (typeof ABOUT_LINKS)[number]['slug'];
+  page: AboutStaticPage;
+  slug: AboutPageSlug;
+  bodySlot?: React.ReactNode;
 };
 
-export function AboutSubpageView({ page, slug }: AboutSubpageViewProps) {
+export function AboutSubpageView({ page, slug, bodySlot }: AboutSubpageViewProps) {
   const siblings = ABOUT_LINKS.filter((item) => item.slug !== slug);
 
   return (
@@ -25,7 +31,7 @@ export function AboutSubpageView({ page, slug }: AboutSubpageViewProps) {
       <PageHero
         eyebrow="Institution"
         title={page.title}
-        description={page.excerpt}
+        description={page.comingSoon?.excerpt ?? page.excerpt}
         imageSrc={pageHeroMedia.about}
         breadcrumbs={[
           { label: 'Home', href: '/' },
@@ -34,7 +40,17 @@ export function AboutSubpageView({ page, slug }: AboutSubpageViewProps) {
         ]}
       />
       <ArticleReading
-        body={page.body}
+        body={page.comingSoon || bodySlot ? '' : page.body}
+        bodySlot={
+          bodySlot ??
+          (page.comingSoon ? (
+            <EmptyState
+              className="rounded-[1.35rem] sm:rounded-[1.75rem]"
+              title={page.comingSoon.title}
+              description={page.comingSoon.description}
+            />
+          ) : undefined)
+        }
         backHref="/about"
         backLabel="Back to About"
         aside={

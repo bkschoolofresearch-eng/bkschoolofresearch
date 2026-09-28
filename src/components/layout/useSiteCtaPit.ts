@@ -74,7 +74,7 @@ export function useSiteCtaPit(
     let physicsCircleSize = 0;
     let destroyed = false;
     let resizeTimeout: ReturnType<typeof setTimeout> | undefined;
-    let spawnTimers: ReturnType<typeof setTimeout>[] = [];
+    const spawnTimers: ReturnType<typeof setTimeout>[] = [];
 
     type MatterMouseHandlers = {
       mousedown: (e: Event) => void;

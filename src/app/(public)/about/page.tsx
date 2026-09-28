@@ -26,7 +26,7 @@ const LINK_DEFS = [
     href: '/about/what-we-do',
     label: 'What We Do',
     excerpt:
-      'Research, publishing, capacity building, and community-facing fieldwork.',
+      'Research and publications, capacity building, policy engagement, and community impact.',
     imageSrc: prototypeMedia.activityWorkshop.url,
   },
   {
@@ -39,8 +39,7 @@ const LINK_DEFS = [
   {
     href: '/about/policies',
     label: 'Our Policies',
-    excerpt:
-      'Privacy, correspondence, and institutional standards for the BKSR website.',
+    excerpt: 'Institutional policies will be published here.',
     imageSrc: prototypeMedia.knowledgeArchive.url,
   },
 ] as const;

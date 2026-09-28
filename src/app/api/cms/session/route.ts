@@ -11,14 +11,13 @@ import {
   isCmsOpenWithoutLogin,
   sessionCookieMatches,
 } from '@/lib/cms/admin-auth';
+import { allowDevOtpExposure } from '@/lib/security/runtime';
 import {
   CMS_OTP_COOKIE,
   CMS_OTP_TTL_MS,
   issueCmsAdminOtp,
 } from '@/lib/cms/admin-otp';
 import { getCmsDriver } from '@/lib/cms/server-repository';
-
-const SESSION_MAX_AGE = 60 * 60 * 12;
 
 export async function POST(request: Request) {
   const driver = getCmsDriver();
@@ -73,8 +72,12 @@ export async function POST(request: Request) {
     driver,
     maskedEmail: issued.maskedEmail,
     mailSent: issued.mailSent,
-    ...(issued.devOtp ? { devOtp: issued.devOtp } : {}),
-    ...(issued.mailError ? { mailError: issued.mailError } : {}),
+    ...(allowDevOtpExposure() && issued.devOtp
+      ? { devOtp: issued.devOtp }
+      : {}),
+    ...(allowDevOtpExposure() && issued.mailError
+      ? { mailError: issued.mailError }
+      : {}),
   });
 }
 

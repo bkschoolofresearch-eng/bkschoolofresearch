@@ -1,6 +1,7 @@
 /**
- * Presentation-only team roster for /people and homepage demos.
- * Replace with CMS-published Person records before production.
+ * Presentation-only team roster (NOT shown on the public site).
+ * Kept for local design demos / future authentic CMS seeding only.
+ * Public `/people` and homepage use CMS-published Person records exclusively.
  */
 
 import type { PersonCategory } from '@/types/content';

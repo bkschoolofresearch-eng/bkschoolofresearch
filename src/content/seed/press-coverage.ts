@@ -1,18 +1,16 @@
-import type { Publication } from '@/types/content';
+import type { MediaClipping } from '@/types/content';
 
 const base = {
   status: 'published' as const,
   createdAt: '2022-01-01T00:00:00.000Z',
   updatedAt: '2026-09-20T00:00:00.000Z',
-  doi: null as string | null,
-  type: 'press-coverage' as const,
 };
 
 /**
  * BKSR in Media — press / TV / digital coverage from
  * docs/New folder/BKSR in Media.docx (order preserved).
  */
-export const pressCoveragePublications: Publication[] = [
+export const mediaClippings: MediaClipping[] = [
   {
     ...base,
     id: 'press-tbs-bk-school-curiosity-2023',

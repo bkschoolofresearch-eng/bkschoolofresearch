@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import {
   apiSecretMatches,
+  cmsAdminSecurityReady,
   isCmsOpenWithoutLogin,
   sessionCookieMatches,
 } from '@/lib/cms/admin-auth';
@@ -17,8 +18,9 @@ export function jsonError(message: string, status = 400) {
 }
 
 /**
- * Admin mutations:
- * - Requires env login (CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD) → session cookie
+ * Admin mutations / private reads:
+ * - Production fails closed without CMS_ADMIN_EMAIL + PASSWORD (+ secret material)
+ * - Requires env login → signed session cookie
  * - Or header `x-cms-admin-secret` (CMS_ADMIN_SECRET or CMS_ADMIN_PASSWORD)
  * - Local file CMS: open in development when no admin credentials are set
  */
@@ -27,6 +29,13 @@ export async function assertCmsAdmin(
 ): Promise<NextResponse | null> {
   if (isCmsOpenWithoutLogin()) {
     return null;
+  }
+
+  if (!cmsAdminSecurityReady()) {
+    return jsonError(
+      'CMS admin security is not configured for this environment',
+      503,
+    );
   }
 
   const header = request.headers.get('x-cms-admin-secret') ?? '';

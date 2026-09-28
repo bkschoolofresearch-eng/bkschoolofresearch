@@ -10,11 +10,15 @@ export type HowWeWorkStep = {
   title: string;
   description: string;
   href?: string;
+  paragraphs?: readonly string[];
 };
 
 type HowWeWorkTimelineProps = {
   steps: HowWeWorkStep[];
   className?: string;
+  /** Homepage column highlights the step in view. A reading page shows every step in full. */
+  mode?: 'scroll' | 'reading';
+  showLabel?: boolean;
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -24,6 +28,8 @@ function clamp(value: number, min: number, max: number) {
 export function HowWeWorkTimeline({
   steps,
   className,
+  mode = 'scroll',
+  showLabel = true,
 }: HowWeWorkTimelineProps) {
   const reduceMotion = useReducedMotion();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -33,6 +39,8 @@ export function HowWeWorkTimeline({
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
+    if (mode !== 'scroll') return;
+
     const root = rootRef.current;
     const track = trackRef.current;
     if (!root || !track || !steps.length) return;
@@ -109,15 +117,17 @@ export function HowWeWorkTimeline({
       window.removeEventListener('scroll', sync);
       window.removeEventListener('resize', sync);
     };
-  }, [steps.length]);
+  }, [mode, steps.length]);
 
   if (!steps.length) return null;
 
   return (
     <div ref={rootRef} className={cn('relative', className)}>
-      <p className="mb-4 font-sans text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-ink sm:mb-5 sm:text-[0.8125rem]">
-        What we do
-      </p>
+      {showLabel ? (
+        <p className="mb-4 font-sans text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-ink sm:mb-5 sm:text-[0.8125rem]">
+          What we do
+        </p>
+      ) : null}
 
       <div ref={trackRef} className="relative">
         <div
@@ -137,8 +147,9 @@ export function HowWeWorkTimeline({
 
         <ol className="relative space-y-4 sm:space-y-5">
           {steps.map((step, index) => {
-            const isActive = index === activeIndex;
-            const isPassed = index < activeIndex;
+            const isActive = mode === 'reading' || index === activeIndex;
+            const isPassed = mode === 'reading' || index < activeIndex;
+            const Heading = mode === 'reading' ? 'h2' : 'h3';
 
             return (
               <li
@@ -165,7 +176,8 @@ export function HowWeWorkTimeline({
                 <article
                   className={cn(
                     'rounded-[1.25rem] bg-[#0b233f] px-5 py-5 text-paper sm:rounded-[1.5rem] sm:px-6 sm:py-6',
-                    reduceMotion
+                    mode === 'reading' && 'px-5 py-6 sm:px-7 sm:py-7',
+                    reduceMotion || mode === 'reading'
                       ? undefined
                       : 'transition-[box-shadow,opacity] duration-300',
                     isActive
@@ -174,9 +186,16 @@ export function HowWeWorkTimeline({
                   )}
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1.5">
-                    <h3 className="font-instrument text-xl font-medium leading-snug tracking-tight sm:text-2xl">
+                    <Heading
+                      className={cn(
+                        'font-instrument font-medium leading-snug tracking-tight',
+                        mode === 'reading'
+                          ? 'text-[1.35rem] sm:text-[1.65rem]'
+                          : 'text-xl sm:text-2xl',
+                      )}
+                    >
                       {step.title}
-                    </h3>
+                    </Heading>
                     {step.href ? (
                       <Link
                         href={step.href}
@@ -189,6 +208,18 @@ export function HowWeWorkTimeline({
                   <p className="mt-2.5 text-sm leading-relaxed text-paper/88 sm:mt-3 sm:text-base sm:leading-7">
                     {step.description}
                   </p>
+                  {mode === 'reading' && step.paragraphs?.length ? (
+                    <div className="mt-4 space-y-3 border-t border-white/10 pt-4 sm:mt-5 sm:space-y-4 sm:pt-5">
+                      {step.paragraphs.map((paragraph) => (
+                        <p
+                          key={paragraph.slice(0, 48)}
+                          className="text-sm leading-relaxed text-paper/78 sm:text-base sm:leading-7"
+                        >
+                          {paragraph}
+                        </p>
+                      ))}
+                    </div>
+                  ) : null}
                 </article>
               </li>
             );

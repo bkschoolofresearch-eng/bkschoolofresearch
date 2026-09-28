@@ -22,6 +22,11 @@ import {
   serverUpdate,
 } from '@/lib/cms/server-repository';
 import { getSiteUrl } from '@/lib/seo/site-url';
+import {
+  hashPasswordSecure,
+  verifyPasswordSecure,
+} from '@/lib/auth/password';
+import { allowDevOtpExposure } from '@/lib/security/runtime';
 import type { Person, PersonCategory } from '@/types/content';
 import type { AuthSession } from '@/types/auth';
 
@@ -234,7 +239,7 @@ export async function requestOtp(input: {
       email,
       role: person.role,
     },
-    ...(mail.sent ? {} : { devOtp: otp }),
+    ...(allowDevOtpExposure() && !mail.sent ? { devOtp: otp } : {}),
   };
 }
 
@@ -358,7 +363,7 @@ export async function completeRegistration(input: {
   }
 
   const stamp = nowIso();
-  const passwordHash = hashSecret(input.password, 'bksr-demo-v1');
+  const passwordHash = await hashPasswordSecure(input.password);
   const accountId = generateToken();
   const account = {
     id: accountId,
@@ -433,12 +438,16 @@ export async function loginWithPassword(input: {
   if (!account) {
     return { ok: false, error: 'Invalid email or password.' };
   }
-  const ok = secretsEqual(
+  const verified = await verifyPasswordSecure(
+    input.password,
     account.passwordHash,
-    hashSecret(input.password, 'bksr-demo-v1'),
   );
-  if (!ok) {
+  if (!verified.ok) {
     return { ok: false, error: 'Invalid email or password.' };
+  }
+  if (verified.needsRehash) {
+    account.passwordHash = await hashPasswordSecure(input.password);
+    account.updatedAt = nowIso();
   }
   const sessionToken = generateToken();
   let personSlug: string | null = null;

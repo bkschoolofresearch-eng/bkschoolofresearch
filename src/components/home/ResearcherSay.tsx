@@ -422,7 +422,9 @@ export function ResearcherSay({
   };
 
   const animateStepRef = useRef(animateStep);
-  animateStepRef.current = animateStep;
+  useEffect(() => {
+    animateStepRef.current = animateStep;
+  });
 
   useEffect(() => {
     logicalIndexRef.current = logicalIndex;

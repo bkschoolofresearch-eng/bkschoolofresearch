@@ -1,7 +1,7 @@
 'use client';
 
-import { CollectionEditorPage } from '@/components/admin/CollectionEditorPage';
+import { ActivityEditorPage } from '@/components/admin/ActivityEditorPage';
 
 export default function Page() {
-  return <CollectionEditorPage collectionSlug="activities" mode="new" />;
+  return <ActivityEditorPage mode="new" />;
 }

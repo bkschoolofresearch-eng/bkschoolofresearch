@@ -51,6 +51,13 @@ const INDEX_SPECS: IndexSpec[] = [
     ],
   },
   {
+    collection: MONGO_COLLECTIONS.mediaClippings,
+    indexes: [
+      { key: { slug: 1 }, unique: true },
+      { key: { status: 1, year: -1 } },
+    ],
+  },
+  {
     collection: MONGO_COLLECTIONS.activities,
     indexes: [
       { key: { slug: 1 }, unique: true },

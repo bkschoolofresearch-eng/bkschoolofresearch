@@ -7,7 +7,6 @@ export type PublicationType =
   | 'book-chapter'
   | 'conference'
   | 'opinion'
-  | 'press-coverage'
   | 'report'
   | 'newsletter'
   | 'annual-report'
@@ -291,6 +290,21 @@ export interface ResearchProject extends ContentBase {
   originalLegacyUrl?: string;
 }
 
+/** Newspaper, television, and digital coverage of BKSR. Not a publication. */
+export interface MediaClipping extends ContentBase {
+  title: string;
+  authors: string[];
+  year: number;
+  citation: string;
+  /** Outlet name */
+  venue?: string | null;
+  /** External article, broadcast, or video URL */
+  url?: string | null;
+  abstract?: string | null;
+  coverImageUrl?: string | null;
+  language?: string | null;
+}
+
 export interface Publication extends ContentBase {
   title: string;
   type: PublicationType;
@@ -450,6 +464,11 @@ export interface Notice extends ContentBase {
    * Shared or dedicated vacancy forms.
    */
   applicationFormId?: string | null;
+  /**
+   * External apply link (for example a Google Form).
+   * Used when no in-site Career form is attached.
+   */
+  applicationUrl?: string | null;
   featuredImageUrl?: string | null;
   originalLegacyUrl?: string;
   language?: string;
@@ -545,6 +564,21 @@ export interface HomepageConfig {
   featuredPublicationIds: string[];
   featuredNewsIds: string[];
   featuredEventIds: string[];
+  /** When set, homepage Focus Areas shows these areas in this order. Empty keeps every on-site area. */
+  featuredResearchAreaIds?: string[];
+  /** When set, homepage BKSR in Media shows these clippings in this order. Empty keeps published coverage. */
+  featuredMediaClippingIds?: string[];
+  /** When set, homepage team row shows these people in this order. Empty keeps the first published profiles. */
+  featuredPersonIds?: string[];
+  /** When set, homepage notices show these in this order. Empty keeps the latest published notices. */
+  featuredNoticeIds?: string[];
+  /** Temporary homepage quotes until real researcher statements replace them. */
+  researcherQuotes?: {
+    imageSrc: string;
+    quote: string;
+    name: string;
+    role: string;
+  }[];
   sections: HomepageSection[];
   stats: HomepageStat[];
   updatedAt: string;
@@ -556,6 +590,7 @@ export type ContentCollectionKey =
   | 'researchAreas'
   | 'researchProjects'
   | 'publications'
+  | 'mediaClippings'
   | 'activities'
   | 'news'
   | 'events'
@@ -587,6 +622,7 @@ export interface ContentDatabase {
   researchAreas: ResearchArea[];
   researchProjects: ResearchProject[];
   publications: Publication[];
+  mediaClippings: MediaClipping[];
   activities: Activity[];
   news: NewsArticle[];
   events: Event[];
@@ -611,6 +647,7 @@ export type CollectionEntityMap = {
   researchAreas: ResearchArea;
   researchProjects: ResearchProject;
   publications: Publication;
+  mediaClippings: MediaClipping;
   activities: Activity;
   news: NewsArticle;
   events: Event;

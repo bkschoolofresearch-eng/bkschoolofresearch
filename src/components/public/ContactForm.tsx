@@ -117,14 +117,9 @@ export function ContactForm() {
       {error ? (
         <p className="text-sm font-medium text-brand-red">{error}</p>
       ) : null}
-      <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
-        <Button type="submit" variant="primary" withArrow disabled={busy}>
-          {busy ? 'Sending…' : 'Send message'}
-        </Button>
-        <p className="text-xs leading-relaxed text-muted sm:max-w-[16rem] sm:text-right">
-          Prefer email? Use the general desk address on this page.
-        </p>
-      </div>
+      <Button type="submit" variant="ink" size="lg" withArrow disabled={busy}>
+        {busy ? 'Sending…' : 'Send message'}
+      </Button>
     </form>
   );
 }

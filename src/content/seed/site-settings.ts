@@ -51,6 +51,7 @@ export const siteSettings: SiteSettings = {
       'evidence-based',
     ],
     canonicalPath: '/',
+    ogImage: '/brand/bksr-logo.png',
   },
   updatedAt: '2026-08-30T00:00:00.000Z',
 };

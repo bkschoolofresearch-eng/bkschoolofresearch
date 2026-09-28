@@ -10,6 +10,7 @@ import {
   getCmsAdminEmail,
   getCmsSessionToken,
 } from '@/lib/cms/admin-auth';
+import { allowDevOtpExposure } from '@/lib/security/runtime';
 
 export const CMS_OTP_COOKIE = 'bksr_cms_otp';
 export const CMS_OTP_TTL_MS = 10 * 60 * 1000;
@@ -120,12 +121,12 @@ export async function issueCmsAdminOtp(): Promise<
     cookieValue: encodeChallenge(payload, key),
     maskedEmail: maskEmail(email),
     mailSent: mail.sent,
-    ...(mail.sent
-      ? {}
-      : {
+    ...(!mail.sent && allowDevOtpExposure()
+      ? {
           devOtp: otp,
           ...(mail.error ? { mailError: mail.error } : {}),
-        }),
+        }
+      : {}),
   };
 }
 

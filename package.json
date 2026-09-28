@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test:security": "node --experimental-strip-types --test scripts/security-regression.mts",
     "migrate": "node scripts/migrate-legacy.mjs",
     "seed:mongo": "node --env-file=.env.local scripts/seed-mongo.mjs"
   },

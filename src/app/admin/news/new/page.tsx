@@ -1,7 +1,7 @@
 'use client';
 
-import { CollectionEditorPage } from '@/components/admin/CollectionEditorPage';
+import { NewsEditorPage } from '@/components/admin/NewsEditorPage';
 
 export default function Page() {
-  return <CollectionEditorPage collectionSlug="news" mode="new" />;
+  return <NewsEditorPage mode="new" />;
 }

@@ -94,7 +94,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     pushSlug(db.events, '/events');
     pushSlug(db.notices, '/notices');
     pushSlug(db.resources, '/resources');
-    pushSlug(db.pages, '');
+    pushSlug(
+      db.pages.filter(
+        (page) =>
+          page.slug !== 'who-we-are' &&
+          page.slug !== 'what-we-do' &&
+          page.slug !== 'governance' &&
+          page.slug !== 'policies',
+      ),
+      '',
+    );
     pushSlug(db.researchAreas, '/research/areas');
     // Research projects intentionally omit internal detail URLs — they open
     // external journal/DOI destinations from listing cards.

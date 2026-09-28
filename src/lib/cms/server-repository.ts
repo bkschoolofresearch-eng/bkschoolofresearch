@@ -72,6 +72,111 @@ export async function serverListPublications(
   return fsListPublications(query);
 }
 
+export async function serverListEvents(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Event
+  >
+> {
+  if (getCmsDriver() === 'mongo') {
+    const { mongoListEvents } = await import('@/lib/cms/mongo-repository');
+    return mongoListEvents(query);
+  }
+  const { fsListEvents } = await import('@/lib/cms/fs-repository');
+  return fsListEvents(query);
+}
+
+export async function serverListNotices(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Notice
+  >
+> {
+  if (getCmsDriver() === 'mongo') {
+    const { mongoListNotices } = await import('@/lib/cms/mongo-repository');
+    return mongoListNotices(query);
+  }
+  const { fsListNotices } = await import('@/lib/cms/fs-repository');
+  return fsListNotices(query);
+}
+
+export async function serverListActivities(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Activity
+  >
+> {
+  if (getCmsDriver() === 'mongo') {
+    const { mongoListActivities } = await import('@/lib/cms/mongo-repository');
+    return mongoListActivities(query);
+  }
+  const { fsListActivities } = await import('@/lib/cms/fs-repository');
+  return fsListActivities(query);
+}
+
+export async function serverListResources(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').Resource
+  >
+> {
+  if (getCmsDriver() === 'mongo') {
+    const { mongoListResources } = await import('@/lib/cms/mongo-repository');
+    return mongoListResources(query);
+  }
+  const { fsListResources } = await import('@/lib/cms/fs-repository');
+  return fsListResources(query);
+}
+
+export async function serverListNews(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').NewsArticle
+  >
+> {
+  if (getCmsDriver() === 'mongo') {
+    const { mongoListNews } = await import('@/lib/cms/mongo-repository');
+    return mongoListNews(query);
+  }
+  const { fsListNews } = await import('@/lib/cms/fs-repository');
+  return fsListNews(query);
+}
+
+export async function serverListMediaClippings(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').MediaClipping
+  >
+> {
+  if (getCmsDriver() === 'mongo') {
+    const { mongoListMediaClippings } = await import('@/lib/cms/mongo-repository');
+    return mongoListMediaClippings(query);
+  }
+  const { fsListMediaClippings } = await import('@/lib/cms/fs-repository');
+  return fsListMediaClippings(query);
+}
+
+export async function serverListResearchAreas(
+  query: import('@/lib/cms/paginated-list').CollectionListQuery,
+): Promise<
+  import('@/lib/cms/paginated-list').CollectionListResult<
+    import('@/types/content').ResearchArea
+  >
+> {
+  if (getCmsDriver() === 'mongo') {
+    const { mongoListResearchAreas } = await import('@/lib/cms/mongo-repository');
+    return mongoListResearchAreas(query);
+  }
+  const { fsListResearchAreas } = await import('@/lib/cms/fs-repository');
+  return fsListResearchAreas(query);
+}
+
 export async function serverGetById<K extends ContentCollectionKey>(
   collection: K,
   id: string,

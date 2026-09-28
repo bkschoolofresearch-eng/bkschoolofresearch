@@ -10,14 +10,17 @@ import {
   isCmsOpenWithoutLogin,
 } from '@/lib/cms/admin-auth';
 import {
+  CMS_ADMIN_SESSION_MAX_AGE_SEC,
+  issueCmsAdminSessionCookie,
+} from '@/lib/cms/admin-session';
+import {
   CMS_OTP_COOKIE,
   CMS_OTP_TTL_MS,
   resendCmsAdminOtp,
   verifyCmsAdminOtp,
 } from '@/lib/cms/admin-otp';
 import { getCmsDriver } from '@/lib/cms/server-repository';
-
-const SESSION_MAX_AGE = 60 * 60 * 12;
+import { allowDevOtpExposure } from '@/lib/security/runtime';
 
 export async function POST(request: Request) {
   if (isCmsOpenWithoutLogin()) {
@@ -64,8 +67,12 @@ export async function POST(request: Request) {
       step: 'otp' as const,
       maskedEmail: issued.maskedEmail,
       mailSent: issued.mailSent,
-      ...(issued.devOtp ? { devOtp: issued.devOtp } : {}),
-      ...(issued.mailError ? { mailError: issued.mailError } : {}),
+      ...(allowDevOtpExposure() && issued.devOtp
+        ? { devOtp: issued.devOtp }
+        : {}),
+      ...(allowDevOtpExposure() && issued.mailError
+        ? { mailError: issued.mailError }
+        : {}),
     });
   }
 
@@ -87,13 +94,18 @@ export async function POST(request: Request) {
     return jsonError(result.error, 401);
   }
 
+  const sessionCookie = issueCmsAdminSessionCookie();
+  if (!sessionCookie) {
+    return jsonError('CMS admin session token is not configured', 503);
+  }
+
   jar.delete(CMS_OTP_COOKIE);
-  jar.set(CMS_ADMIN_COOKIE, token, {
+  jar.set(CMS_ADMIN_COOKIE, sessionCookie, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: SESSION_MAX_AGE,
+    maxAge: CMS_ADMIN_SESSION_MAX_AGE_SEC,
   });
 
   return jsonOk({

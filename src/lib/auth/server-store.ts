@@ -82,6 +82,10 @@ async function ensureDir() {
 }
 
 export async function readAuthStore(): Promise<AuthServerStore> {
+  if (process.env.AUTH_DRIVER === 'mongo' && process.env.MONGODB_URI?.trim()) {
+    const { mongoReadAuthStore } = await import('@/lib/auth/mongo-store');
+    return mongoReadAuthStore();
+  }
   try {
     const raw = await fs.readFile(AUTH_FILE, 'utf8');
     const parsed = JSON.parse(raw) as AuthServerStore;
@@ -100,6 +104,11 @@ export async function readAuthStore(): Promise<AuthServerStore> {
 }
 
 export async function writeAuthStore(store: AuthServerStore): Promise<void> {
+  if (process.env.AUTH_DRIVER === 'mongo' && process.env.MONGODB_URI?.trim()) {
+    const { mongoWriteAuthStore } = await import('@/lib/auth/mongo-store');
+    await mongoWriteAuthStore(store);
+    return;
+  }
   await ensureDir();
   await fs.writeFile(AUTH_FILE, JSON.stringify(store, null, 2), 'utf8');
 }
