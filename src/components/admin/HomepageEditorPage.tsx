@@ -295,6 +295,8 @@ export function HomepageEditorPage() {
   );
 }
 
+const SEARCH_MATCH_LIMIT = 8;
+
 function Picker({
   title,
   help,
@@ -312,7 +314,27 @@ function Picker({
   onClear: () => void;
   manageHref: string;
 }) {
+  const [query, setQuery] = useState('');
   const order = new Map(selected.map((id, index) => [id, index + 1]));
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const needle = query.trim().toLowerCase();
+  const selectedItems = selected.map(
+    (id) => byId.get(id) ?? { id, label: 'Saved item' },
+  );
+  const matches = needle
+    ? items
+        .filter(
+          (item) =>
+            !order.has(item.id) && item.label.toLowerCase().includes(needle),
+        )
+        .slice(0, SEARCH_MATCH_LIMIT)
+    : [];
+  const hiddenMatches = needle
+    ? items.filter(
+        (item) =>
+          !order.has(item.id) && item.label.toLowerCase().includes(needle),
+      ).length - matches.length
+    : 0;
 
   return (
     <section className="space-y-2 rounded-xl border border-[#D9DEE5] bg-[#F8F7F3] p-4 sm:p-5">
@@ -339,37 +361,86 @@ function Picker({
           </Link>
         </div>
       </div>
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search by title"
+        aria-label={`Search ${title} by title`}
+        className="w-full rounded-lg border border-[#D9DEE5] bg-white px-3 py-2 text-sm outline-none focus:border-[#173B6C]"
+      />
       <div className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-[#E8ECE8] bg-white p-2">
         {items.length === 0 ? (
           <p className="px-2 py-3 text-sm text-[#68727D]">
             Nothing is on site yet.
           </p>
         ) : (
-          items.map((item) => {
-            const place = order.get(item.id);
-            return (
-              <label
+          <>
+            {selectedItems.map((item) => (
+              <PickRow
                 key={item.id}
-                className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-[#F6F4EE]"
-              >
-                <input
-                  type="checkbox"
-                  className="mt-1"
-                  checked={place !== undefined}
-                  onChange={() => onToggle(item.id)}
-                />
-                {place ? (
-                  <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#173B6C] px-1.5 text-[11px] font-semibold text-white">
-                    {place}
-                  </span>
-                ) : null}
-                <span className="text-[#0D2745]">{item.label}</span>
-              </label>
-            );
-          })
+                label={item.label}
+                place={order.get(item.id)}
+                onToggle={() => onToggle(item.id)}
+              />
+            ))}
+            {needle && matches.length > 0 && selectedItems.length > 0 ? (
+              <p className="px-2 pt-2 text-[11px] font-medium uppercase tracking-wide text-[#68727D]">
+                Matches
+              </p>
+            ) : null}
+            {matches.map((item) => (
+              <PickRow
+                key={item.id}
+                label={item.label}
+                onToggle={() => onToggle(item.id)}
+              />
+            ))}
+            {!needle && selectedItems.length === 0 ? (
+              <p className="px-2 py-3 text-sm text-[#68727D]">
+                Search by title, then tick the item to put it on the homepage.
+              </p>
+            ) : null}
+            {needle && matches.length === 0 ? (
+              <p className="px-2 py-3 text-sm text-[#68727D]">
+                No title matches that search.
+              </p>
+            ) : null}
+            {hiddenMatches > 0 ? (
+              <p className="px-2 py-2 text-xs text-[#68727D]">
+                Keep typing to narrow the matches.
+              </p>
+            ) : null}
+          </>
         )}
       </div>
     </section>
+  );
+}
+
+function PickRow({
+  label,
+  place,
+  onToggle,
+}: {
+  label: string;
+  place?: number;
+  onToggle: () => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-[#F6F4EE]">
+      <input
+        type="checkbox"
+        className="mt-1"
+        checked={place !== undefined}
+        onChange={onToggle}
+      />
+      {place ? (
+        <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#173B6C] px-1.5 text-[11px] font-semibold text-white">
+          {place}
+        </span>
+      ) : null}
+      <span className="text-[#0D2745]">{label}</span>
+    </label>
   );
 }
 
