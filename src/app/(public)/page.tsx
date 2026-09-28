@@ -40,9 +40,9 @@ import {
   ABOUT_OVERVIEW_IDENTITY,
   WHAT_WE_DO_PILLARS,
 } from '@/content/about-hub';
-import { withResearchExternalUrls, researchProjectVenueLine } from '@/lib/content/research-links';
+import { withResearchExternalUrls } from '@/lib/content/research-links';
 import { publicationCardSupportingLine } from '@/lib/content/publication-card';
-import { demoResearcherQuotes } from '@/content/seed/demo-roster';
+import { resolveLiveHomepage } from '@/lib/content/homepage-live';
 import { siteSettings } from '@/content/seed/site-settings';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 
@@ -51,16 +51,6 @@ export const metadata = buildPageMetadata(
   siteSettings.defaultSeo.description,
   '/',
 );
-
-function orderedPicks<T extends { id: string }>(
-  ids: string[] | undefined,
-  items: T[],
-): T[] {
-  if (!ids?.length) return [];
-  return ids
-    .map((id) => items.find((item) => item.id === id))
-    .filter((item): item is T => Boolean(item));
-}
 
 function HomeSectionIntro({
   title,
@@ -123,38 +113,19 @@ export default async function HomePage() {
     .filter((stat) => stat.verified)
     .sort((a, b) => a.order - b.order);
 
-  const featuredByConfig = orderedPicks(
-    homepage.featuredResearchProjectIds,
-    researchProjects,
-  );
-
-  const showcaseRank = (p: (typeof researchProjects)[number]) => {
-    let score = 0;
-    if (p.researchStatus === 'completed') score += 10;
-    if (p.featuredImageUrl?.trim()) score += 6;
-    if ((p.leadAuthorNames?.length ?? 0) > 0) score += 3;
-    if (researchProjectVenueLine(p) || p.venue?.trim()) score += 3;
-    if (p.url?.trim()) score += 2;
-    return score;
-  };
-
-  const byShowcase = (
-    a: (typeof researchProjects)[number],
-    b: (typeof researchProjects)[number],
-  ) =>
-    showcaseRank(b) - showcaseRank(a) || (b.year ?? 0) - (a.year ?? 0);
-
-  /** Checked homepage picks, in the saved order. If none are checked, fill from the research library. */
-  const researchShowcasePool = featuredByConfig.length
-    ? featuredByConfig
-    : [...researchProjects].sort(byShowcase);
-  const researchFeatured = researchShowcasePool.slice(0, 2);
-  const researchFeaturedIds = new Set(researchFeatured.map((item) => item.id));
-  const researchSidebar = researchShowcasePool
-    .filter((item) => !researchFeaturedIds.has(item.id))
-    .slice(0, 3);
-
   const people = await getPeople();
+  const live = resolveLiveHomepage(homepage, {
+    areas,
+    projects: researchProjects,
+    people,
+    notices,
+    events,
+    media: mediaCoverage,
+    opinions: opinionPublications,
+  });
+  const researchFeatured = live.research.slice(0, 2);
+  const researchSidebar = live.research.slice(2, 5);
+
   const director =
     (await getPersonById(homepage.directorPersonId)) ??
     people.find((person) => person.category === 'executive-director');
@@ -187,14 +158,7 @@ export default async function HomePage() {
     return `${person.name} serves as ${person.role} at BK School of Research.`;
   };
 
-  const pickedTeam = orderedPicks(homepage.featuredPersonIds, people).filter(
-    (person) => person.id !== director?.id,
-  );
-  const teamSource = pickedTeam.length
-    ? pickedTeam
-    : people.filter((person) => person.id !== director?.id);
-  const publishedTeamMembers = teamSource
-    .map((person) => ({
+  const teamMembers = live.people.map((person) => ({
       href: `/people/${person.slug}`,
       name: person.name,
       role: person.role,
@@ -205,20 +169,11 @@ export default async function HomePage() {
       description: teamFlipDescription(person),
     }));
 
-  const teamMembers = publishedTeamMembers.slice(0, 4);
-  const researcherQuotes =
-    homepage.researcherQuotes?.length
-      ? homepage.researcherQuotes
-      : [...demoResearcherQuotes];
+  const researcherQuotes = live.quotes;
 
-  const pickedEvents = orderedPicks(homepage.featuredEventIds, events);
-  const featuredEventPool = pickedEvents.length ? pickedEvents : events;
+  const eventItems = live.events;
 
-  const eventItems = featuredEventPool.slice(0, 3);
-
-  const pickedNotices = orderedPicks(homepage.featuredNoticeIds, notices);
-  const noticeSource = pickedNotices.length ? pickedNotices : notices;
-  const noticeSlides = noticeSource.slice(0, 3).map((item, index) => ({
+  const noticeSlides = live.notices.map((item, index) => ({
     id: item.id,
     href: `/notices/${item.slug}`,
     title: item.title,
@@ -229,7 +184,7 @@ export default async function HomePage() {
       prototypeMedia.heroSeminar.url,
   }));
 
-  const eventSlides = featuredEventPool.slice(0, 3).map((item, index) => ({
+  const eventSlides = live.events.map((item, index) => ({
     id: item.id,
     href: `/events/${item.slug}`,
     title: item.title,
@@ -274,21 +229,9 @@ export default async function HomePage() {
     },
   ];
 
-  const pickedOpinions = orderedPicks(
-    homepage.featuredPublicationIds,
-    opinionPublications,
-  );
-  const opinionSource = pickedOpinions.length
-    ? pickedOpinions
-    : opinionPublications;
-  const pickedAreas = orderedPicks(homepage.featuredResearchAreaIds, areas);
-  const homeAreas = pickedAreas.length ? pickedAreas : areas;
-  const pickedMedia = orderedPicks(
-    homepage.featuredMediaClippingIds,
-    mediaCoverage,
-  );
-  const homeMedia = pickedMedia.length ? pickedMedia : mediaCoverage;
-  const opinionSlides = opinionSource.slice(0, 3).map((item, index) => ({
+  const homeAreas = live.areas;
+  const homeMedia = live.media;
+  const opinionSlides = live.opinions.map((item, index) => ({
     id: item.id,
     href: `/publications/${item.slug}`,
     title: item.title,

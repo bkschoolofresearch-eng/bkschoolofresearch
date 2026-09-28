@@ -156,7 +156,7 @@ export function PersonProfileClaimBridge({
           bio: cmsPerson.bio,
           shortBio: cmsPerson.shortBio,
           skills: cmsPerson.researchInterests,
-          verificationCode: cmsPerson.verificationCode,
+          verificationCode: isOwner ? cmsPerson.verificationCode : undefined,
           appointmentYear: cmsPerson.appointmentYear,
         }
       : initialPerson;
@@ -170,6 +170,7 @@ export function PersonProfileClaimBridge({
     };
   }, [
     cmsPerson,
+    isOwner,
     initialPerson,
     involvements,
     roleHistory,

@@ -62,6 +62,10 @@ export async function GET(request: Request, context: RouteContext) {
     if (denied) return denied;
   }
 
+  const { redactPublicCmsPayload } = await import('@/lib/cms/public-response');
+  const jsonRead = (body: unknown) =>
+    jsonOk(publicOk.ok ? redactPublicCmsPayload(collection, body) : body);
+
   try {
     const {
       serverGetById,
@@ -84,7 +88,7 @@ export async function GET(request: Request, context: RouteContext) {
       if (publishedOnly && !isPublishedCmsItem(item)) {
         return jsonError('Not found', 404);
       }
-      return jsonOk({ item });
+      return jsonRead({ item });
     }
 
     if (slug) {
@@ -93,7 +97,7 @@ export async function GET(request: Request, context: RouteContext) {
       if (publishedOnly && !isPublishedCmsItem(item)) {
         return jsonError('Not found', 404);
       }
-      return jsonOk({ item });
+      return jsonRead({ item });
     }
 
     if (wantsPage) {
@@ -101,7 +105,7 @@ export async function GET(request: Request, context: RouteContext) {
         const query = parseCollectionListQuery(url.searchParams);
         if (publishedOnly) query.status = 'published';
         const result = await serverListResearchProjects(query);
-        return jsonOk(result);
+        return jsonRead(result);
       }
 
       if (supportsPublicationListQuery(collection)) {
@@ -109,7 +113,7 @@ export async function GET(request: Request, context: RouteContext) {
         if (publishedOnly) query.status = 'published';
         if (!query.sort || query.sort === 'category') query.sort = 'type';
         const result = await serverListPublications(query);
-        return jsonOk(result);
+        return jsonRead(result);
       }
 
       if (supportsEventListQuery(collection)) {
@@ -119,7 +123,7 @@ export async function GET(request: Request, context: RouteContext) {
           query.sort = 'start_desc';
         }
         const result = await serverListEvents(query);
-        return jsonOk(result);
+        return jsonRead(result);
       }
 
       if (supportsNoticeListQuery(collection)) {
@@ -135,7 +139,7 @@ export async function GET(request: Request, context: RouteContext) {
           query.sort = 'updated_desc';
         }
         const result = await serverListNotices(query);
-        return jsonOk(result);
+        return jsonRead(result);
       }
 
       if (supportsActivityListQuery(collection)) {
@@ -153,7 +157,7 @@ export async function GET(request: Request, context: RouteContext) {
           query.sort = 'order_asc';
         }
         const result = await serverListActivities(query);
-        return jsonOk(result);
+        return jsonRead(result);
       }
 
       if (supportsResourceListQuery(collection)) {
@@ -172,7 +176,7 @@ export async function GET(request: Request, context: RouteContext) {
           query.sort = 'title_asc';
         }
         const result = await serverListResources(query);
-        return jsonOk(result);
+        return jsonRead(result);
       }
 
       if (supportsNewsListQuery(collection)) {
@@ -191,7 +195,7 @@ export async function GET(request: Request, context: RouteContext) {
           query.sort = 'published_desc';
         }
         const result = await serverListNews(query);
-        return jsonOk(result);
+        return jsonRead(result);
       }
 
       if (supportsMediaClippingListQuery(collection)) {
@@ -212,7 +216,7 @@ export async function GET(request: Request, context: RouteContext) {
           query.sort = 'year_desc';
         }
         const result = await serverListMediaClippings(query);
-        return jsonOk(result);
+        return jsonRead(result);
       }
 
       if (supportsResearchAreaListQuery(collection)) {
@@ -227,7 +231,7 @@ export async function GET(request: Request, context: RouteContext) {
           query.sort = 'order_asc';
         }
         const result = await serverListResearchAreas(query);
-        return jsonOk(result);
+        return jsonRead(result);
       }
 
       let items = await serverGetAll(collection);
@@ -250,7 +254,7 @@ export async function GET(request: Request, context: RouteContext) {
       const totalPages = Math.max(1, Math.ceil(total / listQuery.pageSize) || 1);
       const page = Math.min(listQuery.page, totalPages);
       const start = (page - 1) * listQuery.pageSize;
-      return jsonOk({
+      return jsonRead({
         items: items.slice(start, start + listQuery.pageSize),
         total,
         page,
@@ -262,7 +266,7 @@ export async function GET(request: Request, context: RouteContext) {
     if (publishedOnly) {
       items = items.filter((item) => isPublishedCmsItem(item));
     }
-    return jsonOk({ items });
+    return jsonRead({ items });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Query failed';
     return jsonError(message, 500);

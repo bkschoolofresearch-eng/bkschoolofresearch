@@ -1,14 +1,19 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { Search, X } from 'lucide-react';
 import type { HomepageConfig } from '@/types/content';
 import {
   AdminLockedState,
   AdminPageHeader,
   AdminPrimaryButton,
 } from './AdminUI';
+import { hydrateHomepagePicks, type HomepageQuote } from '@/lib/content/homepage-live';
 import { useCms } from './CmsProvider';
+
+const fieldClass =
+  'w-full rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-[15px] text-[#0B1F36] outline-none placeholder:text-[#7A90A8] focus:border-[#0B1F36] focus:bg-white focus:ring-2 focus:ring-[#0B1F36]/10';
 
 type PickKey =
   | 'featuredResearchProjectIds'
@@ -36,7 +41,19 @@ export function HomepageEditorPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (database) setForm(withPickLists(structuredClone(database.homepage)));
+    if (!database) return;
+    const home = structuredClone(database.homepage);
+    setForm(
+      hydrateHomepagePicks(home, {
+        areas: database.researchAreas ?? [],
+        projects: database.researchProjects ?? [],
+        people: database.people ?? [],
+        notices: database.notices ?? [],
+        events: database.events ?? [],
+        media: database.mediaClippings ?? [],
+        opinions: database.publications ?? [],
+      }),
+    );
   }, [database]);
 
   const publishedPeople = useMemo(
@@ -107,10 +124,6 @@ export function HomepageEditorPage() {
     setForm({ ...form, [key]: next });
   };
 
-  const clearIds = (key: PickKey) => {
-    setForm({ ...form, [key]: [] });
-  };
-
   const teamPeople = publishedPeople.filter(
     (person) => person.id !== form.directorPersonId,
   );
@@ -120,7 +133,7 @@ export function HomepageEditorPage() {
       <AdminPageHeader
         eyebrow="Homepage"
         title="What the homepage shows"
-        description="Choose which items already in the library appear on the homepage. Titles, bios, and images stay in their own sections. Leave a list unchecked to keep the automatic set."
+        description="These are the library items the homepage is showing now. Search to add another, or remove one, then save."
         action={
           <>
             {message ? (
@@ -135,143 +148,150 @@ export function HomepageEditorPage() {
         }
       />
 
-      <div className="grid max-w-3xl gap-6">
-        <section className="space-y-4 rounded-xl border border-[#D9DEE5] bg-[#F8F7F3] p-4 sm:p-5">
-          <div>
-            <p className="text-sm font-medium text-[#0D2745]">
-              Message from the Executive Director
-            </p>
-            <p className="text-xs text-[#68727D]">
-              The portrait and name come from Team. This page only chooses who
-              appears, and the short message visitors read.
-            </p>
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <Card
+          className="lg:col-span-2"
+          title="Message from the Executive Director"
+          help="Name and photo come from Team. This is only the short message on the homepage."
+          action={<LibraryLink href="/admin/people">Open team</LibraryLink>}
+        >
+          <div className="grid gap-3 lg:grid-cols-[18rem_1fr]">
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium text-[#0B1F36]">Person</span>
+              <select
+                value={form.directorPersonId}
+                onChange={(e) =>
+                  setForm({ ...form, directorPersonId: e.target.value })
+                }
+                className={fieldClass}
+              >
+                {publishedPeople.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} — {p.role}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <TextArea
+              label="Homepage message"
+              value={form.directorMessageExcerpt}
+              onChange={(v) => setForm({ ...form, directorMessageExcerpt: v })}
+              rows={4}
+            />
           </div>
-          <label className="block space-y-1.5 text-sm">
-            <span className="font-medium text-[#0D2745]">Person</span>
-            <select
-              value={form.directorPersonId}
-              onChange={(e) =>
-                setForm({ ...form, directorPersonId: e.target.value })
-              }
-              className="w-full rounded-lg border border-[#D9DEE5] bg-white px-3 py-2"
-            >
-              {publishedPeople.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} — {p.role}
-                </option>
-              ))}
-            </select>
-          </label>
-          <TextArea
-            label="Homepage message"
-            help="The paragraph on the homepage. The full profile stays on the person page."
-            value={form.directorMessageExcerpt}
-            onChange={(v) => setForm({ ...form, directorMessageExcerpt: v })}
-            rows={6}
-          />
-          <Link
-            href="/admin/people"
-            className="text-xs font-medium text-[#173B6C] underline"
-          >
-            Manage team
-          </Link>
-        </section>
+        </Card>
 
         <Picker
           title="Focus areas"
-          help="Checked areas appear in this order. If none are checked, every on-site focus area appears in its display order."
+          help="Shown in this order. Search to add one. X takes one off."
           items={publishedAreas.map((area) => ({
             id: area.id,
             label: area.title,
           }))}
           selected={form.featuredResearchAreaIds ?? []}
           onToggle={(id) => toggleId('featuredResearchAreaIds', id)}
-          onClear={() => clearIds('featuredResearchAreaIds')}
           manageHref="/admin/research-areas"
         />
 
         <Picker
           title="Our Research"
-          help="The first two checked items are the main cards. The next three sit beside them. If none are checked, the homepage fills from the research library."
+          help="1 and 2 are the large cards. 3, 4 and 5 sit beside them."
           items={publishedResearch.map((item) => ({
             id: item.id,
             label: item.title,
           }))}
           selected={form.featuredResearchProjectIds}
           onToggle={(id) => toggleId('featuredResearchProjectIds', id)}
-          onClear={() => clearIds('featuredResearchProjectIds')}
           manageHref="/admin/research"
         />
 
-        <section className="rounded-xl border border-[#D9DEE5] bg-[#F8F7F3] p-4 sm:p-5">
-          <p className="text-sm font-medium text-[#0D2745]">Our Programs</p>
-          <p className="mt-1 text-xs text-[#68727D]">
-            The homepage shows the programmes that are on site. Photos come
-            from each programme. Edit them in Programmes.
-          </p>
-          <Link
-            href="/admin/activities"
-            className="mt-3 inline-block text-xs font-medium text-[#173B6C] underline"
-          >
-            Manage programmes
-          </Link>
-        </section>
+        <Card
+          title="Our Programs"
+          help="These three cards always appear. The line under each is the programme that supplies the photo."
+          action={
+            <LibraryLink href="/admin/activities">Open programmes</LibraryLink>
+          }
+        >
+          <ul className="space-y-1">
+            {(
+              [
+                ['capacity-building', 'Capacity Building'],
+                ['research-talk', 'Policy & Academic Engagement'],
+                ['awareness-campaign', 'Community & Social Impact'],
+              ] as const
+            ).map(([type, title]) => {
+              const activity = (database.activities ?? []).find(
+                (item) => item.status === 'published' && item.type === type,
+              );
+              return (
+                <li key={type} className="rounded-lg bg-[#F4F7FB] px-3 py-2">
+                  <p className="text-sm font-medium text-[#0B1F36]">{title}</p>
+                  <p className="truncate text-xs text-[#5B6B7C]">
+                    {activity ? activity.title : 'No programme on site'}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
 
         <Picker
           title="Notices"
-          help="The first three checked notices appear. If none are checked, the homepage uses the latest published notices."
+          help="The first three in this list appear."
           items={publishedNotices.map((item) => ({
             id: item.id,
             label: item.title,
           }))}
           selected={form.featuredNoticeIds ?? []}
           onToggle={(id) => toggleId('featuredNoticeIds', id)}
-          onClear={() => clearIds('featuredNoticeIds')}
           manageHref="/admin/notices"
         />
 
         <Picker
           title="Events"
-          help="The first three checked events appear. If none are checked, the homepage uses published events."
+          help="The first three in this list appear."
           items={publishedEvents.map((item) => ({
             id: item.id,
             label: item.title,
           }))}
           selected={form.featuredEventIds}
           onToggle={(id) => toggleId('featuredEventIds', id)}
-          onClear={() => clearIds('featuredEventIds')}
           manageHref="/admin/events"
         />
 
         <Picker
           title="BKSR in Media"
-          help="The first six checked clippings appear. If none are checked, published coverage appears."
+          help="The first six in this list appear."
           items={publishedMedia.map((item) => ({
             id: item.id,
             label: item.venue ? `${item.title} — ${item.venue}` : item.title,
           }))}
           selected={form.featuredMediaClippingIds ?? []}
           onToggle={(id) => toggleId('featuredMediaClippingIds', id)}
-          onClear={() => clearIds('featuredMediaClippingIds')}
           manageHref="/admin/bksr-in-media"
         />
 
         <Picker
           title="Meet our team"
-          help="The first four checked people appear under the director. If none are checked, the homepage uses the first published profiles."
+          help="The first four appear under the director."
           items={teamPeople.map((person) => ({
             id: person.id,
             label: `${person.name} — ${person.role}`,
           }))}
           selected={form.featuredPersonIds ?? []}
           onToggle={(id) => toggleId('featuredPersonIds', id)}
-          onClear={() => clearIds('featuredPersonIds')}
           manageHref="/admin/people"
+        />
+
+        <ResearcherQuotesCard
+          quotes={form.researcherQuotes ?? []}
+          people={publishedPeople}
+          onChange={(quotes) => setForm({ ...form, researcherQuotes: quotes })}
         />
 
         <Picker
           title="Opinions"
-          help="The first three checked opinion pieces appear. If none are checked, the homepage uses the latest published opinions."
+          help="The first three in this list appear."
           items={publishedOpinions.map((item) => ({
             id: item.id,
             label: item.title,
@@ -280,16 +300,12 @@ export function HomepageEditorPage() {
             publishedOpinions.some((item) => item.id === id),
           )}
           onToggle={(id) => toggleId('featuredPublicationIds', id)}
-          onClear={() =>
-            setForm({
-              ...form,
-              featuredPublicationIds: form.featuredPublicationIds.filter(
-                (id) => !publishedOpinions.some((item) => item.id === id),
-              ),
-            })
-          }
           manageHref="/admin/publications"
         />
+
+        <p className="rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-sm text-[#5B6B7C] lg:col-span-2">
+          Who we are and Collaboration & Partnerships are part of the page design, not library records, so they are not listed here.
+        </p>
       </div>
     </div>
   );
@@ -297,13 +313,69 @@ export function HomepageEditorPage() {
 
 const SEARCH_MATCH_LIMIT = 8;
 
+function Card({
+  title,
+  help,
+  count,
+  action,
+  className = '',
+  children,
+}: {
+  title: string;
+  help: string;
+  count?: number;
+  action?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      className={`flex h-full flex-col rounded-2xl border border-[#E2E8F0] bg-white p-4 shadow-[0_1px_2px_rgba(11,31,54,0.04)] ${className}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-[family-name:var(--font-admin-display)] text-lg leading-tight text-[#0B1F36]">
+              {title}
+            </h2>
+            {count != null ? (
+              <span className="rounded-full bg-[#E8EEF6] px-2 py-0.5 text-[11px] font-semibold text-[#173B6C]">
+                {count} showing
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1 text-sm leading-snug text-[#5B6B7C]">{help}</p>
+        </div>
+        {action ? <div className="shrink-0">{action}</div> : null}
+      </div>
+      <div className="mt-3 flex flex-1 flex-col gap-2">{children}</div>
+    </section>
+  );
+}
+
+function LibraryLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="text-sm font-semibold text-[#173B6C] hover:underline"
+    >
+      {children}
+    </Link>
+  );
+}
+
 function Picker({
   title,
   help,
   items,
   selected,
   onToggle,
-  onClear,
   manageHref,
 }: {
   title: string;
@@ -311,7 +383,6 @@ function Picker({
   items: { id: string; label: string }[];
   selected: string[];
   onToggle: (id: string) => void;
-  onClear: () => void;
   manageHref: string;
 }) {
   const [query, setQuery] = useState('');
@@ -321,126 +392,104 @@ function Picker({
   const selectedItems = selected.map(
     (id) => byId.get(id) ?? { id, label: 'Saved item' },
   );
-  const matches = needle
-    ? items
-        .filter(
-          (item) =>
-            !order.has(item.id) && item.label.toLowerCase().includes(needle),
-        )
-        .slice(0, SEARCH_MATCH_LIMIT)
-    : [];
-  const hiddenMatches = needle
+  const unmatched = needle
     ? items.filter(
         (item) =>
           !order.has(item.id) && item.label.toLowerCase().includes(needle),
-      ).length - matches.length
-    : 0;
+      )
+    : [];
+  const matches = unmatched.slice(0, SEARCH_MATCH_LIMIT);
+  const hiddenMatches = unmatched.length - matches.length;
 
   return (
-    <section className="space-y-2 rounded-xl border border-[#D9DEE5] bg-[#F8F7F3] p-4 sm:p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <p className="text-sm font-medium text-[#0D2745]">{title}</p>
-          <p className="text-xs text-[#68727D]">{help}</p>
+    <Card
+      title={title}
+      help={help}
+      count={selectedItems.length}
+      action={<LibraryLink href={manageHref}>Open library</LibraryLink>}
+    >
+      {items.length === 0 ? (
+        <p className="text-sm text-[#5B6B7C]">Nothing is on site yet.</p>
+      ) : (
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7A90A8]" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by title"
+            aria-label={`Search ${title} by title`}
+            className={`${fieldClass} py-2 pl-9 text-sm`}
+          />
         </div>
-        <div className="flex items-center gap-3">
-          {selected.length ? (
-            <button
-              type="button"
-              onClick={onClear}
-              className="text-xs font-medium text-[#68727D] underline"
-            >
-              Use automatic set
-            </button>
+      )}
+
+      {needle ? (
+        <div className="overflow-hidden rounded-xl border border-[#E2E8F0]">
+          {matches.length === 0 ? (
+            <p className="px-3 py-3 text-sm text-[#5B6B7C]">
+              No title matches that search.
+            </p>
+          ) : (
+            <ul>
+              {matches.map((item) => (
+                <li key={item.id} className="border-b border-[#EEF2F6] last:border-b-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onToggle(item.id);
+                      setQuery('');
+                    }}
+                    className="flex w-full items-start gap-3 px-3 py-2.5 text-left hover:bg-[#F4F7FB]"
+                  >
+                    <span className="mt-0.5 shrink-0 text-xs font-semibold text-[#173B6C]">
+                      Add
+                    </span>
+                    <span className="text-sm leading-snug text-[#0B1F36]">
+                      {item.label}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {hiddenMatches > 0 ? (
+            <p className="border-t border-[#EEF2F6] px-3 py-2 text-xs text-[#7A90A8]">
+              Keep typing to narrow the matches.
+            </p>
           ) : null}
-          <Link
-            href={manageHref}
-            className="text-xs font-medium text-[#173B6C] underline"
-          >
-            Manage library
-          </Link>
         </div>
-      </div>
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search by title"
-        aria-label={`Search ${title} by title`}
-        className="w-full rounded-lg border border-[#D9DEE5] bg-white px-3 py-2 text-sm outline-none focus:border-[#173B6C]"
-      />
-      <div className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-[#E8ECE8] bg-white p-2">
-        {items.length === 0 ? (
-          <p className="px-2 py-3 text-sm text-[#68727D]">
-            Nothing is on site yet.
-          </p>
-        ) : (
-          <>
-            {selectedItems.map((item) => (
-              <PickRow
-                key={item.id}
-                label={item.label}
-                place={order.get(item.id)}
-                onToggle={() => onToggle(item.id)}
-              />
-            ))}
-            {needle && matches.length > 0 && selectedItems.length > 0 ? (
-              <p className="px-2 pt-2 text-[11px] font-medium uppercase tracking-wide text-[#68727D]">
-                Matches
-              </p>
-            ) : null}
-            {matches.map((item) => (
-              <PickRow
-                key={item.id}
-                label={item.label}
-                onToggle={() => onToggle(item.id)}
-              />
-            ))}
-            {!needle && selectedItems.length === 0 ? (
-              <p className="px-2 py-3 text-sm text-[#68727D]">
-                Search by title, then tick the item to put it on the homepage.
-              </p>
-            ) : null}
-            {needle && matches.length === 0 ? (
-              <p className="px-2 py-3 text-sm text-[#68727D]">
-                No title matches that search.
-              </p>
-            ) : null}
-            {hiddenMatches > 0 ? (
-              <p className="px-2 py-2 text-xs text-[#68727D]">
-                Keep typing to narrow the matches.
-              </p>
-            ) : null}
-          </>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function PickRow({
-  label,
-  place,
-  onToggle,
-}: {
-  label: string;
-  place?: number;
-  onToggle: () => void;
-}) {
-  return (
-    <label className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-[#F6F4EE]">
-      <input
-        type="checkbox"
-        className="mt-1"
-        checked={place !== undefined}
-        onChange={onToggle}
-      />
-      {place ? (
-        <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#173B6C] px-1.5 text-[11px] font-semibold text-white">
-          {place}
-        </span>
       ) : null}
-      <span className="text-[#0D2745]">{label}</span>
-    </label>
+
+      {selectedItems.length ? (
+        <ul className="max-h-52 space-y-1 overflow-y-auto pr-1">
+          {selectedItems.map((item) => (
+            <li
+              key={item.id}
+              className="flex items-center gap-2 rounded-lg bg-[#F4F7FB] px-2 py-1.5"
+            >
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#0B1F36] text-[10px] font-semibold text-white">
+                {order.get(item.id)}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-sm text-[#0B1F36]">
+                {item.label}
+              </span>
+              <button
+                type="button"
+                aria-label={`Remove ${item.label}`}
+                onClick={() => onToggle(item.id)}
+                className="rounded-full p-1 text-[#7A90A8] hover:bg-white hover:text-[#0B1F36]"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : items.length > 0 && !needle ? (
+        <p className="text-sm leading-relaxed text-[#5B6B7C]">
+          Nothing from this library is on the homepage.
+        </p>
+      ) : null}
+    </Card>
   );
 }
 
@@ -459,14 +508,124 @@ function TextArea({
 }) {
   return (
     <label className="block space-y-1.5 text-sm">
-      <span className="font-medium text-[#0D2745]">{label}</span>
+      <span className="text-sm font-medium text-[#0B1F36]">{label}</span>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={rows}
-        className="w-full rounded-lg border border-[#D9DEE5] bg-white px-3 py-2 outline-none focus:border-[#173B6C]"
+        className={fieldClass}
       />
-      {help ? <span className="text-xs text-[#68727D]">{help}</span> : null}
+      {help ? (
+        <span className="text-xs leading-snug text-[#7A90A8]">{help}</span>
+      ) : null}
     </label>
+  );
+}
+
+function ResearcherQuotesCard({
+  quotes,
+  people,
+  onChange,
+}: {
+  quotes: HomepageQuote[];
+  people: { id: string; name: string; role: string; photoUrl?: string | null }[];
+  onChange: (quotes: HomepageQuote[]) => void;
+}) {
+  const [personId, setPersonId] = useState('');
+  const [quote, setQuote] = useState('');
+
+  const add = () => {
+    const person = people.find((item) => item.id === personId);
+    const text = quote.trim();
+    if (!person || !text) return;
+    onChange([
+      ...quotes,
+      {
+        name: person.name,
+        role: person.role,
+        imageSrc: person.photoUrl ?? '',
+        quote: text,
+      },
+    ]);
+    setPersonId('');
+    setQuote('');
+  };
+
+  return (
+    <Card
+      title="What our researchers say"
+      help="These lines appear in that homepage section. Edit the words here."
+      count={quotes.length}
+      action={<LibraryLink href="/admin/people">Open team</LibraryLink>}
+    >
+      {quotes.length ? (
+        <ul className="max-h-64 space-y-2 overflow-y-auto pr-1">
+          {quotes.map((item, index) => (
+            <li key={`${item.name}-${index}`} className="rounded-lg bg-[#F4F7FB] p-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <p className="truncate text-sm font-medium text-[#0B1F36]">
+                  {item.name}
+                  <span className="font-normal text-[#5B6B7C]"> · {item.role}</span>
+                </p>
+                <button
+                  type="button"
+                  aria-label={`Remove ${item.name}`}
+                  onClick={() =>
+                    onChange(quotes.filter((_, quoteIndex) => quoteIndex !== index))
+                  }
+                  className="rounded-full p-1 text-[#7A90A8] hover:bg-white hover:text-[#0B1F36]"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <textarea
+                value={item.quote}
+                rows={2}
+                onChange={(event) => {
+                  const next = quotes.map((entry, quoteIndex) =>
+                    quoteIndex === index
+                      ? { ...entry, quote: event.target.value }
+                      : entry,
+                  );
+                  onChange(next);
+                }}
+                className={`${fieldClass} mt-2 py-2 text-sm`}
+              />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-[#5B6B7C]">No quotes are on the homepage.</p>
+      )}
+      <div className="grid gap-2 border-t border-[#EEF2F6] pt-3 sm:grid-cols-[1fr_1.4fr_auto]">
+        <select
+          value={personId}
+          aria-label="Add a person"
+          onChange={(event) => setPersonId(event.target.value)}
+          className={`${fieldClass} py-2 text-sm`}
+        >
+          <option value="">Add from team</option>
+          {people.map((person) => (
+            <option key={person.id} value={person.id}>
+              {person.name}
+            </option>
+          ))}
+        </select>
+        <input
+          value={quote}
+          placeholder="Quote"
+          onChange={(event) => setQuote(event.target.value)}
+          className={`${fieldClass} py-2 text-sm`}
+        />
+        <button
+          type="button"
+          onClick={add}
+          disabled={!personId || !quote.trim()}
+          className="rounded-lg bg-[#0B1F36] px-3 py-2 text-sm font-semibold text-white disabled:opacity-40"
+        >
+          Add
+        </button>
+      </div>
+    </Card>
   );
 }

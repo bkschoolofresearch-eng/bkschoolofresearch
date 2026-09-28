@@ -11,14 +11,12 @@ type VerifyResult =
       kind: 'member';
       name: string;
       role: string;
-      code: string;
       href: string;
     }
   | {
       kind: 'certificate';
       name: string;
       achievement: string;
-      code: string;
       href: string | null;
     }
   | { kind: 'none' };
@@ -99,7 +97,7 @@ export function VerifyLookup({ initialCode = '' }: { initialCode?: string }) {
           </p>
           <p className="mt-2 font-display text-2xl text-ink">{result.name}</p>
           <p className="mt-1 text-sm text-body">{result.role}</p>
-          <p className="mt-3 font-mono text-xs text-muted">{result.code}</p>
+          <p className="mt-3 font-mono text-xs text-muted">{code}</p>
           <Link
             href={result.href}
             className="mt-4 inline-block text-sm font-medium text-accent hover:underline"
@@ -118,7 +116,7 @@ export function VerifyLookup({ initialCode = '' }: { initialCode?: string }) {
             {result.achievement}
           </p>
           <p className="mt-1 text-sm text-body">Awarded to {result.name}</p>
-          <p className="mt-3 font-mono text-xs text-muted">{result.code}</p>
+          <p className="mt-3 font-mono text-xs text-muted">{code}</p>
           {result.href ? (
             <Link
               href={result.href}

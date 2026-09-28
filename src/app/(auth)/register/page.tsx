@@ -10,6 +10,7 @@ export const metadata = buildPageMetadata(
   'Create account',
   'Accept your BKSR invitation or claim an allowlisted team profile.',
   '/register',
+  { noIndex: true },
 );
 
 export default function RegisterPage() {

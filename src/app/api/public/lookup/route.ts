@@ -26,7 +26,6 @@ export async function GET(request: Request) {
         kind: 'member',
         name: person.name,
         role: person.role,
-        code: person.verificationCode ?? normalized,
         href: `/people/${person.slug}`,
       });
     }
@@ -36,7 +35,6 @@ export async function GET(request: Request) {
         kind: 'certificate',
         name: cert.person.name,
         achievement: cert.achievement?.title ?? 'Achievement',
-        code: cert.assignment.certificateCode ?? normalized,
         href: `/people/${cert.person.slug}`,
       });
     }

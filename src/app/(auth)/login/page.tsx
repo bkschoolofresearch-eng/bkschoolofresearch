@@ -9,6 +9,7 @@ export const metadata = buildPageMetadata(
   'Sign in',
   'Sign in to BK School of Research to manage your claimed profile.',
   '/login',
+  { noIndex: true },
 );
 
 export default function LoginPage() {
