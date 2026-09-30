@@ -1,6 +1,6 @@
 {
     "workspace": "F:/Ratul/bk",
-    "updatedAt": "2026-09-28T11:50:51.571Z",
+    "updatedAt": "2026-09-30T09:41:07.618Z",
     "version": 1,
     "transcripts": {
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\06198369-bea4-465f-8d92-d47344ed57fb\\06198369-bea4-465f-8d92-d47344ed57fb.jsonl": {
@@ -36,8 +36,8 @@
             "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\21b7e8a5-66a0-460f-a9b7-6390ffee0954\\21b7e8a5-66a0-460f-a9b7-6390ffee0954.jsonl": {
-            "mtimeMs": 1790595992024.0566,
-            "lastProcessedAt": "2026-09-28T11:50:51.571Z"
+            "mtimeMs": 1790600325373.3933,
+            "lastProcessedAt": "2026-09-30T09:41:07.618Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\21b7e8a5-66a0-460f-a9b7-6390ffee0954\\subagents\\6808691c-c147-4f78-9596-76b7e6d9fd90.jsonl": {
             "mtimeMs": 1790427914835.7488,
@@ -296,8 +296,8 @@
             "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\b12ed7c4-72b2-4dd1-9782-e30539a15525.jsonl": {
-            "mtimeMs": 1790596075385.7288,
-            "lastProcessedAt": "2026-09-28T11:50:51.571Z"
+            "mtimeMs": 1790761001169.0457,
+            "lastProcessedAt": "2026-09-30T09:41:07.618Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\subagents\\1b3532e8-c5b2-4895-9d8a-de2cf74d75e3.jsonl": {
             "mtimeMs": 1790422503808.9507,
@@ -444,8 +444,16 @@
             "lastProcessedAt": "2026-09-26T13:05:06.345Z"
         },
         "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\subagents\\1a4016aa-4596-48ca-ab88-d846de299d60.jsonl": {
-            "mtimeMs": 1790596102712.9612,
-            "lastProcessedAt": "2026-09-28T11:50:51.571Z"
+            "mtimeMs": 1790596272659.732,
+            "lastProcessedAt": "2026-09-30T09:41:07.618Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\de61bd61-e916-410e-9dc4-29fbe4552ae8\\de61bd61-e916-410e-9dc4-29fbe4552ae8.jsonl": {
+            "mtimeMs": 1790598101003.3862,
+            "lastProcessedAt": "2026-09-30T09:41:07.618Z"
+        },
+        "C:\\Users\\UseR\\.cursor\\projects\\f-Ratul-bk\\agent-transcripts\\b12ed7c4-72b2-4dd1-9782-e30539a15525\\subagents\\d846dcc8-2177-4c4a-a20f-3b6c54641608.jsonl": {
+            "mtimeMs": 1790761006157.09,
+            "lastProcessedAt": "2026-09-30T09:41:07.618Z"
         }
     }
 }

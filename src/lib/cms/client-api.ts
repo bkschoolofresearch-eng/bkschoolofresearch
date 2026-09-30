@@ -44,13 +44,13 @@ export const cmsApi = {
     );
   },
 
-  async verifyOtp(otp: string): Promise<void> {
+  async verifyOtp(otp: string, remember = false): Promise<void> {
     await parseJson(
       await fetch('/api/cms/session/otp', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ otp }),
+        body: JSON.stringify({ otp, remember }),
       }),
     );
   },

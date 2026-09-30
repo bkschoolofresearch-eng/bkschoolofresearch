@@ -116,7 +116,18 @@ export interface SiteSettings {
   foundedYear: number;
   copyright: string;
   defaultSeo: SEOData;
+  /** Extra team sections beyond the built-in directory groups. */
+  teamSections?: TeamSection[];
   updatedAt: string;
+}
+
+/** Admin-created people directory section (a sector such as Visiting Scholars). */
+export interface TeamSection {
+  id: string;
+  slug: string;
+  label: string;
+  description: string;
+  order: number;
 }
 
 export interface Page extends ContentBase {
@@ -159,6 +170,11 @@ export interface Person extends ContentBase {
   verificationCode?: string | null;
   /** Current appointment season snapshot, e.g. 2025-2026 */
   appointmentYear?: string | null;
+  /**
+   * Custom team section created in admin. When set, the person is listed
+   * under that section instead of the built-in category.
+   */
+  sectionSlug?: string | null;
   order?: number;
   legacyRoleNote?: string;
   originalLegacyUrl?: string;
@@ -513,6 +529,10 @@ export interface MediaAsset extends Timestamps {
   alt?: string;
   url: string;
   source?: string;
+  /** SHA-256 of the original file, so the same image is not stored twice. */
+  contentHash?: string | null;
+  /** Local path or remote URL this Cloudinary file was copied from. */
+  originUrl?: string | null;
   width?: number;
   height?: number;
   credit?: string;

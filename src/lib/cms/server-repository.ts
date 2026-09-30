@@ -206,12 +206,27 @@ export async function serverCreate<K extends ContentCollectionKey>(
   input: Omit<CollectionEntityMap[K], 'id' | 'createdAt' | 'updatedAt'> &
     Partial<Pick<CollectionEntityMap[K], 'id' | 'createdAt' | 'updatedAt'>>,
 ): Promise<CollectionEntityMap[K]> {
+  const { prepareRecordImages, findMediaByUrl } = await import(
+    '@/lib/media/image-store'
+  );
+  const prepared = await prepareRecordImages(
+    collection,
+    input as Record<string, unknown>,
+  );
+  if (collection === 'media') {
+    const url =
+      typeof prepared.url === 'string' ? prepared.url.trim() : '';
+    if (url) {
+      const existing = await findMediaByUrl(url);
+      if (existing) return existing as CollectionEntityMap[K];
+    }
+  }
   if (getCmsDriver() === 'mongo') {
     const { mongoCreate } = await import('@/lib/cms/mongo-repository');
-    return mongoCreate(collection, input);
+    return mongoCreate(collection, prepared as typeof input);
   }
   const { fsCreate } = await import('@/lib/cms/fs-repository');
-  return fsCreate(collection, input);
+  return fsCreate(collection, prepared as typeof input);
 }
 
 export async function serverUpdate<K extends ContentCollectionKey>(
@@ -219,36 +234,71 @@ export async function serverUpdate<K extends ContentCollectionKey>(
   id: string,
   patch: Partial<CollectionEntityMap[K]>,
 ): Promise<CollectionEntityMap[K] | undefined> {
-  if (getCmsDriver() === 'mongo') {
-    const { mongoUpdate } = await import('@/lib/cms/mongo-repository');
-    return mongoUpdate(collection, id, patch);
+  const existing = await serverGetById(collection, id);
+  const { prepareRecordImages, afterRecordImagesChanged } = await import(
+    '@/lib/media/image-store'
+  );
+  const prepared = await prepareRecordImages(
+    collection,
+    patch as Record<string, unknown>,
+  );
+  const updated =
+    getCmsDriver() === 'mongo'
+      ? await (
+          await import('@/lib/cms/mongo-repository')
+        ).mongoUpdate(collection, id, prepared as typeof patch)
+      : await (
+          await import('@/lib/cms/fs-repository')
+        ).fsUpdate(collection, id, prepared as typeof patch);
+  if (existing && updated) {
+    await afterRecordImagesChanged(collection, existing, updated);
   }
-  const { fsUpdate } = await import('@/lib/cms/fs-repository');
-  return fsUpdate(collection, id, patch);
+  return updated;
 }
 
 export async function serverRemove<K extends ContentCollectionKey>(
   collection: K,
   id: string,
 ): Promise<boolean> {
-  if (getCmsDriver() === 'mongo') {
-    const { mongoRemove } = await import('@/lib/cms/mongo-repository');
-    return mongoRemove(collection, id);
+  const existing = await serverGetById(collection, id);
+  const removed =
+    getCmsDriver() === 'mongo'
+      ? await (
+          await import('@/lib/cms/mongo-repository')
+        ).mongoRemove(collection, id)
+      : await (
+          await import('@/lib/cms/fs-repository')
+        ).fsRemove(collection, id);
+  if (removed && existing) {
+    const { afterRecordRemoved } = await import('@/lib/media/image-store');
+    await afterRecordRemoved(collection, existing);
   }
-  const { fsRemove } = await import('@/lib/cms/fs-repository');
-  return fsRemove(collection, id);
+  return removed;
 }
 
 export async function serverRemoveMany<K extends ContentCollectionKey>(
   collection: K,
   ids: string[],
 ): Promise<number> {
-  if (getCmsDriver() === 'mongo') {
-    const { mongoRemoveMany } = await import('@/lib/cms/mongo-repository');
-    return mongoRemoveMany(collection, ids);
+  const existing: object[] = [];
+  for (const item of await Promise.all(ids.map((id) => serverGetById(collection, id)))) {
+    if (item) existing.push(item);
   }
-  const { fsRemoveMany } = await import('@/lib/cms/fs-repository');
-  return fsRemoveMany(collection, ids);
+  const removed =
+    getCmsDriver() === 'mongo'
+      ? await (
+          await import('@/lib/cms/mongo-repository')
+        ).mongoRemoveMany(collection, ids)
+      : await (
+          await import('@/lib/cms/fs-repository')
+        ).fsRemoveMany(collection, ids);
+  if (removed > 0) {
+    const { afterRecordRemoved } = await import('@/lib/media/image-store');
+    for (const item of existing) {
+      await afterRecordRemoved(collection, item);
+    }
+  }
+  return removed;
 }
 
 export async function serverDuplicate<K extends ContentCollectionKey>(

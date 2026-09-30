@@ -27,6 +27,7 @@ import {
   verifyPasswordSecure,
 } from '@/lib/auth/password';
 import { allowDevOtpExposure } from '@/lib/security/runtime';
+import { RESERVED_PEOPLE_CATEGORY_SLUGS } from '@/lib/content/people-slugs';
 import type { Person, PersonCategory } from '@/types/content';
 import type { AuthSession } from '@/types/auth';
 
@@ -57,78 +58,42 @@ export async function findPersonByEmail(
   );
 }
 
-export async function adminInvitePerson(input: {
-  name: string;
-  email: string;
-  role: string;
-  category: PersonCategory;
-}): Promise<
+type InviteResult =
   | {
       ok: true;
       person: Person;
-      inviteUrl: string;
+      inviteUrl: string | null;
       emailSent: boolean;
-      inviteToken: string;
+      inviteToken: string | null;
     }
-  | { ok: false; error: string }
-> {
-  const name = input.name.trim();
-  const email = normalizeEmail(input.email);
-  const role = input.role.trim();
-  if (!name || !email.includes('@') || !role) {
-    return { ok: false, error: 'Name, email, and position are required.' };
-  }
+  | { ok: false; error: string };
 
-  const existing = await findPersonByEmail(email);
-  if (existing?.accountId) {
-    return { ok: false, error: 'This email already has an account.' };
+function uniquePersonSlug(
+  taken: Set<string>,
+  name: string,
+): string {
+  const base = slugify(name) || `member-${Date.now()}`;
+  let slug = base;
+  let n = 2;
+  while (taken.has(slug)) {
+    slug = `${base}-${n}`;
+    n += 1;
   }
+  return slug;
+}
 
-  let person = existing;
-  if (!person) {
-    const order = await nextPersonOrder();
-    const baseSlug = slugify(name) || `member-${Date.now()}`;
-    person = await serverCreate('people', {
-      name,
-      slug: baseSlug,
-      status: 'draft',
-      role,
-      category: input.category,
-      bio: '',
-      shortBio: '',
-      email,
-      researchInterests: [],
-      socialLinks: [],
-      photoUrl: null,
-      accountId: null,
-      claimStatus: 'unclaimed',
-      verificationCode: null,
-      appointmentYear: null,
-      order,
-    });
-  } else {
-    const updated = await serverUpdate('people', person.id, {
-      name,
-      role,
-      category: input.category,
-      email,
-      claimStatus: 'unclaimed',
-    });
-    if (!updated) {
-      return { ok: false, error: 'Could not update the person record.' };
-    }
-    person = updated;
-  }
-
-  const savedPerson = person;
+async function issueInvite(
+  person: Person,
+  email: string,
+): Promise<{ inviteUrl: string; emailSent: boolean; inviteToken: string }> {
   const store = await readAuthStore();
   store.invites = store.invites.filter(
-    (inv) => inv.personId !== savedPerson.id || inv.consumedAt,
+    (inv) => inv.personId !== person.id || inv.consumedAt,
   );
   const token = generateToken();
   const invite: InviteRecord = {
     token,
-    personId: savedPerson.id,
+    personId: person.id,
     email,
     createdAt: nowIso(),
     expiresAt: Date.now() + INVITE_TTL_MS,
@@ -140,18 +105,132 @@ export async function adminInvitePerson(input: {
   const inviteUrl = `${siteOrigin()}/register?invite=${token}`;
   const emailResult = await sendInviteEmail({
     to: email,
-    name: savedPerson.name,
-    role: savedPerson.role,
+    name: person.name,
+    role: person.role,
     inviteUrl,
   });
+  return { inviteUrl, emailSent: emailResult.sent, inviteToken: token };
+}
 
-  return {
-    ok: true,
-    person: savedPerson,
-    inviteUrl,
-    emailSent: emailResult.sent,
-    inviteToken: token,
-  };
+export async function adminInvitePerson(input: {
+  name: string;
+  email?: string;
+  role: string;
+  category: PersonCategory;
+  sectionSlug?: string | null;
+  /** Defaults to true so older callers still email. Pass false to add only. */
+  sendInvite?: boolean;
+}): Promise<InviteResult> {
+  const name = input.name.trim();
+  const role = input.role.trim();
+  const emailRaw = input.email?.trim() ?? '';
+  const email = emailRaw ? normalizeEmail(emailRaw) : '';
+  const sendInvite = input.sendInvite !== false;
+  if (!name || !role) {
+    return { ok: false, error: 'Name and position are required.' };
+  }
+  if (email && !email.includes('@')) {
+    return { ok: false, error: 'Enter a valid email, or leave it blank.' };
+  }
+  if (sendInvite && !email.includes('@')) {
+    return {
+      ok: false,
+      error: 'Add an email to send the invite, or add them without sending.',
+    };
+  }
+
+  const db = await serverGetFullDatabase();
+  const sectionSlug = input.sectionSlug?.trim() || null;
+  let category = input.category;
+  if (sectionSlug) {
+    const known = (db.siteSettings.teamSections ?? []).some(
+      (section) => section.slug === sectionSlug,
+    );
+    if (!known) {
+      return { ok: false, error: 'Choose a team section that exists.' };
+    }
+    category = 'other';
+  }
+
+  const existing = email ? await findPersonByEmail(email) : undefined;
+  if (existing?.accountId) {
+    return { ok: false, error: 'This email already has an account.' };
+  }
+
+  let person = existing;
+  if (!person) {
+    const taken = new Set([
+      ...db.people.map((row) => row.slug),
+      ...Object.keys(RESERVED_PEOPLE_CATEGORY_SLUGS),
+      ...(db.siteSettings.teamSections ?? []).map((section) => section.slug),
+    ]);
+    const order =
+      db.people.reduce((acc, row) => Math.max(acc, row.order ?? 0), 0) + 1;
+    person = await serverCreate('people', {
+      name,
+      slug: uniquePersonSlug(taken, name),
+      status: 'draft',
+      role,
+      category,
+      bio: '',
+      shortBio: '',
+      email: email || undefined,
+      researchInterests: [],
+      socialLinks: [],
+      photoUrl: null,
+      accountId: null,
+      claimStatus: email ? 'unclaimed' : undefined,
+      verificationCode: null,
+      appointmentYear: null,
+      sectionSlug,
+      order,
+    });
+  } else {
+    const updated = await serverUpdate('people', person.id, {
+      name,
+      role,
+      category,
+      email: email || undefined,
+      sectionSlug,
+      claimStatus: 'unclaimed',
+    });
+    if (!updated) {
+      return { ok: false, error: 'Could not update the person record.' };
+    }
+    person = updated;
+  }
+
+  if (!sendInvite || !email) {
+    return {
+      ok: true,
+      person,
+      inviteUrl: null,
+      emailSent: false,
+      inviteToken: null,
+    };
+  }
+
+  const issued = await issueInvite(person, email);
+  return { ok: true, person, ...issued };
+}
+
+/** Send (or resend) the account invite for someone already on the roster. */
+export async function sendPersonInvite(personId: string): Promise<InviteResult> {
+  const db = await serverGetFullDatabase();
+  const person = db.people.find((row) => row.id === personId);
+  if (!person) return { ok: false, error: 'That person was not found.' };
+  if (person.accountId) {
+    return { ok: false, error: 'This person already has an account.' };
+  }
+  const email = person.email ? normalizeEmail(person.email) : '';
+  if (!email.includes('@')) {
+    return {
+      ok: false,
+      error: 'Add an email on the profile before sending an invite.',
+    };
+  }
+  const issued = await issueInvite(person, email);
+  return { ok: true, person, ...issued };
 }
 
 export async function resolveInvite(
@@ -425,9 +504,13 @@ export async function completeRegistration(input: {
   };
 }
 
+const MEMBER_SESSION_MS = 60 * 60 * 12 * 1000;
+const MEMBER_REMEMBER_MS = 60 * 60 * 24 * 30 * 1000;
+
 export async function loginWithPassword(input: {
   email: string;
   password: string;
+  remember?: boolean;
 }): Promise<
   | { ok: true; session: AuthSession; sessionToken: string }
   | { ok: false; error: string }
@@ -467,7 +550,8 @@ export async function loginWithPassword(input: {
   store.sessions[sessionToken] = {
     ...session,
     token: sessionToken,
-    expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+    expiresAt:
+      Date.now() + (input.remember ? MEMBER_REMEMBER_MS : MEMBER_SESSION_MS),
   };
   await writeAuthStore(store);
   return { ok: true, session, sessionToken };

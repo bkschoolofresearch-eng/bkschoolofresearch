@@ -9,6 +9,7 @@ import { slugify } from '@/lib/utils';
 import { CloudinaryImageField } from '@/components/media/CloudinaryImageField';
 import { AdminLoading } from './AdminLoading';
 import { ConfirmDialog } from './ConfirmDialog';
+import { useSaveConfirm } from './SaveAlert';
 import { AdminLockedState } from './AdminUI';
 import { collectionConfigs } from './collections';
 import { useCms } from './CmsProvider';
@@ -108,6 +109,7 @@ export function MediaClippingEditorPage({
   const config = collectionConfigs['bksr-in-media'];
   const router = useRouter();
   const { ready, createItem, updateItem, deleteItem, apiAuthenticated } = useCms();
+  const { askSave, saveDialog } = useSaveConfirm();
 
   const [values, setValues] = useState<Record<string, unknown> | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -170,6 +172,7 @@ export function MediaClippingEditorPage({
 
   const save = async (nextStatus: ContentStatus) => {
     if (!values) return;
+    if (!(await askSave())) return;
     setSaving(true);
     const payload: Record<string, unknown> = { ...values, status: nextStatus };
     const title = typeof payload.title === 'string' ? payload.title.trim() : '';
@@ -451,6 +454,7 @@ export function MediaClippingEditorPage({
         </FormSection>
       </div>
 
+      {saveDialog}
       <ConfirmDialog
         open={confirmDelete}
         title="Delete this clipping?"

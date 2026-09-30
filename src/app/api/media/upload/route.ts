@@ -6,8 +6,8 @@ import {
 } from '@/lib/cms/api-guard';
 import {
   isCloudinaryConfigured,
-  uploadToCloudinary,
 } from '@/lib/storage/cloudinary';
+import { storeImageBuffer } from '@/lib/media/image-store';
 
 const MAX_BYTES = 12 * 1024 * 1024; // 12 MB
 
@@ -58,34 +58,24 @@ export async function POST(request: Request) {
       : 'image';
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const uploaded = await uploadToCloudinary({
+    const { item, reused } = await storeImageBuffer({
       body: buffer,
       contentType: file.type || 'application/octet-stream',
       filename: file.name || 'upload.bin',
-    });
-
-    const { serverCreate } = await import('@/lib/cms/server-repository');
-    const item = await serverCreate('media', {
-      kind,
       title: String(title),
       alt,
-      url: uploaded.url,
-      source: `cloudinary:${uploaded.publicId}`,
-      width: uploaded.width,
-      height: uploaded.height,
-      status: 'published',
-    } as Parameters<typeof serverCreate<'media'>>[1]);
+      kind,
+    });
 
     return jsonOk(
       {
         item,
+        reused,
         storage: {
-          publicId: uploaded.publicId,
-          url: uploaded.url,
-          resourceType: uploaded.resourceType,
+          url: item.url,
         },
       },
-      { status: 201 },
+      { status: reused ? 200 : 201 },
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Upload failed';

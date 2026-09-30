@@ -8,7 +8,6 @@ import {
   ClipboardList,
   Compass,
   FolderOpen,
-  History,
   Home,
   Image,
   LayoutDashboard,
@@ -23,7 +22,6 @@ import {
   UserPlus,
   Users,
   FlaskConical,
-  Link2,
 } from 'lucide-react';
 
 export interface AdminNavItem {
@@ -149,21 +147,6 @@ export const adminNavGroups: AdminNavGroup[] = [
         label: 'Achievements & certificates',
         href: '/admin/achievements',
         icon: Award,
-      },
-    ],
-  },
-  {
-    label: 'People operations',
-    items: [
-      {
-        label: 'Committee / role history',
-        href: '/admin/role-history',
-        icon: History,
-      },
-      {
-        label: 'Who worked on what',
-        href: '/admin/involvements',
-        icon: Link2,
       },
     ],
   },

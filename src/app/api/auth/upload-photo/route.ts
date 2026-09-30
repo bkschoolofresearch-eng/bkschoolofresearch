@@ -1,8 +1,6 @@
 import { jsonError, jsonOk } from '@/lib/cms/api-guard';
-import {
-  isCloudinaryConfigured,
-  uploadToCloudinary,
-} from '@/lib/storage/cloudinary';
+import { isCloudinaryConfigured } from '@/lib/storage/cloudinary';
+import { storeImageBuffer } from '@/lib/media/image-store';
 import { findRegisterToken } from '@/lib/auth/server-ops';
 
 /**
@@ -45,18 +43,19 @@ export async function POST(request: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const uploaded = await uploadToCloudinary({
+    const { item } = await storeImageBuffer({
       body: buffer,
       contentType: file.type || 'image/jpeg',
       filename: file.name || 'profile.jpg',
+      title: file.name || 'Profile photo',
+      kind: 'image',
       folder: 'bksr/people',
     });
 
     return jsonOk({
-      url: uploaded.url,
+      url: item.url,
       storage: {
-        publicId: uploaded.publicId,
-        url: uploaded.url,
+        url: item.url,
       },
     });
   } catch (error) {

@@ -9,6 +9,7 @@ import {
   getResolvedInvolvementsForPerson,
   getResolvedPeopleForEntity,
 } from '@/lib/content/person-links';
+import { customSectionAssignments } from '@/lib/content/team-sections';
 import type {
   Activity,
   ContentStatus,
@@ -33,6 +34,7 @@ import type {
   ResearchStatus,
   Resource,
   SiteSettings,
+  TeamSection,
 } from '@/types/content';
 
 type PublishedFilter = {
@@ -64,31 +66,57 @@ export async function getNavigation(): Promise<{
   footer: NavigationItem[];
   knowledgeHub: NavigationItem[];
 }> {
-  const navigation = (await getContentDatabase()).navigation;
+  const db = await getContentDatabase();
   return {
-    ...navigation,
-    main: ensurePeopleJoinNav(navigation.main),
+    ...db.navigation,
+    main: ensurePeopleNav(db.navigation.main, db.siteSettings.teamSections ?? []),
   };
 }
 
-/** Keep Apply to join discoverable under People even on older CMS nav snapshots. */
-function ensurePeopleJoinNav(main: NavigationItem[]): NavigationItem[] {
+/** Keep Apply to join, and show admin-created team sections, under People. */
+function ensurePeopleNav(
+  main: NavigationItem[],
+  sections: TeamSection[],
+): NavigationItem[] {
   return main.map((item) => {
     if (item.href !== '/people' || !item.children?.length) return item;
-    if (item.children.some((child) => child.href === '/join')) return item;
-    return {
-      ...item,
-      children: [
-        ...item.children,
+    let children = item.children;
+    if (!children.some((child) => child.href === '/join')) {
+      children = [
+        ...children,
         {
           id: 'nav-people-join',
           label: 'Apply to join',
           href: '/join',
           description: 'Apply to the research community or organisational team',
-          order: Math.max(...item.children.map((c) => c.order), 0) + 1,
+          order: Math.max(...children.map((child) => child.order), 0) + 1,
         },
-      ],
-    };
+      ];
+    }
+
+    const custom = customSectionAssignments(sections).filter(
+      (section) => !children.some((child) => child.href === section.href),
+    );
+    if (!custom.length) return { ...item, children };
+
+    const insertAt = children.findIndex(
+      (child) => child.href === '/people/career' || child.href === '/join',
+    );
+    const links: NavigationItem[] = custom.map((section, index) => ({
+      id: `nav-people-section-${section.sectionSlug}`,
+      label: section.label,
+      href: section.href,
+      order: index,
+    }));
+    const next =
+      insertAt === -1
+        ? [...children, ...links]
+        : [
+            ...children.slice(0, insertAt),
+            ...links,
+            ...children.slice(insertAt),
+          ];
+    return { ...item, children: next };
   });
 }
 

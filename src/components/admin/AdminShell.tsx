@@ -14,7 +14,8 @@ function skipsFullDatabaseGate(pathname: string): boolean {
 }
 
 function AdminShellInner({ children }: { children: ReactNode }) {
-  const { ready, apiAuthenticated, database, contentLoading } = useCms();
+  const { ready, apiAuthenticated, database, contentLoading, contentError, refresh } =
+    useCms();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -28,6 +29,25 @@ function AdminShellInner({ children }: { children: ReactNode }) {
 
   const waitingOnFullDatabase =
     contentLoading && !database && !skipsFullDatabaseGate(pathname);
+
+  if (!database && contentError && !skipsFullDatabaseGate(pathname)) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-[#EEF2F6] px-6">
+        <div className="max-w-md text-center">
+          <p className="font-sans text-base leading-relaxed text-[#17212B]">
+            {contentError}
+          </p>
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-[#0b233f] px-6 py-3 font-sans text-sm font-medium text-white hover:bg-[#173b6c]"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-root flex min-h-screen bg-[#EEF2F6] text-[#17212B]">

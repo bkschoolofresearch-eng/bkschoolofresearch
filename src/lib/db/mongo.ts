@@ -9,6 +9,9 @@ declare global {
   var __bksrMongoClientPromise: Promise<MongoClient> | undefined;
 }
 
+/** Drop a connection cached by an older module instance after a failed DNS lookup. */
+global.__bksrMongoClientPromise = undefined;
+
 function createClient(): MongoClient {
   if (!uri) {
     throw new Error('MONGODB_URI is not set');
@@ -16,7 +19,20 @@ function createClient(): MongoClient {
   return new MongoClient(uri, {
     maxPoolSize: 10,
     minPoolSize: 0,
+    family: 4,
   });
+}
+
+function connectClient(): Promise<MongoClient> {
+  const connecting = createClient()
+    .connect()
+    .catch((error: unknown) => {
+      if (global.__bksrMongoClientPromise === connecting) {
+        global.__bksrMongoClientPromise = undefined;
+      }
+      throw error;
+    });
+  return connecting;
 }
 
 export function isMongoConfigured(): boolean {
@@ -30,13 +46,13 @@ export function getMongoClientPromise(): Promise<MongoClient> {
 
   if (process.env.NODE_ENV === 'development') {
     if (!global.__bksrMongoClientPromise) {
-      global.__bksrMongoClientPromise = createClient().connect();
+      global.__bksrMongoClientPromise = connectClient();
     }
     return global.__bksrMongoClientPromise;
   }
 
   if (!global.__bksrMongoClientPromise) {
-    global.__bksrMongoClientPromise = createClient().connect();
+    global.__bksrMongoClientPromise = connectClient();
   }
   return global.__bksrMongoClientPromise;
 }

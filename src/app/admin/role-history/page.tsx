@@ -1,7 +1,5 @@
-'use client';
-
-import { RoleHistoryAdminPage } from '@/components/admin/RoleHistoryAdminPage';
+import { redirect } from 'next/navigation';
 
 export default function Page() {
-  return <RoleHistoryAdminPage />;
+  redirect('/admin/people?tab=years');
 }

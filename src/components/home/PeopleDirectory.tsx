@@ -7,10 +7,6 @@ import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { EditorialHeading } from '@/components/ui/EditorialHeading';
 import { Section } from '@/components/ui/Section';
 import { Container } from '@/components/ui/Container';
-import {
-  PEOPLE_DEMO_SECTION_COPY,
-  PEOPLE_DEMO_SECTION_ORDER,
-} from '@/content/seed/people-demo';
 import type { PersonCategory } from '@/types/content';
 
 export type PeopleDirectoryMember = {
@@ -21,6 +17,13 @@ export type PeopleDirectoryMember = {
   imageSrc: string;
   description: string;
   category: PersonCategory;
+};
+
+export type PeopleDirectoryGroup = {
+  id: string;
+  title: string;
+  description: string;
+  members: PeopleDirectoryMember[];
 };
 
 export type PeopleDirectoryDirector = {
@@ -35,9 +38,9 @@ type JumpLink = { href: string; label: string };
 
 type PeopleDirectoryProps = {
   director: PeopleDirectoryDirector | null;
-  roster: PeopleDirectoryMember[];
+  groups: PeopleDirectoryGroup[];
   jumpLinks: JumpLink[];
-  sectionIds: Record<string, string>;
+  directorSectionId: string;
 };
 
 function TeamSection({
@@ -90,9 +93,9 @@ function TeamSection({
 
 export function PeopleDirectory({
   director,
-  roster,
+  groups,
   jumpLinks,
-  sectionIds,
+  directorSectionId,
 }: PeopleDirectoryProps) {
   return (
     <>
@@ -122,7 +125,7 @@ export function PeopleDirectory({
 
       {director ? (
         <Section
-          id={sectionIds['executive-director']}
+          id={directorSectionId}
           tone="surface"
           spaced={false}
           className="scroll-mt-28 border-y border-border py-12 sm:scroll-mt-32 sm:py-14"
@@ -154,21 +157,15 @@ export function PeopleDirectory({
       <Section tone="white" className="pt-4 md:pt-6">
         <Container>
           <div className="space-y-16 sm:space-y-20">
-            {PEOPLE_DEMO_SECTION_ORDER.map((category) => {
-              const copy = PEOPLE_DEMO_SECTION_COPY[category];
-              const members = roster.filter(
-                (member) => member.category === category,
-              );
-              return (
-                <TeamSection
-                  key={category}
-                  id={sectionIds[category]}
-                  title={copy.label}
-                  description={copy.description}
-                  members={members}
-                />
-              );
-            })}
+            {groups.map((group) => (
+              <TeamSection
+                key={group.id}
+                id={group.id}
+                title={group.title}
+                description={group.description}
+                members={group.members}
+              />
+            ))}
           </div>
         </Container>
       </Section>

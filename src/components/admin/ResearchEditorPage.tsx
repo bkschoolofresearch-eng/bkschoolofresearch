@@ -18,6 +18,7 @@ import { deriveResearchVenueForEditor } from '@/lib/content/research-links';
 import { CloudinaryImageField } from '@/components/media/CloudinaryImageField';
 import { AdminLoading } from './AdminLoading';
 import { ConfirmDialog } from './ConfirmDialog';
+import { useSaveConfirm } from './SaveAlert';
 import {
   ResearchAuthorsField,
   authorsToLeadNames,
@@ -158,6 +159,7 @@ export function ResearchEditorPage({
   const router = useRouter();
   const { ready, createItem, updateItem, deleteItem, apiAuthenticated } =
     useCms();
+  const { askSave, saveDialog } = useSaveConfirm();
 
   const [values, setValues] = useState<Record<string, unknown> | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -301,6 +303,7 @@ export function ResearchEditorPage({
 
   const save = async (nextStatus: ContentStatus) => {
     if (!values) return;
+    if (!(await askSave())) return;
     setSaving(true);
 
     const payload: Record<string, unknown> = {
@@ -720,6 +723,7 @@ export function ResearchEditorPage({
         </FormSection>
       </div>
 
+      {saveDialog}
       <ConfirmDialog
         open={confirmDelete}
         title="Delete this research item?"
