@@ -5,8 +5,12 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Mail, Pencil, Plus, Search, UserPlus } from 'lucide-react';
 import { getPersonClaimStatus } from '@/lib/auth/permissions';
-import { PERSON_CATEGORY_META } from '@/lib/public/labels';
-import type { Person, PersonCategory } from '@/types/content';
+import {
+  allSections,
+  assignmentForPerson,
+  sectionByKey,
+} from '@/lib/content/team-sections';
+import type { Person } from '@/types/content';
 import {
   AdminLockedState,
   AdminPageHeader,
@@ -17,61 +21,88 @@ import {
 import { StatusBadge } from './StatusBadge';
 import { useCms } from './CmsProvider';
 
-const CATEGORY_ORDER: PersonCategory[] = [
-  'executive-director',
-  'distinguished-fellow',
-  'research-team',
-  'administrative-team',
-  'alumni',
-  'other',
-];
-
-export function PeopleAdminPage() {
+export function PeopleAdminPage({ embedded = false }: { embedded?: boolean }) {
   const { database, ready, apiAuthenticated, refresh } = useCms();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string>('');
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteMessage, setInviteMessage] = useState<string | null>(null);
   const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
+  const sections = allSections(database?.siteSettings.teamSections);
 
   const people = useMemo(() => {
     if (!database) return [];
     return [...database.people]
       .filter((person) => {
-        if (category && person.category !== category) return false;
+        const sectionKey = assignmentForPerson(
+          person,
+          database.siteSettings.teamSections,
+        ).key;
+        if (category && sectionKey !== category) return false;
         if (!query.trim()) return true;
-        const blob = [
-          person.name,
-          person.role,
-          person.email,
-          person.category,
-        ]
+        const blob = [person.name, person.role, person.email, sectionKey]
           .join(' ')
           .toLowerCase();
         return blob.includes(query.trim().toLowerCase());
       })
-      .sort((a, b) => {
-        const cat =
-          CATEGORY_ORDER.indexOf(a.category) -
-          CATEGORY_ORDER.indexOf(b.category);
-        if (cat !== 0) return cat;
-        return (a.order ?? 999) - (b.order ?? 999);
-      });
+      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
   }, [database, query, category]);
 
   const grouped = useMemo(() => {
-    const map = new Map<PersonCategory, Person[]>();
-    for (const person of people) {
-      const list = map.get(person.category) ?? [];
-      list.push(person);
-      map.set(person.category, list);
+    if (!database) return [];
+    return sections
+      .map((section) => ({
+        key: section.key,
+        label: section.label,
+        items: people.filter(
+          (person) =>
+            assignmentForPerson(person, database.siteSettings.teamSections).key ===
+            section.key,
+        ),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [database, people, sections]);
+
+  const sendInvite = async (person: Person) => {
+    if (person.accountId) return;
+    if (!person.email) {
+      setLastInviteUrl(null);
+      setInviteMessage('Add an email on the profile, then send the invite.');
+      return;
     }
-    return CATEGORY_ORDER.map((key) => ({
-      key,
-      label: PERSON_CATEGORY_META[key].label,
-      items: map.get(key) ?? [],
-    })).filter((group) => group.items.length > 0);
-  }, [people]);
+    setSendingId(person.id);
+    setInviteMessage(null);
+    try {
+      const res = await fetch('/api/auth/invite', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ personId: person.id }),
+      });
+      const data = (await res.json()) as {
+        error?: string;
+        inviteUrl?: string | null;
+        emailSent?: boolean;
+      };
+      if (!res.ok) {
+        setInviteMessage(data.error || 'Could not send the invite.');
+        setLastInviteUrl(null);
+        return;
+      }
+      setInviteMessage(
+        data.emailSent
+          ? `Invite sent to ${person.email}.`
+          : `Invite ready for ${person.email}. Copy the link below if mail is not configured.`,
+      );
+      setLastInviteUrl(data.inviteUrl ?? null);
+    } catch {
+      setInviteMessage('Could not send the invite.');
+    } finally {
+      setSendingId(null);
+    }
+  };
 
   if (!ready) {
     return <p className="text-sm text-[#5B6B7C]">Loading team…</p>;
@@ -83,17 +114,26 @@ export function PeopleAdminPage() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
-        eyebrow="Team"
-        title="Team & people"
-        description="Invite members by email and position. They complete their own profile after verifying the invite. New people always appear at the end of their section."
-        action={
+      {embedded ? (
+        <div className="flex justify-end">
           <AdminPrimaryButton onClick={() => setInviteOpen(true)}>
             <UserPlus className="h-4 w-4" />
-            Invite person
+            Add person
           </AdminPrimaryButton>
-        }
-      />
+        </div>
+      ) : (
+        <AdminPageHeader
+          eyebrow="Team"
+          title="Team & people"
+          description="Add someone to a section now. Send the invite when you want them to create an account and edit their own profile. You can still change any profile, including the photo."
+          action={
+            <AdminPrimaryButton onClick={() => setInviteOpen(true)}>
+              <UserPlus className="h-4 w-4" />
+              Add person
+            </AdminPrimaryButton>
+          }
+        />
+      )}
 
       {inviteMessage ? (
         <AdminPanel className="space-y-2 border-[#C5D4E8] bg-[#F4F8FC] p-4 text-sm text-[#0B1F36]">
@@ -125,9 +165,9 @@ export function PeopleAdminPage() {
           className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm"
         >
           <option value="">All sections</option>
-          {CATEGORY_ORDER.map((key) => (
-            <option key={key} value={key}>
-              {PERSON_CATEGORY_META[key].label}
+          {sections.map((section) => (
+            <option key={section.key} value={section.key}>
+              {section.label}
             </option>
           ))}
         </select>
@@ -137,12 +177,12 @@ export function PeopleAdminPage() {
         <AdminPanel className="px-6 py-14 text-center">
           <p className="text-sm font-semibold text-[#0B1F36]">No people yet</p>
           <p className="mt-1 text-sm text-[#5B6B7C]">
-            Invite someone with their email and committee position.
+            Add a name and position. Email can wait.
           </p>
           <div className="mt-4 flex justify-center">
             <AdminPrimaryButton onClick={() => setInviteOpen(true)}>
               <Plus className="h-4 w-4" />
-              Invite person
+              Add person
             </AdminPrimaryButton>
           </div>
         </AdminPanel>
@@ -175,7 +215,12 @@ export function PeopleAdminPage() {
                   </thead>
                   <tbody>
                     {group.items.map((person) => (
-                      <PersonTableRow key={person.id} person={person} />
+                      <PersonTableRow
+                        key={person.id}
+                        person={person}
+                        sending={sendingId === person.id}
+                        onSend={() => void sendInvite(person)}
+                      />
                     ))}
                   </tbody>
                 </table>
@@ -194,13 +239,16 @@ export function PeopleAdminPage() {
 
       {inviteOpen ? (
         <InvitePersonModal
+          sections={sections}
           onClose={() => setInviteOpen(false)}
           onInvited={async (result) => {
             setInviteOpen(false);
             setInviteMessage(
-              result.emailSent
-                ? `Invite sent to ${result.person.email}.`
-                : `Person added. Copy the invite link below (email delivery is not configured yet).`,
+              result.inviteUrl
+                ? result.emailSent
+                  ? `Invite sent to ${result.person.email}.`
+                  : `Added ${result.person.name}. Copy the invite link below if mail is not configured.`
+                : `Added ${result.person.name}. Send the invite whenever you are ready.`,
             );
             setLastInviteUrl(result.inviteUrl);
             await refresh();
@@ -218,7 +266,15 @@ function claimLabel(person: Person) {
   return 'No email';
 }
 
-function PersonTableRow({ person }: { person: Person }) {
+function PersonTableRow({
+  person,
+  sending,
+  onSend,
+}: {
+  person: Person;
+  sending: boolean;
+  onSend: () => void;
+}) {
   return (
     <tr className="border-b border-[#EEF2F6] last:border-0">
       <td className="px-4 py-3">
@@ -246,13 +302,25 @@ function PersonTableRow({ person }: { person: Person }) {
         <StatusBadge status={person.status} />
       </td>
       <td className="px-4 py-3 text-right">
-        <Link
-          href={`/admin/people/${person.id}`}
-          className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-[#173B6C] hover:bg-[#EEF2F6]"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-          Edit
-        </Link>
+        <div className="flex justify-end gap-1">
+          {!person.accountId ? (
+            <button
+              type="button"
+              disabled={sending}
+              onClick={onSend}
+              className="rounded-lg px-2 py-1.5 text-xs font-semibold text-[#173B6C] hover:bg-[#EEF2F6] disabled:opacity-50"
+            >
+              {sending ? 'Sending…' : 'Send invite'}
+            </button>
+          ) : null}
+          <Link
+            href={`/admin/people/${person.id}`}
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-[#173B6C] hover:bg-[#EEF2F6]"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            Edit
+          </Link>
+        </div>
       </td>
     </tr>
   );
@@ -310,21 +378,22 @@ function PersonAvatar({ person, size }: { person: Person; size: number }) {
 }
 
 function InvitePersonModal({
+  sections,
   onClose,
   onInvited,
 }: {
+  sections: ReturnType<typeof allSections>;
   onClose: () => void;
   onInvited: (result: {
     person: Person;
-    inviteUrl: string;
+    inviteUrl: string | null;
     emailSent: boolean;
   }) => Promise<void>;
 }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
-  const [category, setCategory] =
-    useState<PersonCategory>('research-team');
+  const [sectionKey, setSectionKey] = useState('builtin:research-team');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -332,17 +401,27 @@ function InvitePersonModal({
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#0B1F36]/45 p-4 sm:items-center">
       <div className="w-full max-w-lg rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-xl">
         <h2 className="font-[family-name:var(--font-admin-display)] text-xl text-[#0B1F36]">
-          Invite a team member
+          Add a team member
         </h2>
         <p className="mt-1 text-sm text-[#5B6B7C]">
-          Only name, email, and position. They will fill photo, bio, and other
-          details when they accept the invite.
+          Name, position, and section are enough. The invite email is only so
+          they can create an account and edit their own profile. You can send
+          it now or later.
         </p>
 
         <form
           className="mt-4 space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
+            const submitter = (e.nativeEvent as SubmitEvent).submitter;
+            const sendInvite =
+              submitter instanceof HTMLButtonElement && submitter.value === 'invite';
+            const section = sectionByKey(sectionKey, undefined);
+            const chosen = sections.find((item) => item.key === sectionKey) ?? section;
+            if (sendInvite && !email.trim().includes('@')) {
+              setError('Add an email to send the invite, or add them without sending.');
+              return;
+            }
             setBusy(true);
             setError(null);
             void (async () => {
@@ -351,25 +430,32 @@ function InvitePersonModal({
                   method: 'POST',
                   credentials: 'include',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ name, email, role, category }),
+                  body: JSON.stringify({
+                    name,
+                    email,
+                    role,
+                    category: chosen.category,
+                    sectionSlug: chosen.sectionSlug,
+                    sendInvite,
+                  }),
                 });
                 const data = (await res.json()) as {
                   error?: string;
                   person?: Person;
-                  inviteUrl?: string;
+                  inviteUrl?: string | null;
                   emailSent?: boolean;
                 };
-                if (!res.ok || !data.person || !data.inviteUrl) {
-                  setError(data.error || 'Could not send invite.');
+                if (!res.ok || !data.person) {
+                  setError(data.error || 'Could not add this person.');
                   return;
                 }
                 await onInvited({
                   person: data.person,
-                  inviteUrl: data.inviteUrl,
+                  inviteUrl: data.inviteUrl ?? null,
                   emailSent: Boolean(data.emailSent),
                 });
               } catch {
-                setError('Could not send invite.');
+                setError('Could not add this person.');
               } finally {
                 setBusy(false);
               }
@@ -388,10 +474,10 @@ function InvitePersonModal({
           <label className="block text-sm">
             <span className="font-medium text-[#0B1F36]">Email</span>
             <input
-              required
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="Optional until you send an invite"
               className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5"
             />
           </label>
@@ -406,17 +492,15 @@ function InvitePersonModal({
             />
           </label>
           <label className="block text-sm">
-            <span className="font-medium text-[#0B1F36]">Committee section</span>
+            <span className="font-medium text-[#0B1F36]">Team section</span>
             <select
-              value={category}
-              onChange={(e) =>
-                setCategory(e.target.value as PersonCategory)
-              }
+              value={sectionKey}
+              onChange={(e) => setSectionKey(e.target.value)}
               className="mt-1 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5"
             >
-              {CATEGORY_ORDER.map((key) => (
-                <option key={key} value={key}>
-                  {PERSON_CATEGORY_META[key].label}
+              {sections.map((section) => (
+                <option key={section.key} value={section.key}>
+                  {section.label}
                 </option>
               ))}
             </select>
@@ -432,8 +516,11 @@ function InvitePersonModal({
             <AdminSecondaryButton type="button" onClick={onClose}>
               Cancel
             </AdminSecondaryButton>
-            <AdminPrimaryButton type="submit" disabled={busy}>
-              {busy ? 'Adding…' : 'Add & send invite'}
+            <AdminSecondaryButton type="submit" value="add" disabled={busy}>
+              {busy ? 'Adding…' : 'Add without sending'}
+            </AdminSecondaryButton>
+            <AdminPrimaryButton type="submit" value="invite" disabled={busy}>
+              {busy ? 'Adding…' : 'Add and send invite'}
             </AdminPrimaryButton>
           </div>
         </form>

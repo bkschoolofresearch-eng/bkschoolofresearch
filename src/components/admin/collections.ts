@@ -725,7 +725,7 @@ export const collectionConfigs: Record<AdminCollectionSlug, CollectionConfig> = 
     cardExcerptKey: 'shortBio',
     searchFields: ['name', 'role', 'bio', 'affiliation', 'email'],
     previewPath: (item) => (item.slug ? `/people/${item.slug}` : null),
-    canDuplicate: true,
+    canDuplicate: false,
     listColumns: [
       { key: 'name', label: 'Name' },
       { key: 'role', label: 'Role' },

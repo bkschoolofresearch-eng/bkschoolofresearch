@@ -37,7 +37,7 @@ interface CmsContextValue {
     devOtp?: string;
     mailError?: string;
   }>;
-  verifyCmsOtp: (otp: string) => Promise<void>;
+  verifyCmsOtp: (otp: string, remember?: boolean) => Promise<void>;
   resendCmsOtp: () => Promise<{
     maskedEmail?: string;
     mailSent?: boolean;
@@ -69,6 +69,7 @@ interface CmsContextValue {
     patch: Partial<ContentDatabase['navigation']>,
   ) => Promise<void>;
   resetDemoData: () => Promise<void>;
+  contentError: string | null;
 }
 
 const CmsContext = createContext<CmsContextValue | null>(null);
@@ -86,16 +87,23 @@ export function CmsProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [contentLoading, setContentLoading] = useState(false);
   const [apiAuthenticated, setApiAuthenticated] = useState(false);
+  const [contentError, setContentError] = useState<string | null>(null);
   const [mode, setMode] = useState<'fs' | 'mongo'>('fs');
 
   const loadDatabase = useCallback(async () => {
     setContentLoading(true);
+    setContentError(null);
     try {
       const db = await cmsApi.getDatabase();
       setDatabase(db);
-    } catch {
+    } catch (error) {
       setDatabase(null);
-      setApiAuthenticated(false);
+      const raw = error instanceof Error ? error.message : '';
+      setContentError(
+        /querySrv|ECONNREFUSED|MongoServerSelection|timed out/i.test(raw)
+          ? 'Signed in, but the content library could not be reached. Check the connection and try again.'
+          : 'Signed in, but the content library did not load. Try again.',
+      );
     } finally {
       setContentLoading(false);
     }
@@ -176,8 +184,8 @@ export function CmsProvider({ children }: { children: ReactNode }) {
   );
 
   const verifyCmsOtp = useCallback(
-    async (otp: string) => {
-      await cmsApi.verifyOtp(otp);
+    async (otp: string, remember = false) => {
+      await cmsApi.verifyOtp(otp, remember);
       setApiAuthenticated(true);
       await loadDatabase();
     },
@@ -278,6 +286,7 @@ export function CmsProvider({ children }: { children: ReactNode }) {
         await cmsApi.seed(true);
         await loadDatabase();
       },
+      contentError,
     }),
     [
       database,
@@ -291,6 +300,7 @@ export function CmsProvider({ children }: { children: ReactNode }) {
       resendCmsOtp,
       logoutCms,
       loadDatabase,
+      contentError,
     ],
   );
 

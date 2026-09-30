@@ -2,8 +2,15 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { useCms } from '@/components/admin/CmsProvider';
+import { AdminLoading } from '@/components/admin/AdminLoading';
+import {
+  AdminLockedState,
+  AdminPageHeader,
+  AdminPrimaryButton,
+} from '@/components/admin/AdminUI';
+import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import {
   PERSON_LINK_ROLE_OPTIONS,
   PERSON_LINK_TYPE_LABEL,
@@ -24,13 +31,18 @@ const TYPES: PersonLinkEntityType[] = [
   'activity',
 ];
 
-export function InvolvementsAdminPage() {
-  const { database, ready, refresh } = useCms();
+const fieldClass =
+  'w-full rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0B1F36] outline-none focus:border-[#0B1F36] focus:bg-white';
+
+export function InvolvementsAdminPage({ embedded = false }: { embedded?: boolean }) {
+  const { database, ready, apiAuthenticated, refresh } = useCms();
   const [personId, setPersonId] = useState('');
   const [entityType, setEntityType] = useState<PersonLinkEntityType>('event');
   const [entityId, setEntityId] = useState('');
   const [role, setRole] = useState('speaker');
+  const [query, setQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const people = database?.people ?? [];
   const entities = useMemo(
@@ -40,45 +52,50 @@ export function InvolvementsAdminPage() {
 
   const rows = useMemo(() => {
     if (!database) return [];
+    const needle = query.trim().toLowerCase();
     return [...database.personContentLinks]
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
       .map((link) => {
-        const person = people.find((p) => p.id === link.personId);
+        const person = people.find((item) => item.id === link.personId);
         const meta = resolveEntityMeta(database, link.entityType, link.entityId);
         return {
           ...link,
           personName: person?.name ?? 'Unknown person',
-          personHref: person ? `/people/${person.slug}` : null,
+          adminHref: person ? `/admin/people/${person.id}` : null,
           entityTitle: meta?.title ?? link.entityId,
           entityHref: meta?.href ?? null,
         };
+      })
+      .filter((row) => {
+        if (!needle) return true;
+        return `${row.personName} ${row.entityTitle} ${row.role}`
+          .toLowerCase()
+          .includes(needle);
       });
-  }, [database, people]);
+  }, [database, people, query]);
 
-  if (!ready || !database) {
-    return <p className="text-sm text-[#68727D]">Loading…</p>;
+  if (!ready) return <AdminLoading label="Loading links" />;
+  if (!apiAuthenticated || !database) {
+    return <AdminLockedState noun="people links" />;
   }
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="font-[family-name:var(--font-admin-display)] text-2xl text-[#0D2745]">
-          People involvements
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm text-[#68727D]">
-          Link roster people to events, research, publications, or activities.
-          Links show on both the content page and the person profile. You can
-          also attach people from each content editor (Relations tab).
-        </p>
-      </div>
+    <div className="space-y-4">
+      {embedded ? null : (
+        <AdminPageHeader
+          eyebrow="People"
+          title="Who worked on what"
+          description="Connect a person to research, a publication, an event, or a programme. The link shows on both pages."
+        />
+      )}
 
       <form
-        className="grid gap-3 rounded-xl border border-[#D9DEE5] bg-[#F8F7F3] p-4 sm:grid-cols-2 lg:grid-cols-5"
+        className="grid gap-3 rounded-2xl border border-[#E2E8F0] bg-white p-4 shadow-[0_1px_2px_rgba(11,31,54,0.04)] lg:grid-cols-5"
         onSubmit={(e) => {
           e.preventDefault();
           setError(null);
           if (!personId || !entityId) {
-            setError('Select a person and a content item.');
+            setError('Choose a person and an item.');
             return;
           }
           void (async () => {
@@ -93,15 +110,16 @@ export function InvolvementsAdminPage() {
               return;
             }
             await refresh();
+            setEntityId('');
           })();
         }}
       >
-        <label className="block text-xs font-medium text-[#0D2745]">
-          Person
+        <label className="block space-y-1.5 text-sm">
+          <span className="font-medium text-[#0B1F36]">Person</span>
           <select
             value={personId}
             onChange={(e) => setPersonId(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-[#D9DEE5] bg-white px-2 py-2 text-sm"
+            className={fieldClass}
           >
             <option value="">Select…</option>
             {people.map((person) => (
@@ -111,8 +129,8 @@ export function InvolvementsAdminPage() {
             ))}
           </select>
         </label>
-        <label className="block text-xs font-medium text-[#0D2745]">
-          Type
+        <label className="block space-y-1.5 text-sm">
+          <span className="font-medium text-[#0B1F36]">Kind</span>
           <select
             value={entityType}
             onChange={(e) => {
@@ -121,7 +139,7 @@ export function InvolvementsAdminPage() {
               setEntityId('');
               setRole(PERSON_LINK_ROLE_OPTIONS[next][0]?.value ?? 'contributor');
             }}
-            className="mt-1 w-full rounded-lg border border-[#D9DEE5] bg-white px-2 py-2 text-sm"
+            className={fieldClass}
           >
             {TYPES.map((type) => (
               <option key={type} value={type}>
@@ -130,12 +148,12 @@ export function InvolvementsAdminPage() {
             ))}
           </select>
         </label>
-        <label className="block text-xs font-medium text-[#0D2745]">
-          Content
+        <label className="block space-y-1.5 text-sm lg:col-span-2">
+          <span className="font-medium text-[#0B1F36]">Item</span>
           <select
             value={entityId}
             onChange={(e) => setEntityId(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-[#D9DEE5] bg-white px-2 py-2 text-sm"
+            className={fieldClass}
           >
             <option value="">Select…</option>
             {entities.map((item) => (
@@ -145,12 +163,12 @@ export function InvolvementsAdminPage() {
             ))}
           </select>
         </label>
-        <label className="block text-xs font-medium text-[#0D2745]">
-          Role
+        <label className="block space-y-1.5 text-sm">
+          <span className="font-medium text-[#0B1F36]">Part they played</span>
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-[#D9DEE5] bg-white px-2 py-2 text-sm"
+            className={fieldClass}
           >
             {PERSON_LINK_ROLE_OPTIONS[entityType].map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -159,87 +177,75 @@ export function InvolvementsAdminPage() {
             ))}
           </select>
         </label>
-        <div className="flex items-end">
-          <button
-            type="submit"
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#173B6C] px-3 py-2 text-sm font-medium text-white hover:bg-[#0D2745]"
-          >
+        <div className="lg:col-span-5">
+          {error ? <p className="mb-2 text-sm text-[#8A3B3B]">{error}</p> : null}
+          <AdminPrimaryButton type="submit">
             <Plus className="h-4 w-4" />
             Add link
-          </button>
+          </AdminPrimaryButton>
         </div>
-        {error ? (
-          <p className="sm:col-span-2 lg:col-span-5 text-xs text-[#8A3B3B]">
-            {error}
-          </p>
-        ) : null}
       </form>
 
-      <div className="overflow-hidden border border-[#D9DEE5] bg-[#F8F7F3]">
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7A90A8]" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search person or title"
+          className="w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-[#0B1F36]"
+        />
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-[#D9DEE5] bg-[#F6F4EE] text-xs uppercase tracking-wide text-[#68727D]">
+          <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] uppercase tracking-[0.12em] text-[#7A90A8]">
             <tr>
               <th className="px-4 py-3 font-semibold">Person</th>
-              <th className="px-4 py-3 font-semibold">Type</th>
-              <th className="px-4 py-3 font-semibold">Content</th>
-              <th className="px-4 py-3 font-semibold">Role</th>
+              <th className="px-4 py-3 font-semibold">Kind</th>
+              <th className="px-4 py-3 font-semibold">Item</th>
+              <th className="px-4 py-3 font-semibold">Part</th>
               <th className="px-4 py-3 font-semibold"> </th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-[#68727D]">
-                  No involvements yet.
+                <td colSpan={5} className="px-4 py-10 text-center text-[#5B6B7C]">
+                  No links for this search.
                 </td>
               </tr>
             ) : (
               rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-[#E8ECE8] last:border-0"
-                >
+                <tr key={row.id} className="border-b border-[#EEF2F6] last:border-0">
                   <td className="px-4 py-3">
-                    {row.personHref ? (
-                      <Link
-                        href={row.personHref}
-                        className="font-medium text-[#0D2745] hover:text-[#173B6C]"
-                      >
+                    {row.adminHref ? (
+                      <Link href={row.adminHref} className="font-medium text-[#173B6C] hover:underline">
                         {row.personName}
                       </Link>
                     ) : (
                       row.personName
                     )}
                   </td>
-                  <td className="px-4 py-3 text-[#68727D]">
+                  <td className="px-4 py-3 text-[#5B6B7C]">
                     {PERSON_LINK_TYPE_LABEL[row.entityType]}
                   </td>
                   <td className="max-w-xs truncate px-4 py-3">
                     {row.entityHref ? (
-                      <Link
-                        href={row.entityHref}
-                        className="text-[#173B6C] hover:underline"
-                      >
+                      <Link href={row.entityHref} className="text-[#173B6C] hover:underline">
                         {row.entityTitle}
                       </Link>
                     ) : (
                       row.entityTitle
                     )}
                   </td>
-                  <td className="px-4 py-3">{humanizeLinkRole(row.role)}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-[#5B6B7C]">{humanizeLinkRole(row.role)}</td>
+                  <td className="px-4 py-3 text-right">
                     <button
                       type="button"
-                      title="Delete link"
-                      onClick={() => {
-                        void (async () => {
-                          await removePersonContentLink(row.id);
-                          await refresh();
-                        })();
-                      }}
-                      className="rounded-md p-1.5 text-[#68727D] hover:bg-[#FFF8F8] hover:text-[#8A3B3B]"
+                      onClick={() => setDeleteId(row.id)}
+                      className="text-xs font-semibold text-[#8A3B3B]"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      Remove
                     </button>
                   </td>
                 </tr>
@@ -248,6 +254,23 @@ export function InvolvementsAdminPage() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(deleteId)}
+        title="Remove this link?"
+        description="The person stays on the team. Only this connection to the item is removed."
+        confirmLabel="Remove"
+        onCancel={() => setDeleteId(null)}
+        onConfirm={() => {
+          if (!deleteId) return;
+          const target = deleteId;
+          setDeleteId(null);
+          void (async () => {
+            await removePersonContentLink(target);
+            await refresh();
+          })();
+        }}
+      />
     </div>
   );
 }

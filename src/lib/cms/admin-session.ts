@@ -2,6 +2,11 @@ import 'server-only';
 import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
 
 const SESSION_TTL_MS = 60 * 60 * 12 * 1000;
+const REMEMBER_TTL_MS = 60 * 60 * 24 * 30 * 1000;
+
+function sessionTtlMs(remember: boolean) {
+  return remember ? REMEMBER_TTL_MS : SESSION_TTL_MS;
+}
 
 type SessionPayload = {
   p: 'cms-admin';
@@ -24,12 +29,12 @@ function sign(body: string, key: string): string {
  * Issue a time-bounded HMAC session cookie value.
  * Does not embed the admin password or raw long-lived secret in the cookie.
  */
-export function issueCmsAdminSessionCookie(): string | null {
+export function issueCmsAdminSessionCookie(remember = false): string | null {
   const key = resolveSigningKey();
   if (!key) return null;
   const payload: SessionPayload = {
     p: 'cms-admin',
-    exp: Date.now() + SESSION_TTL_MS,
+    exp: Date.now() + sessionTtlMs(remember),
     n: randomBytes(16).toString('hex'),
   };
   const body = Buffer.from(JSON.stringify(payload), 'utf8').toString(
@@ -64,4 +69,8 @@ export function verifyCmsAdminSessionCookie(cookieValue: string): boolean {
   }
 }
 
-export const CMS_ADMIN_SESSION_MAX_AGE_SEC = Math.floor(SESSION_TTL_MS / 1000);
+export function cmsAdminSessionMaxAgeSec(remember = false) {
+  return Math.floor(sessionTtlMs(remember) / 1000);
+}
+
+export const CMS_ADMIN_SESSION_MAX_AGE_SEC = cmsAdminSessionMaxAgeSec(false);

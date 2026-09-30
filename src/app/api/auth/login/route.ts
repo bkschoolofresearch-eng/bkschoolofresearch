@@ -7,10 +7,13 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as {
     email?: string;
     password?: string;
+    remember?: boolean;
   };
+  const remember = body.remember === true;
   const result = await loginWithPassword({
     email: body.email ?? '',
     password: body.password ?? '',
+    remember,
   });
   if (!result.ok) return jsonError(result.error, 401);
 
@@ -20,7 +23,7 @@ export async function POST(request: Request) {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: remember ? 60 * 60 * 24 * 30 : 60 * 60 * 12,
   });
 
   return jsonOk({ session: result.session });

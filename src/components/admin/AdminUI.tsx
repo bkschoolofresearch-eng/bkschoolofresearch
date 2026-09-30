@@ -60,6 +60,7 @@ export function AdminPrimaryButton({
   type = 'button',
   disabled,
   className = '',
+  value,
 }: {
   children: ReactNode;
   href?: string;
@@ -67,6 +68,7 @@ export function AdminPrimaryButton({
   type?: 'button' | 'submit';
   disabled?: boolean;
   className?: string;
+  value?: string;
 }) {
   const classes =
     `inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1F36] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173B6C] disabled:opacity-50 ${className}`.trim();
@@ -78,7 +80,7 @@ export function AdminPrimaryButton({
     );
   }
   return (
-    <button type={type} onClick={onClick} disabled={disabled} className={classes}>
+    <button type={type} value={value} onClick={onClick} disabled={disabled} className={classes}>
       {children}
     </button>
   );
@@ -90,12 +92,14 @@ export function AdminSecondaryButton({
   onClick,
   type = 'button',
   disabled,
+  value,
 }: {
   children: ReactNode;
   href?: string;
   onClick?: () => void;
   type?: 'button' | 'submit';
   disabled?: boolean;
+  value?: string;
 }) {
   const className =
     'inline-flex items-center justify-center gap-2 rounded-xl border border-[#D5DEE8] bg-white px-4 py-2.5 text-sm font-semibold text-[#0B1F36] transition hover:bg-[#F4F7FB] disabled:opacity-50';
@@ -107,7 +111,7 @@ export function AdminSecondaryButton({
     );
   }
   return (
-    <button type={type} onClick={onClick} disabled={disabled} className={className}>
+    <button type={type} value={value} onClick={onClick} disabled={disabled} className={className}>
       {children}
     </button>
   );

@@ -354,7 +354,7 @@ export function MediaLibraryPage() {
       <ConfirmDialog
         open={Boolean(deleteId)}
         title="Delete media asset?"
-        description="References in content will not be auto-cleaned. Update any posts that still use this file."
+        description="This removes the file from the library, from Cloudinary, and from any record still using it."
         onCancel={() => setDeleteId(null)}
         onConfirm={async () => {
           if (deleteId) {

@@ -7,12 +7,17 @@ import { RESERVED_PEOPLE_CATEGORY_SLUGS } from '@/lib/content/people-slugs';
 import {
   getHomepageConfig,
   getPeople,
+  getSiteSettings,
   getPersonBySlug,
   getPublications,
   getInvolvementsForPerson,
   getRoleHistoryForPerson,
   getAchievementsProfileForPerson,
 } from '@/lib/content/queries';
+import {
+  customSectionAssignments,
+  assignmentForPerson,
+} from '@/lib/content/team-sections';
 import { PERSON_CATEGORY_META } from '@/lib/public/labels';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 
@@ -54,6 +59,17 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
+  const settings = await getSiteSettings();
+  const customSection = customSectionAssignments(settings.teamSections).find(
+    (section) => section.sectionSlug === slug,
+  );
+  if (customSection) {
+    return buildPageMetadata(
+      customSection.label,
+      customSection.description,
+      `/people/${slug}`,
+    );
+  }
   const category = RESERVED_PEOPLE_CATEGORY_SLUGS[slug];
   if (category) {
     const meta = PERSON_CATEGORY_META[category];
@@ -74,10 +90,41 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function PeopleSlugPage({ params }: Props) {
   const { slug } = await params;
+  const settings = await getSiteSettings();
+  const customSection = customSectionAssignments(settings.teamSections).find(
+    (section) => section.sectionSlug === slug,
+  );
+  if (customSection) {
+    const members = (await getPeople()).filter(
+      (person) => person.sectionSlug === customSection.sectionSlug,
+    );
+    return (
+      <PeopleCategoryHub
+        title={customSection.label}
+        description={customSection.description || 'Members of this team section.'}
+        members={members.map((member) => ({
+          id: member.id,
+          href: `/people/${member.slug}`,
+          name: member.name,
+          role: member.role,
+          imageSrc:
+            member.photoUrl && !member.photoUrl.includes('/prototype/')
+              ? member.photoUrl
+              : (member.photoUrl ?? prototypeMedia.directorPortrait.url),
+          description:
+            member.shortBio?.trim() ||
+            member.bio?.split(/\n\s*\n/)[0]?.replace(/\s+/g, ' ').trim() ||
+            `${member.name} serves as ${member.role} at BK School of Research.`,
+        }))}
+      />
+    );
+  }
 
   const category = RESERVED_PEOPLE_CATEGORY_SLUGS[slug];
   if (category) {
-    const members = await getPeople({ category });
+    const members = (await getPeople({ category })).filter(
+      (person) => !person.sectionSlug,
+    );
     const meta = PERSON_CATEGORY_META[category];
 
     const hubPeople = members.map((member) => ({
@@ -139,6 +186,7 @@ export default async function PeopleSlugPage({ params }: Props) {
         item.photoUrl ?? '/media/prototype/bksr-portrait-director.jpg',
     }));
 
+  const section = assignmentForPerson(person, settings.teamSections);
   const personPubs = await publicationsForPerson(person.name);
   const involvements = await getInvolvementsForPerson(person.id);
   const roleHistory = await getRoleHistoryForPerson(person.id);
@@ -149,7 +197,7 @@ export default async function PeopleSlugPage({ params }: Props) {
       initialPerson={{
         name: person.name,
         role: person.role,
-        categoryLabel: PERSON_CATEGORY_META[person.category]?.label,
+        categoryLabel: section.label,
         affiliation: person.affiliation,
         photoUrl: person.photoUrl,
         bio: person.bio,
@@ -166,22 +214,8 @@ export default async function PeopleSlugPage({ params }: Props) {
         verifiedAchievements: achievements.verified,
         memberAchievements: achievements.member,
         appointmentYear: person.appointmentYear,
-        backHref: PERSON_CATEGORY_META[person.category]
-          ? `/people/${
-              person.category === 'executive-director'
-                ? 'executive-director'
-                : person.category === 'distinguished-fellow'
-                  ? 'distinguished-fellows'
-                  : person.category === 'research-team'
-                    ? 'research-team'
-                    : person.category === 'administrative-team'
-                      ? 'administrative-team'
-                      : person.category
-            }`
-          : '/people',
-        backLabel: `Back to ${
-          PERSON_CATEGORY_META[person.category]?.label ?? 'People'
-        }`,
+        backHref: section.href,
+        backLabel: `Back to ${section.label}`,
       }}
       related={related}
     />

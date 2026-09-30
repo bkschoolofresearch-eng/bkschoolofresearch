@@ -113,7 +113,15 @@ export async function deleteFromCloudinary(
   resourceType: 'image' | 'video' | 'raw' | 'auto' = 'image',
 ): Promise<void> {
   ensureConfigured();
-  await cloudinary.uploader.destroy(publicId, {
-    resource_type: resourceType === 'auto' ? 'image' : resourceType,
-  });
+  const type = resourceType === 'auto' ? 'image' : resourceType;
+  try {
+    await cloudinary.uploader.destroy(publicId, {
+      resource_type: type,
+      invalidate: true,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (/not found/i.test(message)) return;
+    throw error;
+  }
 }

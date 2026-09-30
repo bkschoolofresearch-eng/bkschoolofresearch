@@ -92,6 +92,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
 
     pushSlug(db.people, '/people');
+    for (const section of db.siteSettings.teamSections ?? []) {
+      const path = sitemapPublicPath(`/people/${section.slug}`, origin);
+      if (!path) continue;
+      entries.push({
+        url: `${origin}${path}`,
+        lastModified: now,
+        changeFrequency: 'monthly',
+        priority: 0.6,
+      });
+    }
     pushSlug(db.publications, '/publications');
     pushSlug(db.news, '/news');
     pushSlug(db.events, '/events');

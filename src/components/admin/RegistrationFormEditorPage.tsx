@@ -24,6 +24,7 @@ import type {
   RegistrationFormLinkMode,
 } from '@/types/content';
 import { slugify } from '@/lib/utils';
+import { useSaveConfirm } from './SaveAlert';
 
 const FIELD_TYPES: { value: RegistrationFieldType; label: string }[] = [
   { value: 'text', label: 'Short text' },
@@ -54,6 +55,7 @@ export function RegistrationFormEditorPage({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { database, ready, refresh } = useCms();
+  const { askSave, saveDialog } = useSaveConfirm();
 
   const initialPurpose: FormPurpose =
     purposeProp === 'join'
@@ -244,6 +246,7 @@ export function RegistrationFormEditorPage({
       : '/admin/registration-forms';
 
   const save = async () => {
+    if (!(await askSave())) return;
     setSaving(true);
     setError(null);
     try {
@@ -334,6 +337,7 @@ export function RegistrationFormEditorPage({
 
   return (
     <div className="space-y-5">
+      {saveDialog}
       <div className="flex flex-wrap items-center gap-3">
         <Link
           href={backHref}

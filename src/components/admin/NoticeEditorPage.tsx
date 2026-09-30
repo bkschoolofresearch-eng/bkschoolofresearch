@@ -16,6 +16,7 @@ import { CloudinaryImageField } from '@/components/media/CloudinaryImageField';
 import { AdminLoading } from './AdminLoading';
 import { BodyEditor } from './BodyEditor';
 import { ConfirmDialog } from './ConfirmDialog';
+import { useSaveConfirm } from './SaveAlert';
 import { AdminLockedState } from './AdminUI';
 import { collectionConfigs } from './collections';
 import { useCms } from './CmsProvider';
@@ -126,6 +127,7 @@ export function NoticeEditorPage({
   const config = collectionConfigs.notices;
   const router = useRouter();
   const { ready, createItem, updateItem, deleteItem, apiAuthenticated } = useCms();
+  const { askSave, saveDialog } = useSaveConfirm();
 
   const [values, setValues] = useState<Record<string, unknown> | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -206,6 +208,7 @@ export function NoticeEditorPage({
 
   const save = async (nextStatus: ContentStatus) => {
     if (!values) return;
+    if (!(await askSave())) return;
     setSaving(true);
     const payload: Record<string, unknown> = { ...values, status: nextStatus };
 
@@ -532,6 +535,7 @@ export function NoticeEditorPage({
         </FormSection>
       </div>
 
+      {saveDialog}
       <ConfirmDialog
         open={confirmDelete}
         title="Delete this notice?"

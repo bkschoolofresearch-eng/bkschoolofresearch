@@ -10,7 +10,7 @@ import {
   isCmsOpenWithoutLogin,
 } from '@/lib/cms/admin-auth';
 import {
-  CMS_ADMIN_SESSION_MAX_AGE_SEC,
+  cmsAdminSessionMaxAgeSec,
   issueCmsAdminSessionCookie,
 } from '@/lib/cms/admin-session';
 import {
@@ -42,6 +42,7 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as {
     otp?: string;
     resend?: boolean;
+    remember?: boolean;
   };
 
   const jar = await cookies();
@@ -94,7 +95,8 @@ export async function POST(request: Request) {
     return jsonError(result.error, 401);
   }
 
-  const sessionCookie = issueCmsAdminSessionCookie();
+  const remember = body.remember === true;
+  const sessionCookie = issueCmsAdminSessionCookie(remember);
   if (!sessionCookie) {
     return jsonError('CMS admin session token is not configured', 503);
   }
@@ -105,7 +107,7 @@ export async function POST(request: Request) {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: CMS_ADMIN_SESSION_MAX_AGE_SEC,
+    maxAge: cmsAdminSessionMaxAgeSec(remember),
   });
 
   return jsonOk({

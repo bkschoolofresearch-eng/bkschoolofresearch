@@ -6,6 +6,7 @@ import {
   AuthFooterLink,
   AuthSplitShell,
 } from '@/components/layout/AuthSplitShell';
+import { AuthPasswordField } from '@/components/auth/AuthPasswordField';
 import {
   authErrorClass,
   authInputClass,
@@ -22,6 +23,7 @@ export function AdminLoginScreen() {
   const [step, setStep] = useState<Step>('credentials');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(true);
   const [otp, setOtp] = useState('');
   const [maskedEmail, setMaskedEmail] = useState('');
   const [devOtp, setDevOtp] = useState<string | null>(null);
@@ -108,17 +110,25 @@ export function AdminLoginScreen() {
                 placeholder=" "
               />
             </label>
-            <label className={authLabelClass}>
-              Password*
+            <AuthPasswordField
+              label="Password*"
+              value={password}
+              onChange={setPassword}
+              autoComplete="current-password"
+            />
+            <label className="flex cursor-pointer items-start gap-3 font-sans text-sm text-ink">
               <input
-                required
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={authInputClass}
-                placeholder=" "
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="mt-0.5 size-4 shrink-0 accent-[#0b233f]"
               />
+              <span>
+                <span className="font-medium">Remember me</span>
+                <span className="mt-0.5 block text-[#525252]">
+                  Stay signed in on this browser for 30 days.
+                </span>
+              </span>
             </label>
             <div className="space-y-3 pt-2">
               <p className="text-sm leading-5 text-ink">
@@ -139,7 +149,7 @@ export function AdminLoginScreen() {
               setBusy(true);
               void (async () => {
                 try {
-                  await verifyCmsOtp(otp);
+                  await verifyCmsOtp(otp, remember);
                 } catch (err) {
                   setError(
                     err instanceof Error
