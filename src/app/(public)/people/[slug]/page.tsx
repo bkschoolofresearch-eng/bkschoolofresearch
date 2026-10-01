@@ -19,11 +19,13 @@ import {
   assignmentForPerson,
 } from '@/lib/content/team-sections';
 import { PERSON_CATEGORY_META } from '@/lib/public/labels';
+import { isProductionBuild } from '@/lib/cms/build-phase';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
+  if (isProductionBuild()) return [];
   const people = (await getPeople({ includeDrafts: true })).filter(
     (person) => !RESERVED_PEOPLE_CATEGORY_SLUGS[person.slug],
   );

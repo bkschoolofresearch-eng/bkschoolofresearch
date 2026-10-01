@@ -13,10 +13,12 @@ import {
   isFormFull,
 } from '@/lib/content/registration-forms';
 import { buildPageMetadata } from '@/lib/seo/metadata';
+import { isProductionBuild } from '@/lib/cms/build-phase';
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
+  if (isProductionBuild()) return [];
   const db = await getContentDatabase();
   return db.registrationForms
     .filter((form) => form.entityType !== 'join')

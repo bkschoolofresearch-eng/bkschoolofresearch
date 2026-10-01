@@ -13,6 +13,9 @@ import { getSiteUrl } from "@/lib/seo/site-url";
 import { siteSettings } from "@/content/seed/site-settings";
 import "./globals.css";
 
+/** CMS pages read Mongo on each request. Prerendering them during `next build` opens Atlas from the builder and fails the deploy. */
+export const dynamic = "force-dynamic";
+
 const newsreader = Newsreader({
   variable: "--font-newsreader",
   subsets: ["latin"],

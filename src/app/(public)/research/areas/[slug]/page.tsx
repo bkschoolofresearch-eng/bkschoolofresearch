@@ -11,8 +11,11 @@ import { EditorialHeading } from '@/components/ui/EditorialHeading';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Section } from '@/components/ui/Section';
 import { pageHeroMedia } from '@/lib/content/page-heroes';
-import { withResearchExternalUrls } from '@/lib/content/research-links';
-import { researchProjectVenueLine } from '@/lib/content/research-links';
+import { isProductionBuild } from '@/lib/cms/build-phase';
+import {
+  researchProjectVenueLine,
+  withResearchExternalUrls,
+} from '@/lib/content/research-links';
 import {
   getPublications,
   getResearchAreaBySlug,
@@ -26,6 +29,7 @@ import { cn } from '@/lib/utils';
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
+  if (isProductionBuild()) return [];
   const areas = await getResearchAreas();
   return areas.map((area) => ({ slug: area.slug }));
 }

@@ -1,5 +1,12 @@
 import 'server-only';
+import { setDefaultResultOrder } from 'node:dns';
+import net from 'node:net';
 import { MongoClient, type Db } from 'mongodb';
+
+setDefaultResultOrder('ipv4first');
+(
+  net as { setDefaultAutoSelectFamily?: (value: boolean) => void }
+).setDefaultAutoSelectFamily?.(false);
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB || 'bksr';

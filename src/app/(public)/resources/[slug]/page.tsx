@@ -6,10 +6,12 @@ import { Tag } from '@/components/ui/Tag';
 import { pageHeroMedia } from '@/lib/content/page-heroes';
 import { getResourceBySlug, getResources } from '@/lib/content/queries';
 import { buildPageMetadata } from '@/lib/seo/metadata';
+import { isProductionBuild } from '@/lib/cms/build-phase';
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
+  if (isProductionBuild()) return [];
   return (await getResources({ includeDrafts: true })).map((item) => ({ slug: item.slug }));
 }
 

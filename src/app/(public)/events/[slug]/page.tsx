@@ -13,10 +13,12 @@ import {
 } from '@/lib/content/queries';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { formatDate } from '@/lib/utils';
+import { isProductionBuild } from '@/lib/cms/build-phase';
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
+  if (isProductionBuild()) return [];
   return (await getEvents({ includeDrafts: true })).map((item) => ({
     slug: item.slug,
   }));

@@ -17,12 +17,14 @@ import {
 } from '@/lib/content/queries';
 import { getPublicationCoverUrl } from '@/lib/content/prototype-media';
 import { buildPageMetadata } from '@/lib/seo/metadata';
+import { isProductionBuild } from '@/lib/cms/build-phase';
 import { PUBLICATION_TYPE_LABELS } from '@/lib/public/labels';
 import { InvolvedPeople } from '@/components/editorial/InvolvedPeople';
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
+  if (isProductionBuild()) return [];
   return (await getPublications({ includeDrafts: true })).map((item) => ({
     slug: item.slug,
   }));
