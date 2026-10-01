@@ -1,4 +1,5 @@
 import 'server-only';
+import { legacyResearcherSlug } from '@/lib/content/team-sections';
 import type {
   CollectionEntityMap,
   ContentCollectionKey,
@@ -27,36 +28,28 @@ export async function serverGetFullDatabase(): Promise<ContentDatabase> {
           await import('@/lib/cms/mongo-repository')
         ).mongoGetFullDatabase()
       : await (await import('@/lib/cms/fs-repository')).fsGetFullDatabase();
-  return ensureResearcherSectionsStored(database);
+  return normalizeLegacyResearcherSections(database);
 }
 
-async function ensureResearcherSectionsStored(
+/**
+ * Map older Distinguished Fellow / Research Team profiles onto stored
+ * sections for this read. Must stay in memory: this runs during page
+ * render and inside the CMS cache, where writes and revalidateTag throw.
+ */
+function normalizeLegacyResearcherSections(
   database: ContentDatabase,
-): Promise<ContentDatabase> {
-  const { legacyResearcherSlug } = await import('@/lib/content/team-sections');
+): ContentDatabase {
   const storedSlugs = new Set(
     (database.siteSettings.teamSections ?? []).map((section) => section.slug),
   );
+  let changed = false;
   const people = database.people.map((person) => {
     const slug = legacyResearcherSlug(person);
     if (!slug || !storedSlugs.has(slug)) return person;
+    changed = true;
     return { ...person, sectionSlug: slug, category: 'other' as const };
   });
-  const changed = people.some(
-    (person, index) => person.sectionSlug !== database.people[index]?.sectionSlug,
-  );
   if (!changed) return database;
-
-  for (let index = 0; index < people.length; index += 1) {
-    const next = people[index];
-    const prev = database.people[index];
-    if (!next || !prev || next.sectionSlug === prev.sectionSlug) continue;
-    await serverUpdate('people', prev.id, {
-      sectionSlug: next.sectionSlug,
-      category: 'other',
-    });
-  }
-
   return { ...database, people };
 }
 
