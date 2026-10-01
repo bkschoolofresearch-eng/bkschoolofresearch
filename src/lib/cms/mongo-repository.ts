@@ -59,40 +59,53 @@ async function writeSingleton(
 export async function mongoGetFullDatabase(): Promise<ContentDatabase> {
   const db = await getDb();
 
-  const [siteSettings, homepage, navigation, ...lists] = await Promise.all([
-    readSingleton(MONGO_COLLECTIONS.siteSettings, seedDatabase.siteSettings),
-    readSingleton(MONGO_COLLECTIONS.homepage, seedDatabase.homepage),
-    readSingleton(MONGO_COLLECTIONS.navigation, seedDatabase.navigation),
-    ...LIST_COLLECTION_KEYS.map(async (key) => {
-      const rows = await db
-        .collection(mongoNameForList(key))
-        .find({})
-        .project({ _id: 0 })
-        .toArray();
-      return [key, rows] as const;
-    }),
-  ]);
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const [siteSettings, homepage, navigation, ...lists] = await Promise.all([
+        readSingleton(MONGO_COLLECTIONS.siteSettings, seedDatabase.siteSettings),
+        readSingleton(MONGO_COLLECTIONS.homepage, seedDatabase.homepage),
+        readSingleton(MONGO_COLLECTIONS.navigation, seedDatabase.navigation),
+        ...LIST_COLLECTION_KEYS.map(async (key) => {
+          const rows = await db
+            .collection(mongoNameForList(key))
+            .find({})
+            .project({ _id: 0 })
+            .toArray();
+          return [key, rows] as const;
+        }),
+      ]);
 
-  const database = {
-    version: seedDatabase.version,
-    siteSettings,
-    homepage,
-    navigation,
-  } as ContentDatabase;
+      const database = {
+        version: seedDatabase.version,
+        siteSettings,
+        homepage,
+        navigation,
+      } as ContentDatabase;
 
-  for (const [key, rows] of lists) {
-    (database as unknown as Record<string, unknown>)[key] = rows;
+      for (const [key, rows] of lists) {
+        (database as unknown as Record<string, unknown>)[key] = rows;
+      }
+
+      const meta = await db.collection(MONGO_COLLECTIONS.meta).findOne(
+        { _id: 'version' } as never,
+        { projection: { version: 1 } },
+      );
+      if (meta && typeof (meta as unknown as { version?: number }).version === 'number') {
+        database.version = (meta as unknown as { version: number }).version;
+      }
+
+      return database;
+    } catch (error) {
+      lastError = error;
+      console.error(`[CMS] mongoGetFullDatabase attempt ${attempt + 1} failed:`, error instanceof Error ? error.message : error);
+      if (attempt === 0) {
+        global.__bksrMongoClientPromise = undefined;
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
   }
-
-  const meta = await db.collection(MONGO_COLLECTIONS.meta).findOne(
-    { _id: 'version' } as never,
-    { projection: { version: 1 } },
-  );
-  if (meta && typeof (meta as unknown as { version?: number }).version === 'number') {
-    database.version = (meta as unknown as { version: number }).version;
-  }
-
-  return database;
+  throw lastError;
 }
 
 export async function mongoGetAll<K extends ContentCollectionKey>(

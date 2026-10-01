@@ -27,6 +27,9 @@ function createClient(): MongoClient {
     maxPoolSize: 10,
     minPoolSize: 0,
     family: 4,
+    connectTimeoutMS: 10_000,
+    socketTimeoutMS: 30_000,
+    serverSelectionTimeoutMS: 10_000,
   });
 }
 
