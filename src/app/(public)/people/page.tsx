@@ -4,7 +4,6 @@ import { uploadedPersonPhoto } from '@/lib/content/person-photo';
 import {
   allSections,
   assignmentForPerson,
-  RESEARCHER_SECTIONS,
   sectionAnchorId,
 } from '@/lib/content/team-sections';
 import { getPeople, getSiteSettings } from '@/lib/content/queries';
@@ -70,12 +69,7 @@ export default async function PeoplePage() {
         description: builtinCopy?.description ?? section.description,
         members: roster.filter((member) => member.sectionKey === section.key),
       };
-    })
-    .filter(
-      (group) =>
-        group.members.length > 0 ||
-        RESEARCHER_SECTIONS.some((section) => section.slug === group.id),
-    );
+    });
 
   const jumpLinks = [
     ...(director
