@@ -22,6 +22,8 @@ import { PERSON_CATEGORY_META } from '@/lib/public/labels';
 import { isProductionBuild } from '@/lib/cms/build-phase';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 
+export const dynamic = 'force-dynamic';
+
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {

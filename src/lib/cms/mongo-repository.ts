@@ -53,7 +53,7 @@ async function writeSingleton(
     { upsert: true },
   );
   revalidateTag(tag, 'max');
-  revalidateTag(CMS_CACHE_TAGS.all, 'max');
+  revalidateTag(CMS_CACHE_TAGS.all, { expire: 0 });
 }
 
 export async function mongoGetFullDatabase(): Promise<ContentDatabase> {
@@ -1122,7 +1122,7 @@ export async function mongoCreate<K extends ContentCollectionKey>(
   } as never);
 
   revalidateTag(CMS_CACHE_TAGS.collection(collection), 'max');
-  revalidateTag(CMS_CACHE_TAGS.all, 'max');
+  revalidateTag(CMS_CACHE_TAGS.all, { expire: 0 });
   return item;
 }
 
@@ -1148,7 +1148,7 @@ export async function mongoUpdate<K extends ContentCollectionKey>(
   );
 
   revalidateTag(CMS_CACHE_TAGS.collection(collection), 'max');
-  revalidateTag(CMS_CACHE_TAGS.all, 'max');
+  revalidateTag(CMS_CACHE_TAGS.all, { expire: 0 });
   return updated;
 }
 
@@ -1224,7 +1224,7 @@ export async function mongoRemoveMany<K extends ContentCollectionKey>(
   }
 
   revalidateTag(CMS_CACHE_TAGS.collection(collection), 'max');
-  revalidateTag(CMS_CACHE_TAGS.all, 'max');
+  revalidateTag(CMS_CACHE_TAGS.all, { expire: 0 });
   return result.deletedCount;
 }
 
@@ -1263,7 +1263,7 @@ export async function mongoDuplicate<K extends ContentCollectionKey>(
   } as never);
 
   revalidateTag(CMS_CACHE_TAGS.collection(collection), 'max');
-  revalidateTag(CMS_CACHE_TAGS.all, 'max');
+  revalidateTag(CMS_CACHE_TAGS.all, { expire: 0 });
   return copy as CollectionEntityMap[K];
 }
 
@@ -1402,7 +1402,7 @@ export async function mongoSeedFromCompiled(
     { upsert: true },
   );
 
-  revalidateTag(CMS_CACHE_TAGS.all, 'max');
+  revalidateTag(CMS_CACHE_TAGS.all, { expire: 0 });
 
   return {
     collections: 3 + LIST_COLLECTION_KEYS.length,

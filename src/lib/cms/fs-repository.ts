@@ -49,7 +49,7 @@ async function writeDb(database: ContentDatabase): Promise<void> {
   await ensureDir();
   const next = { ...database, version: database.version ?? 1 };
   await fs.writeFile(DATA_FILE, JSON.stringify(next, null, 2), 'utf8');
-  revalidateTag(CMS_CACHE_TAGS.all, 'max');
+  revalidateTag(CMS_CACHE_TAGS.all, { expire: 0 });
 }
 
 export async function fsGetFullDatabase(): Promise<ContentDatabase> {

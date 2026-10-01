@@ -11,6 +11,8 @@ import { getPeople, getSiteSettings } from '@/lib/content/queries';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import type { Person } from '@/types/content';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = buildPageMetadata(
   'People',
   'Leadership and associates of BK School of Research.',
