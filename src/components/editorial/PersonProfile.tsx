@@ -1,13 +1,16 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, BookOpen } from 'lucide-react';
-import { MediaImage } from '@/components/media/MediaImage';
+import { PersonPortrait } from '@/components/home/PersonPortrait';
 import { Button } from '@/components/ui/Button';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Container } from '@/components/ui/Container';
 import { EditorialHeading } from '@/components/ui/EditorialHeading';
 import { RichText } from '@/components/ui/RichText';
 import { cn } from '@/lib/utils';
+import {
+  PersonResearchList,
+  type PersonResearchCard,
+} from '@/components/editorial/PersonResearchList';
 import {
   groupInvolvements,
   humanizeLinkRole,
@@ -63,11 +66,16 @@ export type PersonProfileData = {
 
 type PersonProfileProps = {
   person: PersonProfileData;
+  researchPage?: {
+    personId: string;
+    items: PersonResearchCard[];
+    total: number;
+  };
   related?: Array<{
     href: string;
     name: string;
     role: string;
-    imageSrc: string;
+    imageSrc?: string | null;
   }>;
   className?: string;
 };
@@ -86,12 +94,12 @@ function ProfileCard({
   return (
     <section
       className={cn(
-        'overflow-hidden rounded-[1.75rem] border border-ink/12 bg-white shadow-[0_18px_40px_-34px_rgba(13,39,69,0.35)] sm:rounded-[2rem]',
+        'w-full min-w-0 overflow-hidden rounded-[1.75rem] border border-ink/12 bg-white shadow-[0_18px_40px_-34px_rgba(13,39,69,0.35)] sm:rounded-[2rem]',
         className,
       )}
     >
       <div className="flex items-center justify-between gap-4 border-b border-border/80 px-5 py-4 sm:px-7 sm:py-5">
-        <h2 className="font-display text-[1.45rem] leading-tight text-ink sm:text-[1.7rem]">
+        <h2 className="min-w-0 font-display text-[1.45rem] leading-tight text-ink sm:text-[1.7rem]">
           {title}
         </h2>
         {action}
@@ -107,11 +115,18 @@ function clipSummary(text: string, max = 140) {
   return `${clean.slice(0, max).replace(/\s+\S*$/, '').trim()}…`;
 }
 
-export function PersonProfile({ person, related, className }: PersonProfileProps) {
+export function PersonProfile({
+  person,
+  researchPage,
+  related,
+  className,
+}: PersonProfileProps) {
   const backHref = person.backHref ?? '/people';
   const skills = person.skills?.filter(Boolean) ?? [];
   const researchItems = person.researchItems?.filter((item) => item.title) ?? [];
-  const involvementGroups = groupInvolvements(person.involvements ?? []);
+  const involvementGroups = groupInvolvements(
+    (person.involvements ?? []).filter((item) => item.entityType !== 'research'),
+  );
   const roleHistory = person.roleHistory ?? [];
   const verifiedAchievements = person.verifiedAchievements ?? [];
   const memberAchievements = person.memberAchievements ?? [];
@@ -149,33 +164,20 @@ export function PersonProfile({ person, related, className }: PersonProfileProps
           </div>
 
           <div className="relative px-5 pb-7 sm:px-8 sm:pb-9 lg:px-10">
-            <div className="-mt-[4.75rem] flex flex-col items-center gap-5 sm:-mt-24 sm:flex-row sm:items-end sm:gap-8">
+            <div className="-mt-[4.75rem] flex w-full min-w-0 max-w-full flex-col items-center gap-5 sm:-mt-24 sm:flex-row sm:items-end sm:gap-8">
               <div className="w-[9.5rem] shrink-0 overflow-hidden rounded-[1.5rem] bg-ink p-1.5 ring-4 ring-white sm:w-[12rem] sm:rounded-[1.85rem] sm:p-2">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-[1.15rem] bg-surface sm:rounded-[1.45rem]">
-                  {person.photoUrl ? (
-                    <MediaImage
-                      src={person.photoUrl}
-                      alt={`Portrait of ${person.name}`}
-                      fill
-                      priority
-                      sizes="(max-width: 640px) 152px, 192px"
-                      className="object-cover object-top"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-end bg-[radial-gradient(circle_at_30%_20%,rgba(23,59,108,0.12),transparent_55%)] p-4">
-                      <span className="font-display text-4xl text-ink/25">
-                        {person.name
-                          .split(/\s+/)
-                          .slice(0, 2)
-                          .map((part) => part[0]?.toUpperCase() ?? '')
-                          .join('') || 'BK'}
-                      </span>
-                    </div>
-                  )}
+                  <PersonPortrait
+                    src={person.photoUrl}
+                    alt={person.photoUrl ? `Portrait of ${person.name}` : ''}
+                    priority
+                    sizes="(max-width: 640px) 152px, 192px"
+                    iconClassName="size-16"
+                  />
                 </div>
               </div>
 
-              <div className="min-w-0 flex-1 pb-1 text-center sm:text-left">
+              <div className="w-full min-w-0 max-w-full flex-1 pb-1 text-center sm:w-auto sm:text-left">
                 {person.categoryLabel ? (
                   <p className="font-sans text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted">
                     {person.categoryLabel}
@@ -192,7 +194,7 @@ export function PersonProfile({ person, related, className }: PersonProfileProps
                   {person.role}
                 </p>
                 {person.affiliation ? (
-                  <p className="mt-1 text-sm leading-snug text-muted sm:text-[0.95rem]">
+                  <p className="mt-1 max-w-full text-sm leading-snug text-pretty text-muted sm:text-[0.95rem]">
                     {person.affiliation}
                   </p>
                 ) : null}
@@ -214,21 +216,29 @@ export function PersonProfile({ person, related, className }: PersonProfileProps
             </div>
 
             {headline ? (
-              <p className="mx-auto mt-6 max-w-3xl border-t border-border/80 pt-5 text-center font-sans text-[0.95rem] leading-relaxed text-body sm:mx-0 sm:mt-7 sm:pt-6 sm:text-left sm:text-base sm:leading-7">
+              <p className="mt-6 w-full min-w-0 max-w-full border-t border-border/80 pt-5 text-center font-sans text-[0.95rem] leading-7 text-pretty text-body sm:mt-7 sm:pt-6 sm:text-left sm:text-base sm:leading-8 line-clamp-[12]">
                 {headline}
               </p>
             ) : null}
           </div>
         </article>
 
-        <div className="mt-5 grid items-start gap-5 lg:mt-6 lg:grid-cols-12 lg:gap-6">
-          <div className="flex flex-col gap-5 lg:col-span-8">
+        <div className="mt-5 grid w-full min-w-0 grid-cols-1 items-start gap-5 lg:mt-6 lg:grid-cols-12 lg:gap-6">
+          <div className="flex w-full min-w-0 flex-col gap-5 lg:col-span-8">
             <ProfileCard title="Bio">
               <RichText
                 content={person.bio}
-                className="max-w-none text-[1rem] leading-[1.75] md:text-[1.0625rem] md:leading-[1.8]"
+                className="max-w-none min-w-0 break-words text-[1rem] leading-[1.75] md:text-[1.0625rem] md:leading-[1.8]"
               />
             </ProfileCard>
+
+            {researchPage && researchPage.total > 0 ? (
+              <PersonResearchList
+                personId={researchPage.personId}
+                initialItems={researchPage.items}
+                total={researchPage.total}
+              />
+            ) : null}
 
             {involvementGroups.map((group) => (
               <ProfileCard
@@ -252,7 +262,7 @@ export function PersonProfile({ person, related, className }: PersonProfileProps
                           <p className="font-sans text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-muted">
                             {humanizeLinkRole(item.role)}
                           </p>
-                          <p className="mt-0.5 font-sans text-[0.95rem] font-semibold leading-snug text-ink sm:text-base">
+                          <p className="mt-0.5 font-sans text-[0.95rem] font-semibold leading-snug break-words text-ink sm:text-base">
                             {item.title}
                           </p>
                           {item.summary ? (
@@ -275,12 +285,12 @@ export function PersonProfile({ person, related, className }: PersonProfileProps
                         {item.href ? (
                           <Link
                             href={item.href}
-                            className="group flex items-start gap-3.5 rounded-[1.25rem] border border-border/90 bg-surface-subtle/70 p-3.5 transition-[border-color,background-color,box-shadow] hover:border-ink/20 hover:bg-white hover:shadow-[0_14px_30px_-24px_rgba(13,39,69,0.4)] sm:gap-4 sm:p-4"
+                            className="group flex w-full min-w-0 items-start gap-3.5 rounded-[1.25rem] border border-border/90 bg-surface-subtle/70 p-3.5 transition-[border-color,background-color,box-shadow] hover:border-ink/20 hover:bg-white hover:shadow-[0_14px_30px_-24px_rgba(13,39,69,0.4)] sm:gap-4 sm:p-4"
                           >
                             {inner}
                           </Link>
                         ) : (
-                          <div className="flex items-start gap-3.5 rounded-[1.25rem] border border-border/90 bg-surface-subtle/70 p-3.5 sm:gap-4 sm:p-4">
+                          <div className="flex w-full min-w-0 items-start gap-3.5 rounded-[1.25rem] border border-border/90 bg-surface-subtle/70 p-3.5 sm:gap-4 sm:p-4">
                             {inner}
                           </div>
                         )}
@@ -379,7 +389,7 @@ export function PersonProfile({ person, related, className }: PersonProfileProps
               </ProfileCard>
             ) : null}
 
-            {!involvementGroups.length && researchItems.length ? (
+            {!researchPage?.total && !involvementGroups.length && researchItems.length ? (
               <ProfileCard
                 title="Research"
                 action={
@@ -397,7 +407,7 @@ export function PersonProfile({ person, related, className }: PersonProfileProps
                           <BookOpen className="size-4" strokeWidth={1.75} aria-hidden />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-sans text-[0.95rem] font-semibold leading-snug text-ink sm:text-base">
+                          <p className="font-sans text-[0.95rem] font-semibold leading-snug break-words text-ink sm:text-base">
                             {item.title}
                           </p>
                           {item.summary ? (
@@ -420,12 +430,12 @@ export function PersonProfile({ person, related, className }: PersonProfileProps
                         {item.href ? (
                           <Link
                             href={item.href}
-                            className="group flex items-start gap-3.5 rounded-[1.25rem] border border-border/90 bg-surface-subtle/70 p-3.5 transition-[border-color,background-color,box-shadow] hover:border-ink/20 hover:bg-white hover:shadow-[0_14px_30px_-24px_rgba(13,39,69,0.4)] sm:gap-4 sm:p-4"
+                            className="group flex w-full min-w-0 items-start gap-3.5 rounded-[1.25rem] border border-border/90 bg-surface-subtle/70 p-3.5 transition-[border-color,background-color,box-shadow] hover:border-ink/20 hover:bg-white hover:shadow-[0_14px_30px_-24px_rgba(13,39,69,0.4)] sm:gap-4 sm:p-4"
                           >
                             {inner}
                           </Link>
                         ) : (
-                          <div className="flex items-start gap-3.5 rounded-[1.25rem] border border-border/90 bg-surface-subtle/70 p-3.5 sm:gap-4 sm:p-4">
+                          <div className="flex w-full min-w-0 items-start gap-3.5 rounded-[1.25rem] border border-border/90 bg-surface-subtle/70 p-3.5 sm:gap-4 sm:p-4">
                             {inner}
                           </div>
                         )}
@@ -437,13 +447,13 @@ export function PersonProfile({ person, related, className }: PersonProfileProps
             ) : null}
           </div>
 
-          <aside className="flex flex-col gap-5 lg:col-span-4 lg:sticky lg:top-28">
+          <aside className="flex w-full min-w-0 flex-col gap-5 lg:col-span-4 lg:sticky lg:top-28">
             {skills.length ? (
               <ProfileCard title="Skills">
                 <ul className="flex flex-wrap gap-2">
                   {skills.map((skill) => (
                     <li key={skill}>
-                      <span className="inline-flex rounded-[1rem] border border-ink/15 bg-surface-subtle px-3 py-2 font-sans text-[0.8125rem] text-ink transition-colors hover:border-ink/30 hover:bg-white">
+                      <span className="inline-flex max-w-full rounded-[1rem] border border-ink/15 bg-surface-subtle px-3 py-2 font-sans text-[0.8125rem] break-words text-ink transition-colors hover:border-ink/30 hover:bg-white">
                         {skill}
                       </span>
                     </li>
@@ -515,16 +525,15 @@ export function PersonProfile({ person, related, className }: PersonProfileProps
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        className="group flex gap-3 rounded-[1.15rem] p-2 transition-colors hover:bg-surface-subtle"
+                        className="group flex min-w-0 gap-3 rounded-[1.15rem] p-2 transition-colors hover:bg-surface-subtle"
                       >
                         <div className="relative size-[3.25rem] shrink-0 overflow-hidden rounded-[0.95rem] bg-ink p-[3px]">
                           <div className="relative size-full overflow-hidden rounded-[0.75rem] bg-surface">
-                            <Image
+                            <PersonPortrait
                               src={item.imageSrc}
                               alt=""
-                              fill
                               sizes="52px"
-                              className="object-cover object-top"
+                              iconClassName="size-6"
                             />
                           </div>
                         </div>

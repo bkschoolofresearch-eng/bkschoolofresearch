@@ -31,6 +31,7 @@ import {
   getResearchProjects,
   getSiteSettings,
 } from '@/lib/content/queries';
+import { uploadedPersonPhoto } from '@/lib/content/person-photo';
 import {
   heroSlides,
   prototypeMedia,
@@ -129,10 +130,7 @@ export default async function HomePage() {
   const director =
     (await getPersonById(homepage.directorPersonId)) ??
     people.find((person) => person.category === 'executive-director');
-  const directorPhoto =
-    director?.photoUrl && !director.photoUrl.includes('/prototype/')
-      ? director.photoUrl
-      : (director?.photoUrl ?? prototypeMedia.directorPortrait.url);
+  const directorPhoto = uploadedPersonPhoto(director?.photoUrl);
 
   /** Flip-face copy: Figma-style narrative bio paragraph. */
   const teamFlipDescription = (person: {
@@ -162,10 +160,7 @@ export default async function HomePage() {
       href: `/people/${person.slug}`,
       name: person.name,
       role: person.role,
-      image:
-        person.photoUrl && !person.photoUrl.includes('/prototype/')
-          ? person.photoUrl
-          : (person.photoUrl ?? prototypeMedia.directorPortrait.url),
+      image: uploadedPersonPhoto(person.photoUrl),
       description: teamFlipDescription(person),
     }));
 

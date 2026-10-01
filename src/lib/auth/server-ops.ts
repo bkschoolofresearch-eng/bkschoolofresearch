@@ -169,7 +169,7 @@ export async function adminInvitePerson(input: {
     person = await serverCreate('people', {
       name,
       slug: uniquePersonSlug(taken, name),
-      status: 'draft',
+      status: 'published',
       role,
       category,
       bio: '',

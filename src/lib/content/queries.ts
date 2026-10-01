@@ -8,6 +8,7 @@ import {
 import {
   getResolvedInvolvementsForPerson,
   getResolvedPeopleForEntity,
+  pagePersonResearch,
 } from '@/lib/content/person-links';
 import { customSectionAssignments } from '@/lib/content/team-sections';
 import type {
@@ -97,9 +98,15 @@ function ensurePeopleNav(
     const custom = customSectionAssignments(sections).filter(
       (section) => !children.some((child) => child.href === section.href),
     );
-    if (!custom.length) return { ...item, children };
+    const withoutRetired = children.filter(
+      (child) =>
+        child.href !== '/people/distinguished-fellows' &&
+        child.href !== '/people/research-team' &&
+        child.href !== '/people/administrative-team',
+    );
+    if (!custom.length) return { ...item, children: withoutRetired };
 
-    const insertAt = children.findIndex(
+    const insertAt = withoutRetired.findIndex(
       (child) => child.href === '/people/career' || child.href === '/join',
     );
     const links: NavigationItem[] = custom.map((section, index) => ({
@@ -110,11 +117,11 @@ function ensurePeopleNav(
     }));
     const next =
       insertAt === -1
-        ? [...children, ...links]
+        ? [...withoutRetired, ...links]
         : [
-            ...children.slice(0, insertAt),
+            ...withoutRetired.slice(0, insertAt),
             ...links,
-            ...children.slice(insertAt),
+            ...withoutRetired.slice(insertAt),
           ];
     return { ...item, children: next };
   });
@@ -383,6 +390,10 @@ export async function getInvolvementsForPerson(personId: string) {
     await getContentDatabase(),
     personId,
   );
+}
+
+export async function getPersonResearchPage(personId: string, offset = 0) {
+  return pagePersonResearch(await getContentDatabase(), personId, offset);
 }
 
 export async function getRoleHistoryForPerson(personId: string) {

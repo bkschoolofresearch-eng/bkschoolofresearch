@@ -413,7 +413,7 @@ export function DashboardPage() {
               { href: '/admin/research', label: 'Research', icon: FlaskConical },
               { href: '/admin/news/new', label: 'New article', icon: Newspaper },
               { href: '/admin/events/new', label: 'New event', icon: Calendar },
-              { href: '/admin/people/new', label: 'Add a person', icon: Users },
+              { href: '/admin/people?add=1', label: 'Add a person', icon: Users },
               { href: '/admin/notices/new', label: 'New notice', icon: Megaphone },
               {
                 href: '/admin/join-applications',

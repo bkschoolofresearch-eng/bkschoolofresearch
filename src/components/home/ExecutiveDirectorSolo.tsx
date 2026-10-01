@@ -1,5 +1,5 @@
-import Image from 'next/image';
 import Link from 'next/link';
+import { PersonPortrait } from '@/components/home/PersonPortrait';
 import { ArrowLink } from '@/components/ui/ArrowLink';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Button } from '@/components/ui/Button';
@@ -11,7 +11,7 @@ type ExecutiveDirectorSoloProps = {
   name: string;
   role: string;
   message: string;
-  photoSrc: string;
+  photoSrc?: string | null;
   profileHref: string;
   title?: string;
   description?: string;
@@ -82,13 +82,12 @@ export function ExecutiveDirectorSolo({
               {/* Portrait + CTA — stays put while the message scrolls */}
               <div className="flex flex-col gap-3 md:sticky md:top-28 md:self-start">
                 <div className="relative mx-auto aspect-4/5 w-full max-w-70 overflow-hidden rounded-[1.25rem] bg-surface sm:max-w-none sm:rounded-[1.5rem] md:rounded-[1.75rem]">
-                  <Image
+                  <PersonPortrait
                     src={photoSrc}
                     alt={`Portrait of ${name}`}
-                    fill
                     priority
                     sizes="(max-width: 768px) 17.5rem, 18rem"
-                    className="object-cover object-[center_18%]"
+                    className="object-[center_18%]"
                   />
                 </div>
                 <Button

@@ -1,4 +1,5 @@
 import type { SiteSettings } from '@/types/content';
+import { RESEARCHER_SECTIONS } from '@/lib/content/team-sections';
 
 export const siteSettings: SiteSettings = {
   id: 'site-settings',
@@ -53,5 +54,6 @@ export const siteSettings: SiteSettings = {
     canonicalPath: '/',
     ogImage: '/brand/bksr-logo.png',
   },
+  teamSections: RESEARCHER_SECTIONS.map((section) => ({ ...section })),
   updatedAt: '2026-08-30T00:00:00.000Z',
 };

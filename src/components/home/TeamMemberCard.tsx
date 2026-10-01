@@ -1,16 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { PersonPortrait } from '@/components/home/PersonPortrait';
 import { cn } from '@/lib/utils';
 
 type TeamMemberCardProps = {
   href: string;
   name: string;
   role: string;
-  imageSrc: string;
+  imageSrc?: string | null;
   imageAlt?: string;
   /** Flip-face bio — long-form professional paragraph (Figma 168:94). */
   description: string;
@@ -63,12 +63,10 @@ export function TeamMemberCard({
             aria-label={`Show details for ${name}`}
           >
             <div className="relative min-h-0 flex-1 overflow-hidden rounded-[1.1rem] bg-surface sm:rounded-[2rem]">
-              <Image
+              <PersonPortrait
                 src={imageSrc}
                 alt={imageAlt ?? `Portrait of ${name}`}
-                fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-                className="object-cover object-top"
               />
             </div>
             <div className="relative shrink-0 overflow-hidden rounded-[1.1rem] bg-white px-2.5 pb-2.5 pt-2.5 sm:rounded-[2rem] sm:px-6 sm:pb-6 sm:pt-6">

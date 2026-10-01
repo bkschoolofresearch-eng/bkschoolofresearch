@@ -18,7 +18,7 @@ const TABS = [
     id: 'sections',
     label: 'Sections',
     description:
-      'Groups on the team page, such as Research Team. Add a section when a few people need their own group.',
+      'The four researcher sections: Distinguished Research Fellow, Senior Research Associate, Research Associate, and Research Assistant.',
   },
   {
     id: 'years',

@@ -3,7 +3,6 @@
 import { TeamMemberCard } from '@/components/home/TeamMemberCard';
 import { PeopleSectionNav } from '@/components/home/PeopleSectionNav';
 import { Reveal } from '@/components/motion/Reveal';
-import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { EditorialHeading } from '@/components/ui/EditorialHeading';
 import { Section } from '@/components/ui/Section';
 import { Container } from '@/components/ui/Container';
@@ -14,7 +13,7 @@ export type PeopleDirectoryMember = {
   href: string;
   name: string;
   role: string;
-  imageSrc: string;
+  imageSrc: string | null;
   description: string;
   category: PersonCategory;
 };
@@ -30,7 +29,7 @@ export type PeopleDirectoryDirector = {
   href: string;
   name: string;
   role: string;
-  imageSrc: string;
+  imageSrc: string | null;
   description: string;
 };
 
@@ -54,15 +53,42 @@ function TeamSection({
   description: string;
   members: PeopleDirectoryMember[];
 }) {
-  if (!members.length) return null;
+  if (!members.length) {
+    return (
+      <section
+        id={id}
+        className="scroll-mt-28 border-t border-border pt-14 sm:scroll-mt-32 sm:pt-16"
+      >
+        <Reveal className="mx-auto w-full text-center">
+          <EditorialHeading
+            as="h2"
+            className="!text-[clamp(1.15rem,4.6vw,2.25rem)] !leading-tight whitespace-nowrap"
+          >
+            {title}
+          </EditorialHeading>
+          {description ? (
+            <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
+              {description}
+            </p>
+          ) : null}
+          <p className="mt-2 font-sans text-xs tracking-wide text-muted/80">
+            No profiles in this section yet.
+          </p>
+        </Reveal>
+      </section>
+    );
+  }
 
   return (
     <section
       id={id}
       className="scroll-mt-28 border-t border-border pt-14 sm:scroll-mt-32 sm:pt-16"
     >
-      <Reveal className="mx-auto max-w-2xl text-center">
-        <EditorialHeading as="h2" className="text-3xl sm:text-4xl">
+      <Reveal className="mx-auto w-full text-center">
+        <EditorialHeading
+          as="h2"
+          className="!text-[clamp(1.15rem,4.6vw,2.25rem)] !leading-tight whitespace-nowrap"
+        >
           {title}
         </EditorialHeading>
         <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
@@ -99,21 +125,13 @@ export function PeopleDirectory({
 }: PeopleDirectoryProps) {
   return (
     <>
-      <Section tone="white" spaced={false} className="pt-28 pb-6 md:pt-32 md:pb-8">
+      <Section tone="white" spaced={false} className="pt-20 pb-4 sm:pt-24 sm:pb-5">
         <Container>
-          <div className="flex justify-center">
-            <Breadcrumb
-              items={[
-                { label: 'Home', href: '/' },
-                { label: 'People' },
-              ]}
-            />
-          </div>
           <header className="mx-auto max-w-3xl text-center">
             <EditorialHeading as="h1" size="xl" className="text-balance">
               Meet our team
             </EditorialHeading>
-            <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg md:text-xl">
+            <p className="mt-2 text-base leading-relaxed text-muted sm:text-lg">
               Researchers, fellows, and programme contributors behind BKSR’s
               work.
             </p>

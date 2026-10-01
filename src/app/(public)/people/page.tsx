@@ -1,9 +1,10 @@
 import { PeopleDirectory } from '@/components/home/PeopleDirectory';
 import { PEOPLE_DEMO_SECTION_COPY } from '@/content/seed/people-demo';
-import { prototypeMedia } from '@/lib/content/prototype-media';
+import { uploadedPersonPhoto } from '@/lib/content/person-photo';
 import {
   allSections,
   assignmentForPerson,
+  RESEARCHER_SECTIONS,
   sectionAnchorId,
 } from '@/lib/content/team-sections';
 import { getPeople, getSiteSettings } from '@/lib/content/queries';
@@ -25,9 +26,7 @@ function blurb(person: Person) {
 }
 
 function photo(person: Person) {
-  return person.photoUrl && !person.photoUrl.includes('/prototype/')
-    ? person.photoUrl
-    : (person.photoUrl ?? prototypeMedia.directorPortrait.url);
+  return uploadedPersonPhoto(person.photoUrl);
 }
 
 export default async function PeoplePage() {
@@ -70,7 +69,11 @@ export default async function PeoplePage() {
         members: roster.filter((member) => member.sectionKey === section.key),
       };
     })
-    .filter((group) => group.members.length > 0);
+    .filter(
+      (group) =>
+        group.members.length > 0 ||
+        RESEARCHER_SECTIONS.some((section) => section.slug === group.id),
+    );
 
   const jumpLinks = [
     ...(director

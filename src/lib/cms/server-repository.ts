@@ -21,12 +21,43 @@ export function getCmsDriver(): CmsDriver {
 }
 
 export async function serverGetFullDatabase(): Promise<ContentDatabase> {
-  if (getCmsDriver() === 'mongo') {
-    const { mongoGetFullDatabase } = await import('@/lib/cms/mongo-repository');
-    return mongoGetFullDatabase();
+  const database =
+    getCmsDriver() === 'mongo'
+      ? await (
+          await import('@/lib/cms/mongo-repository')
+        ).mongoGetFullDatabase()
+      : await (await import('@/lib/cms/fs-repository')).fsGetFullDatabase();
+  return ensureResearcherSectionsStored(database);
+}
+
+async function ensureResearcherSectionsStored(
+  database: ContentDatabase,
+): Promise<ContentDatabase> {
+  const { legacyResearcherSlug } = await import('@/lib/content/team-sections');
+  const storedSlugs = new Set(
+    (database.siteSettings.teamSections ?? []).map((section) => section.slug),
+  );
+  const people = database.people.map((person) => {
+    const slug = legacyResearcherSlug(person);
+    if (!slug || !storedSlugs.has(slug)) return person;
+    return { ...person, sectionSlug: slug, category: 'other' as const };
+  });
+  const changed = people.some(
+    (person, index) => person.sectionSlug !== database.people[index]?.sectionSlug,
+  );
+  if (!changed) return database;
+
+  for (let index = 0; index < people.length; index += 1) {
+    const next = people[index];
+    const prev = database.people[index];
+    if (!next || !prev || next.sectionSlug === prev.sectionSlug) continue;
+    await serverUpdate('people', prev.id, {
+      sectionSlug: next.sectionSlug,
+      category: 'other',
+    });
   }
-  const { fsGetFullDatabase } = await import('@/lib/cms/fs-repository');
-  return fsGetFullDatabase();
+
+  return { ...database, people };
 }
 
 export async function serverGetAll<K extends ContentCollectionKey>(
@@ -251,7 +282,9 @@ export async function serverUpdate<K extends ContentCollectionKey>(
           await import('@/lib/cms/fs-repository')
         ).fsUpdate(collection, id, prepared as typeof patch);
   if (existing && updated) {
-    await afterRecordImagesChanged(collection, existing, updated);
+    await afterRecordImagesChanged(collection, existing, updated).catch((error) => {
+      console.error('Could not refresh stored images', error);
+    });
   }
   return updated;
 }
@@ -271,7 +304,9 @@ export async function serverRemove<K extends ContentCollectionKey>(
         ).fsRemove(collection, id);
   if (removed && existing) {
     const { afterRecordRemoved } = await import('@/lib/media/image-store');
-    await afterRecordRemoved(collection, existing);
+    await afterRecordRemoved(collection, existing).catch((error) => {
+      console.error('Could not remove the stored image', error);
+    });
     if (collection === 'people') {
       const { detachPersonAuth } = await import('@/lib/auth/server-store');
       await detachPersonAuth([id]).catch((error) => {

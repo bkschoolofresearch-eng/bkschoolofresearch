@@ -2,15 +2,15 @@ import { notFound } from 'next/navigation';
 import { PersonProfileClaimBridge } from '@/components/editorial/PersonProfileClaimBridge';
 import { ExecutiveDirectorSolo } from '@/components/home/ExecutiveDirectorSolo';
 import { PeopleCategoryHub } from '@/components/home/PeopleCategoryHub';
-import { prototypeMedia } from '@/lib/content/prototype-media';
+import { uploadedPersonPhoto } from '@/lib/content/person-photo';
 import { RESERVED_PEOPLE_CATEGORY_SLUGS } from '@/lib/content/people-slugs';
 import {
   getHomepageConfig,
   getPeople,
   getSiteSettings,
   getPersonBySlug,
-  getPublications,
   getInvolvementsForPerson,
+  getPersonResearchPage,
   getRoleHistoryForPerson,
   getAchievementsProfileForPerson,
 } from '@/lib/content/queries';
@@ -22,30 +22,6 @@ import { PERSON_CATEGORY_META } from '@/lib/public/labels';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 
 type Props = { params: Promise<{ slug: string }> };
-
-function researchItemsFromInterests(interests?: string[]) {
-  return (interests ?? []).map((title) => ({
-    title,
-    summary: `Focus area within ${title.toLowerCase()} and related evidence work at BKSR.`,
-  }));
-}
-
-async function publicationsForPerson(name: string) {
-  const needle = name.split(/\s+/).filter(Boolean).at(-1)?.toLowerCase();
-  if (!needle) return [];
-  return (await getPublications())
-    .filter((pub) =>
-      pub.authors.some((author) => author.toLowerCase().includes(needle)),
-    )
-    .slice(0, 5)
-    .map((pub) => ({
-      title: pub.title,
-      summary:
-        pub.abstract?.trim() ||
-        pub.citation.replace(/\s+/g, ' ').trim(),
-      href: `/publications/${pub.slug}`,
-    }));
-}
 
 export async function generateStaticParams() {
   const people = (await getPeople({ includeDrafts: true })).filter(
@@ -96,7 +72,9 @@ export default async function PeopleSlugPage({ params }: Props) {
   );
   if (customSection) {
     const members = (await getPeople()).filter(
-      (person) => person.sectionSlug === customSection.sectionSlug,
+      (person) =>
+        assignmentForPerson(person, settings.teamSections).sectionSlug ===
+        customSection.sectionSlug,
     );
     return (
       <PeopleCategoryHub
@@ -107,10 +85,7 @@ export default async function PeopleSlugPage({ params }: Props) {
           href: `/people/${member.slug}`,
           name: member.name,
           role: member.role,
-          imageSrc:
-            member.photoUrl && !member.photoUrl.includes('/prototype/')
-              ? member.photoUrl
-              : (member.photoUrl ?? prototypeMedia.directorPortrait.url),
+          imageSrc: uploadedPersonPhoto(member.photoUrl),
           description:
             member.shortBio?.trim() ||
             member.bio?.split(/\n\s*\n/)[0]?.replace(/\s+/g, ' ').trim() ||
@@ -132,10 +107,7 @@ export default async function PeopleSlugPage({ params }: Props) {
       href: `/people/${member.slug}`,
       name: member.name,
       role: member.role,
-      imageSrc:
-        member.photoUrl && !member.photoUrl.includes('/prototype/')
-          ? member.photoUrl
-          : (member.photoUrl ?? prototypeMedia.directorPortrait.url),
+      imageSrc: uploadedPersonPhoto(member.photoUrl),
       description:
         member.shortBio?.trim() ||
         member.bio?.split(/\n\s*\n/)[0]?.replace(/\s+/g, ' ').trim() ||
@@ -182,13 +154,14 @@ export default async function PeopleSlugPage({ params }: Props) {
       href: `/people/${item.slug}`,
       name: item.name,
       role: item.role,
-      imageSrc:
-        item.photoUrl ?? '/media/prototype/bksr-portrait-director.jpg',
+      imageSrc: uploadedPersonPhoto(item.photoUrl),
     }));
 
   const section = assignmentForPerson(person, settings.teamSections);
-  const personPubs = await publicationsForPerson(person.name);
-  const involvements = await getInvolvementsForPerson(person.id);
+  const researchPage = await getPersonResearchPage(person.id, 0);
+  const involvements = (await getInvolvementsForPerson(person.id)).filter(
+    (item) => item.entityType !== 'research',
+  );
   const roleHistory = await getRoleHistoryForPerson(person.id);
   const achievements = await getAchievementsProfileForPerson(person.id);
   return (
@@ -203,12 +176,6 @@ export default async function PeopleSlugPage({ params }: Props) {
         bio: person.bio,
         shortBio: person.shortBio,
         skills: person.researchInterests,
-        researchItems:
-          involvements.length > 0
-            ? []
-            : personPubs.length > 0
-              ? personPubs
-              : researchItemsFromInterests(person.researchInterests),
         involvements,
         roleHistory,
         verifiedAchievements: achievements.verified,
@@ -216,6 +183,17 @@ export default async function PeopleSlugPage({ params }: Props) {
         appointmentYear: person.appointmentYear,
         backHref: section.href,
         backLabel: `Back to ${section.label}`,
+      }}
+      researchPage={{
+        personId: person.id,
+        items: researchPage.items.map((item) => ({
+          linkId: item.linkId,
+          role: item.role,
+          title: item.title,
+          href: item.href,
+          summary: item.summary ?? null,
+        })),
+        total: researchPage.total,
       }}
       related={related}
     />
