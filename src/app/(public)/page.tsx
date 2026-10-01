@@ -47,6 +47,8 @@ import { resolveLiveHomepage } from '@/lib/content/homepage-live';
 import { siteSettings } from '@/content/seed/site-settings';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = buildPageMetadata(
   siteSettings.defaultSeo.title,
   siteSettings.defaultSeo.description,
