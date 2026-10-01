@@ -31,7 +31,7 @@ type Related = {
   href: string;
   name: string;
   role: string;
-  imageSrc: string;
+  imageSrc: string | null;
 };
 
 type PersonProfileClaimBridgeProps = {
