@@ -89,7 +89,7 @@ export function PersonEditorPage({ id }: { id: string }) {
 
   const appointments = useMemo(() => {
     if (!database) return [];
-    return database.roleAssignments
+    return (database.roleAssignments ?? [])
       .filter((row) => row.personId === id)
       .sort((a, b) => b.year.localeCompare(a.year) || (a.order ?? 0) - (b.order ?? 0));
   }, [database, id]);
@@ -229,6 +229,7 @@ export function PersonEditorPage({ id }: { id: string }) {
                   {
                     category: draft.category,
                     sectionSlug: draft.sectionSlug || null,
+                    role: draft.role,
                   },
                   database.siteSettings.teamSections,
                 ).key === section.key;
@@ -552,9 +553,15 @@ export function PersonEditorPage({ id }: { id: string }) {
         onConfirm={() => {
           setRemoveOpen(false);
           void (async () => {
-            await deleteItem('people', id);
-            router.push('/admin/people');
-            await refresh();
+            try {
+              await deleteItem('people', id);
+              router.push('/admin/people');
+              await refresh();
+            } catch (error) {
+              setMessage(
+                error instanceof Error ? error.message : 'Could not remove this person.',
+              );
+            }
           })();
         }}
       />

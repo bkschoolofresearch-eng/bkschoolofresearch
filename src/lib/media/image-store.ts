@@ -299,12 +299,24 @@ async function ensureCloudinaryImage(url: string): Promise<string> {
   if (!trimmed || isCloudinaryUrl(trimmed)) return trimmed;
   const origin = normalizeOrigin(trimmed);
   const pending = originInflight.get(origin);
-  if (pending) return pending;
+  if (pending) {
+    try {
+      return await pending;
+    } catch (error) {
+      console.error('Image upload failed; keeping the current photo', error);
+      return trimmed;
+    }
+  }
   const job = ingestOrigin(trimmed, origin).finally(() => {
     originInflight.delete(origin);
   });
   originInflight.set(origin, job);
-  return job;
+  try {
+    return await job;
+  } catch (error) {
+    console.error('Image upload failed; keeping the current photo', error);
+    return trimmed;
+  }
 }
 
 function sniffImage(body: Buffer): string {

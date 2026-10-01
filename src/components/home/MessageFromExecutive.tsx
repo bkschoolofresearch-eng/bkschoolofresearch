@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
-import Image from 'next/image';
 import { X } from 'lucide-react';
+import { PersonPortrait } from '@/components/home/PersonPortrait';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
@@ -10,7 +10,7 @@ type MessageFromExecutiveProps = {
   name: string;
   role: string;
   message: string;
-  photoSrc: string;
+  photoSrc?: string | null;
   profileHref: string;
   className?: string;
 };
@@ -82,12 +82,11 @@ export function MessageFromExecutive({
           Desktop: photo stretches to the text column height — frame hugs content.
         */}
         <div className="relative mx-auto aspect-[4/5] w-full max-w-[17.5rem] shrink-0 overflow-hidden rounded-[1.25rem] bg-surface sm:max-w-[19rem] sm:rounded-[2.125rem] md:mx-0 md:aspect-auto md:max-w-none md:w-[min(34%,16rem)] md:self-stretch md:rounded-[2.5rem] lg:w-[min(30%,18rem)] xl:w-[min(28%,20rem)]">
-          <Image
+          <PersonPortrait
             src={photoSrc}
             alt={`Portrait of ${name}`}
-            fill
             sizes="(max-width: 768px) 19rem, (max-width: 1024px) 34vw, 20rem"
-            className="object-cover object-[center_18%]"
+            className="object-[center_18%]"
           />
         </div>
 
@@ -154,12 +153,12 @@ export function MessageFromExecutive({
           >
             <div className="flex items-start gap-4 border-b border-border px-5 py-4 sm:px-7 sm:py-5">
               <div className="relative hidden size-16 shrink-0 overflow-hidden rounded-2xl bg-surface sm:block">
-                <Image
+                <PersonPortrait
                   src={photoSrc}
                   alt=""
-                  fill
                   sizes="64px"
-                  className="object-cover object-[center_18%]"
+                  className="object-[center_18%]"
+                  iconClassName="size-8"
                 />
               </div>
               <div className="min-w-0 flex-1">

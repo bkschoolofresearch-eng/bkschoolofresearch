@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
 import { useCms } from '@/components/admin/CmsProvider';
 import { AdminLoading } from '@/components/admin/AdminLoading';
 import {
@@ -31,6 +31,8 @@ const TYPES: PersonLinkEntityType[] = [
   'activity',
 ];
 
+const PAGE_SIZE = 10;
+
 const fieldClass =
   'w-full rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0B1F36] outline-none focus:border-[#0B1F36] focus:bg-white';
 
@@ -41,6 +43,7 @@ export function InvolvementsAdminPage({ embedded = false }: { embedded?: boolean
   const [entityId, setEntityId] = useState('');
   const [role, setRole] = useState('speaker');
   const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -73,6 +76,17 @@ export function InvolvementsAdminPage({ embedded = false }: { embedded?: boolean
           .includes(needle);
       });
   }, [database, people, query]);
+
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageRows = rows.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const rangeStart = total === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(safePage * PAGE_SIZE, total);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
 
   if (!ready) return <AdminLoading label="Loading links" />;
   if (!apiAuthenticated || !database) {
@@ -111,6 +125,7 @@ export function InvolvementsAdminPage({ embedded = false }: { embedded?: boolean
             }
             await refresh();
             setEntityId('');
+            setPage(1);
           })();
         }}
       >
@@ -190,7 +205,10 @@ export function InvolvementsAdminPage({ embedded = false }: { embedded?: boolean
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7A90A8]" />
         <input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setPage(1);
+          }}
           placeholder="Search person or title"
           className="w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-[#0B1F36]"
         />
@@ -208,14 +226,14 @@ export function InvolvementsAdminPage({ embedded = false }: { embedded?: boolean
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
+            {pageRows.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-[#5B6B7C]">
                   No links for this search.
                 </td>
               </tr>
             ) : (
-              rows.map((row) => (
+              pageRows.map((row) => (
                 <tr key={row.id} className="border-b border-[#EEF2F6] last:border-0">
                   <td className="px-4 py-3">
                     {row.adminHref ? (
@@ -254,6 +272,41 @@ export function InvolvementsAdminPage({ embedded = false }: { embedded?: boolean
           </tbody>
         </table>
       </div>
+
+      {total > 0 ? (
+        <div className="flex flex-col gap-3 rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-[#5B6B7C]">
+            Showing{' '}
+            <span className="font-semibold text-[#0B1F36]">
+              {rangeStart}–{rangeEnd}
+            </span>{' '}
+            of <span className="font-semibold text-[#0B1F36]">{total}</span>
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={safePage <= 1}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              className="inline-flex items-center gap-1 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-xs font-semibold text-[#0B1F36] hover:bg-white disabled:opacity-40"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Prev
+            </button>
+            <span className="min-w-[5.5rem] text-center text-xs font-semibold text-[#5B6B7C]">
+              Page {safePage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={safePage >= totalPages}
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              className="inline-flex items-center gap-1 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-xs font-semibold text-[#0B1F36] hover:bg-white disabled:opacity-40"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <ConfirmDialog
         open={Boolean(deleteId)}

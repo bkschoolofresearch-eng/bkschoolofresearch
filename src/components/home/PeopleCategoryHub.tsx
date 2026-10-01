@@ -16,7 +16,7 @@ export type PeopleHubMember = {
   href: string;
   name: string;
   role: string;
-  imageSrc: string;
+  imageSrc: string | null;
   description: string;
 };
 

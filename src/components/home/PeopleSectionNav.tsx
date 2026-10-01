@@ -53,9 +53,12 @@ export function PeopleSectionNav({ links, className }: PeopleSectionNavProps) {
   return (
     <nav
       aria-label="Team sections"
-      className={cn('mt-8 flex justify-center sm:mt-9', className)}
+      className={cn(
+        'mt-5 w-full overflow-x-auto sm:mt-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+        className,
+      )}
     >
-      <ul className="flex max-w-4xl flex-wrap items-center justify-center gap-2.5 sm:gap-3">
+      <ul className="mx-auto flex w-max max-w-none flex-nowrap items-center justify-center gap-1.5 sm:gap-2">
         {links.map((link) => {
           const active = activeHref === link.href;
           return (
@@ -65,7 +68,7 @@ export function PeopleSectionNav({ links, className }: PeopleSectionNavProps) {
                 aria-current={active ? 'true' : undefined}
                 onClick={() => setActiveHref(link.href)}
                 className={cn(
-                  'inline-flex items-center justify-center rounded-[1.25rem] border px-4 py-2.5 font-sans text-sm transition-[background-color,border-color,color,box-shadow] duration-200 sm:rounded-3xl sm:px-5 sm:py-3',
+                  'inline-flex items-center justify-center whitespace-nowrap rounded-full border px-2.5 py-1 font-sans text-[0.7rem] leading-none transition-[background-color,border-color,color,box-shadow] duration-200 sm:px-3 sm:py-1.5 sm:text-xs',
                   active
                     ? 'border-ink bg-ink text-paper shadow-[0_10px_28px_-18px_rgba(13,39,69,0.55)]'
                     : 'border-ink/15 bg-white text-ink/75 hover:border-ink/35 hover:text-ink',

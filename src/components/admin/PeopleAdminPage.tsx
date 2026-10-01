@@ -2,7 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import { Mail, Pencil, Plus, Search, UserPlus } from 'lucide-react';
 import { ConfirmDialog } from './ConfirmDialog';
 import { getPersonClaimStatus } from '@/lib/auth/permissions';
@@ -23,6 +24,8 @@ import { StatusBadge } from './StatusBadge';
 import { useCms } from './CmsProvider';
 
 export function PeopleAdminPage({ embedded = false }: { embedded?: boolean }) {
+  const router = useRouter();
+  const params = useSearchParams();
   const { database, ready, apiAuthenticated, refresh, deleteItem } = useCms();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string>('');
@@ -31,6 +34,16 @@ export function PeopleAdminPage({ embedded = false }: { embedded?: boolean }) {
   const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [removePerson, setRemovePerson] = useState<Person | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (params.get('add') === '1') setInviteOpen(true);
+  }, [params]);
+
+  const closeInvite = () => {
+    setInviteOpen(false);
+    if (params.get('add') === '1') router.replace('/admin/people');
+  };
 
   const sections = allSections(database?.siteSettings.teamSections);
 
@@ -54,7 +67,7 @@ export function PeopleAdminPage({ embedded = false }: { embedded?: boolean }) {
 
   const grouped = useMemo(() => {
     if (!database) return [];
-    return sections
+    const rows = sections
       .map((section) => ({
         key: section.key,
         label: section.label,
@@ -65,6 +78,12 @@ export function PeopleAdminPage({ embedded = false }: { embedded?: boolean }) {
         ),
       }))
       .filter((group) => group.items.length > 0);
+    const placed = new Set(rows.flatMap((group) => group.items.map((person) => person.id)));
+    const loose = people.filter((person) => !placed.has(person.id));
+    if (loose.length) {
+      rows.push({ key: 'unassigned', label: 'Not in a section', items: loose });
+    }
+    return rows;
   }, [database, people, sections]);
 
   const sendInvite = async (person: Person) => {
@@ -137,6 +156,11 @@ export function PeopleAdminPage({ embedded = false }: { embedded?: boolean }) {
         />
       )}
 
+      {removeError ? (
+        <AdminPanel className="border-[#F0D4D4] bg-[#FFF8F8] p-4 text-sm text-[#8A3B3B]">
+          {removeError}
+        </AdminPanel>
+      ) : null}
       {inviteMessage ? (
         <AdminPanel className="space-y-2 border-[#C5D4E8] bg-[#F4F8FC] p-4 text-sm text-[#0B1F36]">
           <p className="font-semibold">{inviteMessage}</p>
@@ -255,8 +279,14 @@ export function PeopleAdminPage({ embedded = false }: { embedded?: boolean }) {
           setRemovePerson(null);
           if (!person) return;
           void (async () => {
-            await deleteItem('people', person.id);
-            await refresh();
+            try {
+              await deleteItem('people', person.id);
+              await refresh();
+            } catch (error) {
+              setRemoveError(
+                error instanceof Error ? error.message : 'Could not remove this person.',
+              );
+            }
           })();
         }}
       />
@@ -264,9 +294,9 @@ export function PeopleAdminPage({ embedded = false }: { embedded?: boolean }) {
       {inviteOpen ? (
         <InvitePersonModal
           sections={sections}
-          onClose={() => setInviteOpen(false)}
+          onClose={closeInvite}
           onInvited={async (result) => {
-            setInviteOpen(false);
+            closeInvite();
             setInviteMessage(
               result.inviteUrl
                 ? result.emailSent
@@ -439,9 +469,59 @@ function InvitePersonModal({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
-  const [sectionKey, setSectionKey] = useState('builtin:research-team');
+  const [sectionKey, setSectionKey] = useState('custom:research-associate');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const submit = async (sendInvite: boolean) => {
+    if (!name.trim() || !role.trim()) {
+      setError('Name and position are required.');
+      return;
+    }
+    if (sendInvite && !email.trim().includes('@')) {
+      setError('Add an email to send the invite, or add them without sending.');
+      return;
+    }
+    const chosen =
+      sections.find((item) => item.key === sectionKey) ??
+      sectionByKey(sectionKey, undefined);
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/auth/invite', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          role,
+          category: chosen.category,
+          sectionSlug: chosen.sectionSlug,
+          sendInvite,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        person?: Person;
+        inviteUrl?: string | null;
+        emailSent?: boolean;
+      };
+      if (!res.ok || !data.person) {
+        setError(data.error || 'Could not add this person.');
+        return;
+      }
+      await onInvited({
+        person: data.person,
+        inviteUrl: data.inviteUrl ?? null,
+        emailSent: Boolean(data.emailSent),
+      });
+    } catch {
+      setError('Could not add this person.');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#0B1F36]/45 p-4 sm:items-center">
@@ -457,56 +537,7 @@ function InvitePersonModal({
 
         <form
           className="mt-4 space-y-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const submitter = (e.nativeEvent as SubmitEvent).submitter;
-            const sendInvite =
-              submitter instanceof HTMLButtonElement && submitter.value === 'invite';
-            const section = sectionByKey(sectionKey, undefined);
-            const chosen = sections.find((item) => item.key === sectionKey) ?? section;
-            if (sendInvite && !email.trim().includes('@')) {
-              setError('Add an email to send the invite, or add them without sending.');
-              return;
-            }
-            setBusy(true);
-            setError(null);
-            void (async () => {
-              try {
-                const res = await fetch('/api/auth/invite', {
-                  method: 'POST',
-                  credentials: 'include',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    name,
-                    email,
-                    role,
-                    category: chosen.category,
-                    sectionSlug: chosen.sectionSlug,
-                    sendInvite,
-                  }),
-                });
-                const data = (await res.json()) as {
-                  error?: string;
-                  person?: Person;
-                  inviteUrl?: string | null;
-                  emailSent?: boolean;
-                };
-                if (!res.ok || !data.person) {
-                  setError(data.error || 'Could not add this person.');
-                  return;
-                }
-                await onInvited({
-                  person: data.person,
-                  inviteUrl: data.inviteUrl ?? null,
-                  emailSent: Boolean(data.emailSent),
-                });
-              } catch {
-                setError('Could not add this person.');
-              } finally {
-                setBusy(false);
-              }
-            })();
-          }}
+          onSubmit={(event) => event.preventDefault()}
         >
           <label className="block text-sm">
             <span className="font-medium text-[#0B1F36]">Full name</span>
@@ -562,10 +593,18 @@ function InvitePersonModal({
             <AdminSecondaryButton type="button" onClick={onClose}>
               Cancel
             </AdminSecondaryButton>
-            <AdminSecondaryButton type="submit" value="add" disabled={busy}>
+            <AdminSecondaryButton
+              type="button"
+              disabled={busy}
+              onClick={() => void submit(false)}
+            >
               {busy ? 'Adding…' : 'Add without sending'}
             </AdminSecondaryButton>
-            <AdminPrimaryButton type="submit" value="invite" disabled={busy}>
+            <AdminPrimaryButton
+              type="button"
+              disabled={busy}
+              onClick={() => void submit(true)}
+            >
               {busy ? 'Adding…' : 'Add and send invite'}
             </AdminPrimaryButton>
           </div>

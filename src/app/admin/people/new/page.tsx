@@ -7,11 +7,11 @@ import { useRouter } from 'next/navigation';
 export default function Page() {
   const router = useRouter();
   useEffect(() => {
-    router.replace('/admin/people');
+    router.replace('/admin/people?add=1');
   }, [router]);
   return (
     <p className="text-sm text-[#5B6B7C]">
-      Opening team directory — use Invite person to add members…
+      Opening the add-person form…
     </p>
   );
 }

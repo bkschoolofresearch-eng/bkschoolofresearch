@@ -155,6 +155,67 @@ export function resolveEntityMeta(
   };
 }
 
+export const PERSON_RESEARCH_PAGE_SIZE = 5;
+
+export type PersonResearchPage = {
+  items: ResolvedPersonInvolvement[];
+  total: number;
+  offset: number;
+  limit: number;
+};
+
+/** Published research linked to this person in the CMS, one page at a time. */
+export function pagePersonResearch(
+  db: ContentDatabase,
+  personId: string,
+  offset = 0,
+): PersonResearchPage {
+  const safeLimit = PERSON_RESEARCH_PAGE_SIZE;
+  const start = Number.isFinite(offset) && offset > 0 ? Math.floor(offset) : 0;
+  const person = db.people.find((row) => row.id === personId);
+  if (!person || person.status !== 'published') {
+    return { items: [], total: 0, offset: 0, limit: safeLimit };
+  }
+
+  const published = new Set(
+    db.researchProjects
+      .filter((project) => project.status === 'published')
+      .map((project) => project.id),
+  );
+  const resolved = db.personContentLinks
+    .filter(
+      (link) =>
+        link.personId === personId &&
+        link.entityType === 'research' &&
+        published.has(link.entityId),
+    )
+    .sort(
+      (a, b) =>
+        (a.order ?? 999) - (b.order ?? 999) || a.id.localeCompare(b.id),
+    )
+    .flatMap((link) => {
+      const meta = resolveEntityMeta(db, 'research', link.entityId);
+      if (!meta || meta.title === 'Untitled') return [];
+      const item: ResolvedPersonInvolvement = {
+        linkId: link.id,
+        entityType: 'research',
+        entityId: link.entityId,
+        role: link.role,
+        title: meta.title,
+        href: meta.href,
+        summary: meta.summary,
+      };
+      return [item];
+    });
+
+  return {
+    items: resolved.slice(start, start + safeLimit),
+    total: resolved.length,
+    offset: start,
+    limit: safeLimit,
+  };
+}
+
 export function getResolvedInvolvementsForPerson(
   db: ContentDatabase,
   personId: string,

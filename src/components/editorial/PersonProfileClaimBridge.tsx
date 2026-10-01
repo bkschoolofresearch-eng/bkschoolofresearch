@@ -8,6 +8,7 @@ import {
   type PersonRoleHistoryItem,
   type PersonVerifiedAchievementItem,
 } from '@/components/editorial/PersonProfile';
+import type { PersonResearchCard } from '@/components/editorial/PersonResearchList';
 import { useAuthOptional } from '@/components/auth/AuthProvider';
 import { Button } from '@/components/ui/Button';
 import {
@@ -23,7 +24,6 @@ import {
   getRoleAssignmentsForPerson,
   getVerifiedAchievementsForPerson,
 } from '@/lib/content/people-ops';
-import { getResolvedInvolvementsForPerson } from '@/lib/content/person-links';
 import { slugify } from '@/lib/utils';
 import type { Person } from '@/types/content';
 
@@ -37,6 +37,11 @@ type Related = {
 type PersonProfileClaimBridgeProps = {
   personId: string;
   initialPerson: PersonProfileData;
+  researchPage?: {
+    personId: string;
+    items: PersonResearchCard[];
+    total: number;
+  };
   related?: Related[];
 };
 
@@ -76,6 +81,7 @@ function mapMember(personId: string): PersonMemberAchievementItem[] {
 export function PersonProfileClaimBridge({
   personId,
   initialPerson,
+  researchPage,
   related,
 }: PersonProfileClaimBridgeProps) {
   const auth = useAuthOptional();
@@ -85,9 +91,7 @@ export function PersonProfileClaimBridge({
     auth.session.personId === personId;
 
   const [cmsPerson, setCmsPerson] = useState<Person | null>(null);
-  const [involvements, setInvolvements] = useState(
-    initialPerson.involvements ?? [],
-  );
+  const involvements = initialPerson.involvements ?? [];
   const [roleHistory, setRoleHistory] = useState(
     initialPerson.roleHistory ?? [],
   );
@@ -116,10 +120,6 @@ export function PersonProfileClaimBridge({
   const [newAchievementDesc, setNewAchievementDesc] = useState('');
 
   const refreshExtras = () => {
-    setInvolvements(getResolvedInvolvementsForPerson(
-      contentRepository.getDatabase(),
-      personId,
-    ));
     setRoleHistory(mapRoleHistory(personId));
     setVerifiedAchievements(mapVerified(personId));
     setMemberAchievements(mapMember(personId));
@@ -420,7 +420,11 @@ export function PersonProfileClaimBridge({
         </div>
       ) : null}
 
-      <PersonProfile person={displayPerson} related={related} />
+      <PersonProfile
+        person={displayPerson}
+        researchPage={researchPage}
+        related={related}
+      />
     </div>
   );
 }

@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
-import { nextTeamSectionSlug } from '@/lib/content/team-sections';
+import {
+  assignmentForPerson,
+  nextTeamSectionSlug,
+} from '@/lib/content/team-sections';
 import { RESERVED_PEOPLE_CATEGORY_SLUGS } from '@/lib/content/people-slugs';
 import type { TeamSection } from '@/types/content';
 import { AdminLoading } from './AdminLoading';
@@ -18,14 +21,6 @@ import { useCms } from './CmsProvider';
 
 const fieldClass =
   'w-full rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-sm text-[#0B1F36] outline-none focus:border-[#0B1F36] focus:bg-white';
-
-const BUILTIN = [
-  'Executive Director',
-  'Distinguished Fellows',
-  'Research Team',
-  'Administrative Team',
-  'Alumni',
-];
 
 export function TeamSectionsAdminPage({ embedded = false }: { embedded?: boolean }) {
   const { database, ready, apiAuthenticated, saveSiteSettings, updateItem, refresh } =
@@ -55,7 +50,7 @@ export function TeamSectionsAdminPage({ embedded = false }: { embedded?: boolean
         <AdminPageHeader
           eyebrow="Team"
           title="Team sections"
-          description="Built-in sections stay in place. Add a section when a small group needs its own place on the team page — two or three people is enough."
+          description="The four researcher sections are Distinguished Research Fellow, Senior Research Associate, Research Associate, and Research Assistant. Add another section only when a small group needs its own place."
           action={
             <Link href="/admin/people?tab=sections" className="text-sm font-semibold text-[#173B6C] hover:underline">
               Back to team
@@ -63,22 +58,6 @@ export function TeamSectionsAdminPage({ embedded = false }: { embedded?: boolean
           }
         />
       )}
-
-      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#7A90A8]">
-          Always available
-        </p>
-        <ul className="mt-2 flex flex-wrap gap-2">
-          {BUILTIN.map((name) => (
-            <li
-              key={name}
-              className="rounded-full bg-[#F4F7FB] px-3 py-1.5 text-sm text-[#0B1F36]"
-            >
-              {name}
-            </li>
-          ))}
-        </ul>
-      </div>
 
       <form
         className="grid gap-3 rounded-2xl border border-[#E2E8F0] bg-white p-4 lg:grid-cols-[1fr_1.4fr_auto]"
@@ -150,7 +129,9 @@ export function TeamSectionsAdminPage({ embedded = false }: { embedded?: boolean
         <ul className="space-y-2">
           {sections.map((section) => {
             const count = database.people.filter(
-              (person) => person.sectionSlug === section.slug,
+              (person) =>
+                assignmentForPerson(person, database.siteSettings.teamSections)
+                  .sectionSlug === section.slug,
             ).length;
             return (
               <li
