@@ -12,12 +12,9 @@ import type {
 export type CmsDriver = 'fs' | 'mongo';
 
 export function getCmsDriver(): CmsDriver {
-  if (
-    process.env.CMS_DRIVER === 'mongo' &&
-    Boolean(process.env.MONGODB_URI)
-  ) {
-    return 'mongo';
-  }
+  // Production already has MONGODB_URI. The file store on Vercel does not
+  // keep writes, so a missing CMS_DRIVER was serving the seed and dropping deletes.
+  if (process.env.MONGODB_URI?.trim()) return 'mongo';
   return 'fs';
 }
 
