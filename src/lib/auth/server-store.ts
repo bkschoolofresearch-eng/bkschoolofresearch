@@ -103,6 +103,36 @@ export async function readAuthStore(): Promise<AuthServerStore> {
   }
 }
 
+/** Drop the login, invite, and session tied to people who were removed. */
+export async function detachPersonAuth(personIds: string[]): Promise<void> {
+  const ids = new Set(personIds.filter(Boolean));
+  if (!ids.size) return;
+  const store = await readAuthStore();
+  const accountIds = new Set(
+    store.accounts
+      .filter((account) => account.personId && ids.has(account.personId))
+      .map((account) => account.id),
+  );
+  store.accounts = store.accounts.filter(
+    (account) => !account.personId || !ids.has(account.personId),
+  );
+  store.invites = store.invites.filter((invite) => !ids.has(invite.personId));
+  store.registerTokens = store.registerTokens.filter(
+    (token) => !ids.has(token.personId),
+  );
+  store.otps = Object.fromEntries(
+    Object.entries(store.otps).filter(([, otp]) => !ids.has(otp.personId)),
+  );
+  store.sessions = Object.fromEntries(
+    Object.entries(store.sessions).filter(
+      ([, session]) =>
+        !accountIds.has(session.accountId) &&
+        !(session.personId && ids.has(session.personId)),
+    ),
+  );
+  await writeAuthStore(store);
+}
+
 export async function writeAuthStore(store: AuthServerStore): Promise<void> {
   if (process.env.AUTH_DRIVER === 'mongo' && process.env.MONGODB_URI?.trim()) {
     const { mongoWriteAuthStore } = await import('@/lib/auth/mongo-store');

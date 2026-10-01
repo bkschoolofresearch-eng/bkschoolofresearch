@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Mail, Pencil, Plus, Search, UserPlus } from 'lucide-react';
+import { ConfirmDialog } from './ConfirmDialog';
 import { getPersonClaimStatus } from '@/lib/auth/permissions';
 import {
   allSections,
@@ -22,13 +23,14 @@ import { StatusBadge } from './StatusBadge';
 import { useCms } from './CmsProvider';
 
 export function PeopleAdminPage({ embedded = false }: { embedded?: boolean }) {
-  const { database, ready, apiAuthenticated, refresh } = useCms();
+  const { database, ready, apiAuthenticated, refresh, deleteItem } = useCms();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string>('');
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteMessage, setInviteMessage] = useState<string | null>(null);
   const [lastInviteUrl, setLastInviteUrl] = useState<string | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [removePerson, setRemovePerson] = useState<Person | null>(null);
 
   const sections = allSections(database?.siteSettings.teamSections);
 
@@ -220,6 +222,7 @@ export function PeopleAdminPage({ embedded = false }: { embedded?: boolean }) {
                         person={person}
                         sending={sendingId === person.id}
                         onSend={() => void sendInvite(person)}
+                        onRemove={() => setRemovePerson(person)}
                       />
                     ))}
                   </tbody>
@@ -229,13 +232,34 @@ export function PeopleAdminPage({ embedded = false }: { embedded?: boolean }) {
               {/* Mobile compact cards */}
               <ul className="grid gap-2 md:hidden">
                 {group.items.map((person) => (
-                  <PersonMobileCard key={person.id} person={person} />
+                  <PersonMobileCard
+                    key={person.id}
+                    person={person}
+                    onRemove={() => setRemovePerson(person)}
+                  />
                 ))}
               </ul>
             </section>
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(removePerson)}
+        title={removePerson ? `Remove ${removePerson.name}?` : 'Remove this person?'}
+        description="They leave the team page. Their committee years are removed, their login stops, and their photo is deleted if nothing else uses it."
+        confirmLabel="Remove"
+        onCancel={() => setRemovePerson(null)}
+        onConfirm={() => {
+          const person = removePerson;
+          setRemovePerson(null);
+          if (!person) return;
+          void (async () => {
+            await deleteItem('people', person.id);
+            await refresh();
+          })();
+        }}
+      />
 
       {inviteOpen ? (
         <InvitePersonModal
@@ -270,10 +294,12 @@ function PersonTableRow({
   person,
   sending,
   onSend,
+  onRemove,
 }: {
   person: Person;
   sending: boolean;
   onSend: () => void;
+  onRemove: () => void;
 }) {
   return (
     <tr className="border-b border-[#EEF2F6] last:border-0">
@@ -320,18 +346,31 @@ function PersonTableRow({
             <Pencil className="h-3.5 w-3.5" />
             Edit
           </Link>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="rounded-lg px-2 py-1.5 text-xs font-semibold text-[#8A3B3B] hover:bg-[#F8F1F1]"
+          >
+            Remove
+          </button>
         </div>
       </td>
     </tr>
   );
 }
 
-function PersonMobileCard({ person }: { person: Person }) {
+function PersonMobileCard({
+  person,
+  onRemove,
+}: {
+  person: Person;
+  onRemove: () => void;
+}) {
   return (
-    <li>
+    <li className="flex items-center gap-3 rounded-xl border border-[#E2E8F0] bg-white p-3">
       <Link
         href={`/admin/people/${person.id}`}
-        className="flex items-center gap-3 rounded-xl border border-[#E2E8F0] bg-white p-3"
+        className="flex min-w-0 flex-1 items-center gap-3"
       >
         <PersonAvatar person={person} size={44} />
         <div className="min-w-0 flex-1">
@@ -345,6 +384,13 @@ function PersonMobileCard({ person }: { person: Person }) {
         </div>
         <StatusBadge status={person.status} />
       </Link>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="shrink-0 text-xs font-semibold text-[#8A3B3B]"
+      >
+        Remove
+      </button>
     </li>
   );
 }

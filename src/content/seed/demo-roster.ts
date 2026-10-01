@@ -48,35 +48,3 @@ export const demoPeople: Person[] = DEMO_PICKS.map(({ slug, order }) => {
     },
   };
 });
-
-/** Temporary homepage quotes. Same demo names as the roster; replace later. */
-export const demoResearcherQuotes = [
-  {
-    name: 'Sofia Chen',
-    role: 'Research Associate',
-    imageSrc: '/media/prototype/team-demo-sofia-chen.png',
-    quote:
-      'Mentorship here turned a field question into a study I could stand behind.',
-  },
-  {
-    name: 'Daniel Wong',
-    role: 'Research Director',
-    imageSrc: '/media/prototype/team-demo-daniel-wong.png',
-    quote:
-      'The team treats evidence as something the public should be able to use.',
-  },
-  {
-    name: 'Aisha Patel',
-    role: 'Programme Coordinator',
-    imageSrc: '/media/prototype/team-demo-aisha-patel.png',
-    quote:
-      'Training and fieldwork stay connected, so the work leaves the seminar room.',
-  },
-  {
-    name: 'Carlos Ramirez',
-    role: 'Distinguished Fellow',
-    imageSrc: '/media/prototype/team-demo-carlos-ramirez.png',
-    quote:
-      'There is room to ask a careful question, and colleagues who help answer it.',
-  },
-] as const;

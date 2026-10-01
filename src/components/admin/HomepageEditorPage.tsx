@@ -554,9 +554,11 @@ function ResearcherQuotesCard({
   return (
     <Card
       title="What our researchers say"
-      help="These lines appear in that homepage section. Edit the words here."
+      help="These lines appear in that homepage section. Edit the words here, or add them on their own page."
       count={quotes.length}
-      action={<LibraryLink href="/admin/people">Open team</LibraryLink>}
+      action={
+        <LibraryLink href="/admin/researcher-say">Add statements</LibraryLink>
+      }
     >
       {quotes.length ? (
         <ul className="max-h-64 space-y-2 overflow-y-auto pr-1">

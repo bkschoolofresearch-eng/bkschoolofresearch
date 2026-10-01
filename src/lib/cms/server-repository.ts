@@ -272,6 +272,12 @@ export async function serverRemove<K extends ContentCollectionKey>(
   if (removed && existing) {
     const { afterRecordRemoved } = await import('@/lib/media/image-store');
     await afterRecordRemoved(collection, existing);
+    if (collection === 'people') {
+      const { detachPersonAuth } = await import('@/lib/auth/server-store');
+      await detachPersonAuth([id]).catch((error) => {
+        console.error('Could not remove the linked login', error);
+      });
+    }
   }
   return removed;
 }
@@ -296,6 +302,14 @@ export async function serverRemoveMany<K extends ContentCollectionKey>(
     const { afterRecordRemoved } = await import('@/lib/media/image-store');
     for (const item of existing) {
       await afterRecordRemoved(collection, item);
+    }
+    if (collection === 'people') {
+      const { detachPersonAuth } = await import('@/lib/auth/server-store');
+      await detachPersonAuth(
+        existing.map((item) => ('id' in item ? String(item.id) : '')),
+      ).catch((error) => {
+        console.error('Could not remove the linked login', error);
+      });
     }
   }
   return removed;

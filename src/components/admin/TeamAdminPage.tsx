@@ -12,7 +12,7 @@ const TABS = [
     id: 'people',
     label: 'People',
     description:
-      'The roster. Add someone here, then send the invite when they should open their own account.',
+      'The roster. Add someone, send the invite later, or remove a person from the team.',
   },
   {
     id: 'sections',
