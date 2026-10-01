@@ -93,6 +93,8 @@ export function AdminSecondaryButton({
   type = 'button',
   disabled,
   value,
+  title,
+  ariaLabel,
 }: {
   children: ReactNode;
   href?: string;
@@ -100,6 +102,8 @@ export function AdminSecondaryButton({
   type?: 'button' | 'submit';
   disabled?: boolean;
   value?: string;
+  title?: string;
+  ariaLabel?: string;
 }) {
   const className =
     'inline-flex items-center justify-center gap-2 rounded-xl border border-[#D5DEE8] bg-white px-4 py-2.5 text-sm font-semibold text-[#0B1F36] transition hover:bg-[#F4F7FB] disabled:opacity-50';
@@ -111,7 +115,15 @@ export function AdminSecondaryButton({
     );
   }
   return (
-    <button type={type} value={value} onClick={onClick} disabled={disabled} className={className}>
+    <button
+      type={type}
+      value={value}
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      aria-label={ariaLabel}
+      className={className}
+    >
       {children}
     </button>
   );

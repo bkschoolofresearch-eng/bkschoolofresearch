@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus } from 'lucide-react';
+import { ArrowDown, ArrowUp, Plus } from 'lucide-react';
 import {
   assignmentForPerson,
   nextTeamSectionSlug,
@@ -29,6 +29,7 @@ export function TeamSectionsAdminPage({ embedded = false }: { embedded?: boolean
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [deleteSlug, setDeleteSlug] = useState<string | null>(null);
+  const [reordering, setReordering] = useState(false);
 
   if (!ready) return <AdminLoading label="Loading team sections" />;
   if (!apiAuthenticated || !database) {
@@ -42,6 +43,30 @@ export function TeamSectionsAdminPage({ embedded = false }: { embedded?: boolean
   const saveSections = async (next: TeamSection[]) => {
     await saveSiteSettings({ teamSections: next });
     await refresh();
+  };
+
+  const moveSection = async (index: number, offset: -1 | 1) => {
+    const nextIndex = index + offset;
+    if (reordering || nextIndex < 0 || nextIndex >= sections.length) return;
+    const reordered = [...sections];
+    [reordered[index], reordered[nextIndex]] = [
+      reordered[nextIndex],
+      reordered[index],
+    ];
+    setReordering(true);
+    setError(null);
+    try {
+      await saveSections(
+        reordered.map((section, position) => ({
+          ...section,
+          order: position + 1,
+        })),
+      );
+    } catch {
+      setError('Could not save the new section order. Try again.');
+    } finally {
+      setReordering(false);
+    }
   };
 
   return (
@@ -127,7 +152,7 @@ export function TeamSectionsAdminPage({ embedded = false }: { embedded?: boolean
         </p>
       ) : (
         <ul className="space-y-2">
-          {sections.map((section) => {
+          {sections.map((section, index) => {
             const count = database.people.filter(
               (person) =>
                 assignmentForPerson(person, database.siteSettings.teamSections)
@@ -176,7 +201,25 @@ export function TeamSectionsAdminPage({ embedded = false }: { embedded?: boolean
                     }}
                   />
                 </label>
-                <div className="flex items-end justify-end gap-2">
+                <div className="flex items-end justify-end gap-1">
+                  <AdminSecondaryButton
+                    type="button"
+                    disabled={reordering || index === 0}
+                    ariaLabel={`Move ${section.label} up`}
+                    title="Move up"
+                    onClick={() => moveSection(index, -1)}
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </AdminSecondaryButton>
+                  <AdminSecondaryButton
+                    type="button"
+                    disabled={reordering || index === sections.length - 1}
+                    ariaLabel={`Move ${section.label} down`}
+                    title="Move down"
+                    onClick={() => moveSection(index, 1)}
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                  </AdminSecondaryButton>
                   <Link
                     href={`/people/${section.slug}`}
                     className="text-sm font-semibold text-[#173B6C] hover:underline"
