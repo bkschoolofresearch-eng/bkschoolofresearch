@@ -1,5 +1,4 @@
 import type { HomepageConfig } from '@/types/content';
-import { demoResearcherQuotes } from './demo-roster';
 
 export const homepage: HomepageConfig = {
   id: 'homepage',
@@ -40,7 +39,6 @@ As we look ahead, our focus stays the same nurturing young researchers, asking t
     'event-gender-development',
     'event-covid-youth-mental-health',
   ],
-  researcherQuotes: [...demoResearcherQuotes],
   sections: [
     { id: 'home-hero', type: 'hero', enabled: true, order: 1 },
     { id: 'home-stats', type: 'stats', title: 'BKSR in Numbers', enabled: true, order: 2 },

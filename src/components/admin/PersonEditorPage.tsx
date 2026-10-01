@@ -71,7 +71,7 @@ function toDraft(person: Person): Draft {
 
 export function PersonEditorPage({ id }: { id: string }) {
   const router = useRouter();
-  const { database, ready, apiAuthenticated, updateItem, refresh } = useCms();
+  const { database, ready, apiAuthenticated, updateItem, refresh, deleteItem } = useCms();
   const { askSave, saveDialog } = useSaveConfirm();
   const person = database?.people.find((item) => item.id === id);
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -81,6 +81,7 @@ export function PersonEditorPage({ id }: { id: string }) {
   const [year, setYear] = useState('2025-2026');
   const [committeeRole, setCommitteeRole] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [removeOpen, setRemoveOpen] = useState(false);
 
   useEffect(() => {
     if (person && !draft) setDraft(toDraft(person));
@@ -182,6 +183,13 @@ export function PersonEditorPage({ id }: { id: string }) {
               View profile
             </Link>
           ) : null}
+          <button
+            type="button"
+            onClick={() => setRemoveOpen(true)}
+            className="text-sm font-semibold text-[#8A3B3B]"
+          >
+            Remove person
+          </button>
           <AdminPrimaryButton onClick={() => void save()} disabled={saving}>
             {saving ? 'Saving…' : 'Save profile'}
           </AdminPrimaryButton>
@@ -535,6 +543,21 @@ export function PersonEditorPage({ id }: { id: string }) {
       </div>
 
       {saveDialog}
+      <ConfirmDialog
+        open={removeOpen}
+        title={person ? `Remove ${person.name}?` : 'Remove this person?'}
+        description="They leave the team page. Their committee years are removed, their login stops, and their photo is deleted if nothing else uses it."
+        confirmLabel="Remove"
+        onCancel={() => setRemoveOpen(false)}
+        onConfirm={() => {
+          setRemoveOpen(false);
+          void (async () => {
+            await deleteItem('people', id);
+            router.push('/admin/people');
+            await refresh();
+          })();
+        }}
+      />
       <ConfirmDialog
         open={Boolean(deleteId)}
         title="Remove this appointment?"

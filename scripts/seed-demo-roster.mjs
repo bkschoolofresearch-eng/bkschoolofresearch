@@ -1,5 +1,6 @@
 /**
- * Upsert the temporary demo people and homepage researcher quotes into Mongo.
+ * Upsert the temporary demo people into Mongo.
+ * Researcher quotes stay empty until real statements are added.
  * Does not wipe other CMS records.
  *
  *   node --env-file=.env.local scripts/seed-demo-roster.mjs
@@ -21,9 +22,7 @@ registerHooks({
   },
 });
 
-const { demoPeople, demoResearcherQuotes } = await import(
-  '../src/content/seed/demo-roster.ts'
-);
+const { demoPeople } = await import('../src/content/seed/demo-roster.ts');
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB || 'bksr';
@@ -47,15 +46,14 @@ try {
   const peopleResult = await people.bulkWrite(ops);
   const homepage = await db.collection('homepage').updateOne(
     { _id: 'default' },
-    { $set: { researcherQuotes: demoResearcherQuotes } },
+    { $unset: { researcherQuotes: '' } },
   );
   console.log(
     JSON.stringify({
       peopleMatched: peopleResult.matchedCount,
       peopleUpserted: peopleResult.upsertedCount,
       homepageMatched: homepage.matchedCount,
-      homepageModified: homepage.modifiedCount,
-      quoteCount: demoResearcherQuotes.length,
+      quotesRemoved: homepage.modifiedCount,
       names: demoPeople.map((person) => `${person.name} (${person.category})`),
     }),
   );

@@ -1,4 +1,3 @@
-import { demoResearcherQuotes } from '@/content/seed/demo-roster';
 import { researchProjectVenueLine } from '@/lib/content/research-links';
 import type {
   Event,
@@ -127,9 +126,9 @@ export function resolveLiveHomepage(
     opinions,
   );
 
-  const quotes = homepage.researcherQuotes?.length
-    ? homepage.researcherQuotes.map((quote) => ({ ...quote }))
-    : demoResearcherQuotes.map((quote) => ({ ...quote }));
+  const quotes = (homepage.researcherQuotes ?? []).map((quote) => ({
+    ...quote,
+  }));
 
   return {
     areas: pickedAreas.length ? pickedAreas : areas,
@@ -183,8 +182,8 @@ export function hydrateHomepagePicks(
     featuredPublicationIds: storedOpinions.length
       ? storedPublications
       : [...live.opinions.map((item) => item.id), ...otherPublications],
-    researcherQuotes: homepage.researcherQuotes?.length
-      ? homepage.researcherQuotes.map((quote) => ({ ...quote }))
-      : live.quotes,
+    researcherQuotes: (homepage.researcherQuotes ?? []).map((quote) => ({
+      ...quote,
+    })),
   };
 }
