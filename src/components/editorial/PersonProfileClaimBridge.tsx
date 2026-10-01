@@ -130,7 +130,7 @@ export function PersonProfileClaimBridge({
     const fromCms = db.people.find((p) => p.id === personId) as
       | Person
       | undefined;
-    if (fromCms) {
+    if (isOwner && fromCms) {
       setCmsPerson(fromCms);
       setName(fromCms.name);
       setShortBio(fromCms.shortBio ?? '');
@@ -141,9 +141,9 @@ export function PersonProfileClaimBridge({
       setInterests((fromCms.researchInterests ?? []).join(', '));
       setSocialRaw(formatSocialLinksInput(fromCms.socialLinks));
     }
-    refreshExtras();
+    if (isOwner) refreshExtras();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- load once per personId
-  }, [personId]);
+  }, [personId, isOwner]);
 
   const displayPerson: PersonProfileData = useMemo(() => {
     const base = cmsPerson
