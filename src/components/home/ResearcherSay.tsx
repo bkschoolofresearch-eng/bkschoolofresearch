@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import Image from 'next/image';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
+import { ArrowLeft, ArrowRight, X } from 'lucide-react';
 import gsap from 'gsap';
 import { Reveal } from '@/components/motion/Reveal';
+import { PersonPortrait } from '@/components/home/PersonPortrait';
 import { EditorialHeading } from '@/components/ui/EditorialHeading';
 import { cn } from '@/lib/utils';
 
@@ -74,18 +75,32 @@ function SectionIntro({
   );
 }
 
-function QuoteBody({ item }: { item: ResearcherSayItem }) {
+function QuoteBody({
+  item,
+  onReadMore,
+}: {
+  item: ResearcherSayItem;
+  onReadMore: (item: ResearcherSayItem) => void;
+}) {
   return (
     <article className="flex h-full flex-col justify-between rounded-[1.5rem] bg-[#0b233f] p-4 text-paper sm:rounded-[1.875rem] sm:p-5">
-      <p className="font-sans text-base leading-7 text-paper sm:text-2xl sm:leading-9">
-        {item.quote}
-      </p>
+      <div>
+        <p className="line-clamp-6 font-sans text-sm leading-6 text-paper sm:line-clamp-7 sm:text-lg sm:leading-8">
+          {item.quote}
+        </p>
+        <button
+          type="button"
+          onClick={() => onReadMore(item)}
+          className="mt-2 font-sans text-sm font-semibold text-paper underline decoration-paper/50 underline-offset-4 transition-colors hover:text-white"
+        >
+          Read more
+        </button>
+      </div>
       <div className="mt-6 flex items-center gap-2.5 sm:mt-0">
         <div className="relative h-[56px] w-[48px] shrink-0 overflow-hidden rounded-[6px] bg-surface sm:h-[70px] sm:w-[60px]">
-          <Image
+          <PersonPortrait
             src={item.imageSrc}
             alt=""
-            fill
             sizes="60px"
             className="object-cover grayscale"
           />
@@ -103,16 +118,32 @@ function QuoteBody({ item }: { item: ResearcherSayItem }) {
   );
 }
 
-function QuoteBodyCompact({ item }: { item: ResearcherSayItem }) {
+function QuoteBodyCompact({
+  item,
+  onReadMore,
+}: {
+  item: ResearcherSayItem;
+  onReadMore: (item: ResearcherSayItem) => void;
+}) {
   return (
     <article className="flex flex-col justify-between gap-4 rounded-[1.25rem] bg-[#0b233f] p-3.5 text-paper">
-      <p className="font-sans text-sm leading-6 text-paper">{item.quote}</p>
+      <div>
+        <p className="line-clamp-5 font-sans text-sm leading-6 text-paper">
+          {item.quote}
+        </p>
+        <button
+          type="button"
+          onClick={() => onReadMore(item)}
+          className="mt-2 font-sans text-xs font-semibold text-paper underline decoration-paper/50 underline-offset-4 transition-colors hover:text-white"
+        >
+          Read more
+        </button>
+      </div>
       <div className="flex items-center gap-2">
         <div className="relative h-10 w-9 shrink-0 overflow-hidden rounded-[5px] bg-surface">
-          <Image
+          <PersonPortrait
             src={item.imageSrc}
             alt=""
-            fill
             sizes="36px"
             className="object-cover grayscale"
           />
@@ -131,9 +162,11 @@ function QuoteBodyCompact({ item }: { item: ResearcherSayItem }) {
 function TrackCardsStacked({
   items,
   keyPrefix,
+  onReadMore,
 }: {
   items: ResearcherSayItem[];
   keyPrefix: string;
+  onReadMore: (item: ResearcherSayItem) => void;
 }) {
   return (
     <>
@@ -144,15 +177,14 @@ function TrackCardsStacked({
           className="flex w-[min(100vw-2.5rem,17.5rem)] shrink-0 flex-col gap-2.5 will-change-transform"
         >
           <div className="relative aspect-[3/3.4] w-full overflow-hidden rounded-[1.25rem] bg-surface">
-            <Image
+            <PersonPortrait
               src={item.imageSrc}
               alt=""
-              fill
               sizes="(max-width: 767px) 70vw, 280px"
               className="object-cover grayscale"
             />
           </div>
-          <QuoteBodyCompact item={item} />
+          <QuoteBodyCompact item={item} onReadMore={onReadMore} />
         </li>
       ))}
     </>
@@ -162,9 +194,11 @@ function TrackCardsStacked({
 function TrackCardsDesktop({
   items,
   keyPrefix,
+  onReadMore,
 }: {
   items: ResearcherSayItem[];
   keyPrefix: string;
+  onReadMore: (item: ResearcherSayItem) => void;
 }) {
   return (
     <>
@@ -174,10 +208,9 @@ function TrackCardsDesktop({
           data-inchworm-card
           className="relative aspect-412/531 w-[min(78vw,20rem)] shrink-0 overflow-hidden rounded-[1.875rem] bg-surface will-change-transform"
         >
-          <Image
+          <PersonPortrait
             src={item.imageSrc}
             alt=""
-            fill
             sizes="320px"
             className="object-cover grayscale"
           />
@@ -187,7 +220,7 @@ function TrackCardsDesktop({
           data-inchworm-card
           className="aspect-412/531 w-[min(78vw,20rem)] shrink-0 will-change-transform"
         >
-          <QuoteBody item={item} />
+          <QuoteBody item={item} onReadMore={onReadMore} />
         </li>,
       ])}
     </>
@@ -320,6 +353,9 @@ export function ResearcherSay({
   const tweenRef = useRef<gsap.core.Timeline | null>(null);
 
   const [logicalIndex, setLogicalIndex] = useState(0);
+  const [activeQuote, setActiveQuote] = useState<ResearcherSayItem | null>(null);
+  const quoteTitleId = useId();
+  const closeQuoteRef = useRef<HTMLButtonElement>(null);
 
   const cardsPerFlow = isNarrow ? 1 : 2;
   const loopSteps = items.length;
@@ -501,7 +537,7 @@ export function ResearcherSay({
   }, [items.length, isNarrow, cardsPerFlow, loopSteps]);
 
   useEffect(() => {
-    if (loopSteps <= 1) return;
+    if (loopSteps <= 1 || activeQuote) return;
 
     const id = window.setInterval(() => {
       if (pausedRef.current || !inViewRef.current) return;
@@ -513,7 +549,24 @@ export function ResearcherSay({
     }, AUTOPLAY_MS);
 
     return () => window.clearInterval(id);
-  }, [loopSteps]);
+  }, [loopSteps, activeQuote]);
+
+  useEffect(() => {
+    if (!activeQuote) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setActiveQuote(null);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+    closeQuoteRef.current?.focus();
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [activeQuote]);
 
   const go = (direction: -1 | 1) => {
     if (tweenRef.current?.isActive() || loopSteps <= 1) return;
@@ -554,13 +607,29 @@ export function ResearcherSay({
         >
           {isNarrow ? (
             <>
-              <TrackCardsStacked items={items} keyPrefix="a" />
-              <TrackCardsStacked items={items} keyPrefix="b" />
+              <TrackCardsStacked
+                items={items}
+                keyPrefix="a"
+                onReadMore={setActiveQuote}
+              />
+              <TrackCardsStacked
+                items={items}
+                keyPrefix="b"
+                onReadMore={setActiveQuote}
+              />
             </>
           ) : (
             <>
-              <TrackCardsDesktop items={items} keyPrefix="a" />
-              <TrackCardsDesktop items={items} keyPrefix="b" />
+              <TrackCardsDesktop
+                items={items}
+                keyPrefix="a"
+                onReadMore={setActiveQuote}
+              />
+              <TrackCardsDesktop
+                items={items}
+                keyPrefix="b"
+                onReadMore={setActiveQuote}
+              />
             </>
           )}
         </ul>
@@ -580,6 +649,57 @@ export function ResearcherSay({
           onClick={() => go(1)}
         />
       </div>
+
+      {activeQuote
+        ? createPortal(
+            <div className="fixed inset-0 z-100 flex items-end justify-center p-0 sm:items-center sm:p-6">
+              <button
+                type="button"
+                className="absolute inset-0 bg-[#0b233f]/65 backdrop-blur-[2px]"
+                aria-label="Close statement"
+                onClick={() => setActiveQuote(null)}
+              />
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={quoteTitleId}
+                className="relative z-10 flex max-h-[90svh] w-full flex-col overflow-hidden rounded-t-3xl bg-[#0b233f] text-paper shadow-2xl sm:max-w-2xl sm:rounded-[1.875rem]"
+              >
+                <div className="flex items-center gap-3 border-b border-white/15 px-5 py-4 sm:px-7 sm:py-5">
+                  <div className="relative size-12 shrink-0 overflow-hidden rounded-full bg-surface sm:size-14">
+                    <PersonPortrait
+                      src={activeQuote.imageSrc}
+                      alt=""
+                      sizes="56px"
+                      iconClassName="size-7 sm:size-8"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 id={quoteTitleId} className="font-sans text-lg font-semibold leading-tight sm:text-xl">
+                      {activeQuote.name}
+                    </h3>
+                    <p className="mt-1 text-sm text-paper/75">{activeQuote.role}</p>
+                  </div>
+                  <button
+                    ref={closeQuoteRef}
+                    type="button"
+                    onClick={() => setActiveQuote(null)}
+                    aria-label="Close statement"
+                    className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/25 transition-colors hover:bg-white/10"
+                  >
+                    <X className="size-4" aria-hidden />
+                  </button>
+                </div>
+                <div className="overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
+                  <p className="whitespace-pre-line font-sans text-base leading-7 sm:text-lg sm:leading-8">
+                    {activeQuote.quote}
+                  </p>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </section>
   );
 }
