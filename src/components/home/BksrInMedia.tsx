@@ -5,7 +5,7 @@ import { useLenis } from 'lenis/react';
 import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ImageFrame } from '@/components/ui/ImageFrame';
-import { getMediaAppearanceVisualUrl } from '@/lib/content/prototype-media';
+import { getMediaAppearanceCoverUrl } from '@/lib/content/prototype-media';
 import { cn, formatDate } from '@/lib/utils';
 
 export type MediaPublication = {
@@ -209,14 +209,28 @@ function MediaMobileDeck({ feed }: { feed: MediaPublication[] }) {
           >
             <article className="flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-ink/18 bg-[#f4f7fa] p-2">
               <div className="relative overflow-hidden rounded-[1.15rem] bg-white">
-                <ImageFrame
-                  src={getMediaAppearanceVisualUrl(item, i)}
-                  alt=""
-                  aspect="video"
-                  sizes="(max-width: 640px) 85vw, 352px"
-                  frameClassName="border-0"
-                  className="object-cover"
-                />
+                {(() => {
+                  const cover = getMediaAppearanceCoverUrl(item);
+                  return cover ? (
+                    <ImageFrame
+                      src={cover}
+                      alt=""
+                      aspect="video"
+                      sizes="(max-width: 640px) 85vw, 352px"
+                      frameClassName="border-0"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="flex aspect-video items-end justify-between bg-surface-subtle p-3">
+                      <span className="font-sans text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-muted">
+                        {item.venue ?? 'Press'}
+                      </span>
+                      <span className="font-display text-2xl leading-none tabular-nums text-ink/25">
+                        {String(item.year).slice(2)}
+                      </span>
+                    </span>
+                  );
+                })()}
                 <ChannelStrip channel={mediaChannel(item)} />
               </div>
 
@@ -435,15 +449,29 @@ function MediaDesktopBoard({ feed }: { feed: MediaPublication[] }) {
               item={active}
               className="group relative block overflow-hidden rounded-[1.35rem] bg-[#0b233f]"
             >
-              <ImageFrame
-                key={active.id}
-                src={getMediaAppearanceVisualUrl(active, activeIndex)}
-                alt=""
-                aspect="portrait"
-                sizes="384px"
-                frameClassName="border-0"
-                className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-              />
+              {(() => {
+                const cover = getMediaAppearanceCoverUrl(active);
+                return cover ? (
+                  <ImageFrame
+                    key={active.id}
+                    src={cover}
+                    alt=""
+                    aspect="portrait"
+                    sizes="384px"
+                    frameClassName="border-0"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                  />
+                ) : (
+                  <span key={active.id} className="flex aspect-3/4 items-end justify-between p-5">
+                    <span className="font-sans text-xs font-semibold uppercase tracking-[0.14em] text-paper/55">
+                      {active.venue ?? 'Press'}
+                    </span>
+                    <span className="font-display text-4xl leading-none tabular-nums text-paper/30">
+                      {String(active.year).slice(2)}
+                    </span>
+                  </span>
+                );
+              })()}
               <div className="absolute inset-0 bg-linear-to-t from-ink via-ink/55 to-ink/10" />
               <div className="absolute inset-x-0 bottom-0 space-y-2 px-6 pb-11 pt-6">
                 <p className="line-clamp-4 font-sans text-xl font-semibold leading-snug text-paper">
@@ -520,14 +548,28 @@ function MediaDesktopBoard({ feed }: { feed: MediaPublication[] }) {
                     )}
                   >
                     <div className="relative w-28 shrink-0 overflow-hidden rounded-[1.15rem]">
-                      <ImageFrame
-                        src={getMediaAppearanceVisualUrl(item, index)}
-                        alt=""
-                        aspect="square"
-                        sizes="112px"
-                        frameClassName="border-0 bg-surface"
-                        className="object-cover"
-                      />
+                      {(() => {
+                        const cover = getMediaAppearanceCoverUrl(item);
+                        return cover ? (
+                          <ImageFrame
+                            src={cover}
+                            alt=""
+                            aspect="square"
+                            sizes="112px"
+                            frameClassName="border-0 bg-surface"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <span className="flex aspect-square flex-col items-center justify-center bg-surface-subtle p-2">
+                            <span className="font-sans text-[0.5rem] font-semibold uppercase tracking-[0.12em] text-muted">
+                              {item.venue ?? 'Press'}
+                            </span>
+                            <span className="mt-1 font-display text-lg leading-none tabular-nums text-ink/25">
+                              {String(item.year).slice(2)}
+                            </span>
+                          </span>
+                        );
+                      })()}
                       <ChannelStrip
                         channel={mediaChannel(item)}
                         compact

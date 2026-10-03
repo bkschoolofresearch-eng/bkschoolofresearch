@@ -22,7 +22,6 @@ export type LibraryPublication = {
 type FromTheLibraryProps = {
   featured: LibraryPublication[];
   sidebar: LibraryPublication[];
-  fallbackImages: string[];
 };
 
 function metaLine(publication: LibraryPublication) {
@@ -36,12 +35,8 @@ function blurb(publication: LibraryPublication) {
   return text.length > 160 ? `${text.slice(0, 157).trim()}…` : text;
 }
 
-function coverSrc(publication: LibraryPublication, fallback?: string) {
-  return (
-    getPublicationCoverUrl(publication) ??
-    fallback ??
-    '/media/prototype/publication-cover-remittances.jpg'
-  );
+function coverSrc(publication: LibraryPublication) {
+  return getPublicationCoverUrl(publication);
 }
 
 function ViewLink({
@@ -74,7 +69,6 @@ function ViewLink({
 export function FromTheLibrary({
   featured,
   sidebar,
-  fallbackImages,
 }: FromTheLibraryProps) {
   if (!featured.length) return null;
 
@@ -92,14 +86,25 @@ export function FromTheLibrary({
             ) : null}
             <article className="flex min-w-0 flex-row items-stretch gap-3.5 sm:gap-5 md:gap-6">
               <div className="w-[6.75rem] shrink-0 sm:w-[11.5rem] md:w-[13rem] lg:w-[16rem] xl:w-[18.9rem]">
-                <ImageFrame
-                  src={coverSrc(publication, fallbackImages[index])}
-                  alt=""
-                  aspect="square"
-                  sizes="(max-width: 640px) 108px, (max-width: 1024px) 208px, 303px"
-                  frameClassName="border-0 bg-[#d9d9d9]"
-                  className="object-cover"
-                />
+                {coverSrc(publication) ? (
+                  <ImageFrame
+                    src={coverSrc(publication)!}
+                    alt=""
+                    aspect="square"
+                    sizes="(max-width: 640px) 108px, (max-width: 1024px) 208px, 303px"
+                    frameClassName="border-0 bg-[#d9d9d9]"
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="flex aspect-square flex-col justify-between rounded-sm bg-surface-subtle p-3">
+                    <span className="font-sans text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-muted">
+                      {PUBLICATION_TYPE_LABELS[publication.type]}
+                    </span>
+                    <span className="font-display text-xl leading-none tabular-nums text-ink/25 sm:text-3xl lg:text-4xl">
+                      {publication.year ? String(publication.year).slice(2) : '—'}
+                    </span>
+                  </span>
+                )}
               </div>
 
               <div className="flex min-w-0 flex-1 flex-col justify-between gap-4 sm:gap-6 lg:gap-8">
@@ -148,17 +153,25 @@ export function FromTheLibrary({
               <div className="flex min-w-0 flex-col gap-2.5 sm:gap-3">
                 <div className="flex min-w-0 gap-3 sm:gap-4">
                   <div className="size-[4.5rem] shrink-0 sm:size-[7.5rem] lg:size-[9.375rem]">
-                    <ImageFrame
-                      src={coverSrc(
-                        publication,
-                        fallbackImages[index + featured.length],
-                      )}
-                      alt=""
-                      aspect="square"
-                      sizes="(max-width: 640px) 72px, 150px"
-                      frameClassName="border-0 size-full bg-[#d9d9d9]"
-                      className="object-cover"
-                    />
+                    {coverSrc(publication) ? (
+                      <ImageFrame
+                        src={coverSrc(publication)!}
+                        alt=""
+                        aspect="square"
+                        sizes="(max-width: 640px) 72px, 150px"
+                        frameClassName="border-0 size-full bg-[#d9d9d9]"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="flex size-full aspect-square flex-col justify-between bg-surface-subtle p-2">
+                        <span className="font-sans text-[0.5rem] font-semibold uppercase tracking-[0.12em] text-muted">
+                          {PUBLICATION_TYPE_LABELS[publication.type]}
+                        </span>
+                        <span className="font-display text-base leading-none tabular-nums text-ink/25 sm:text-xl lg:text-2xl">
+                          {publication.year ? String(publication.year).slice(2) : '—'}
+                        </span>
+                      </span>
+                    )}
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-0.5 sm:gap-2.5">
                     <p className="font-instrument text-[0.75rem] leading-4 text-ink sm:text-[0.8125rem] sm:leading-[1.125rem]">
