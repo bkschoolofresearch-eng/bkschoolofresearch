@@ -73,7 +73,7 @@ export function TeamMemberCard({
               <p className="font-sans text-[0.8125rem] leading-snug text-ink sm:text-2xl">
                 {name}
               </p>
-              <p className="mt-0.5 font-sans text-[0.6875rem] font-light leading-snug text-muted sm:mt-1 sm:text-base">
+              <p className="mt-0.5 line-clamp-2 font-sans text-[0.6875rem] font-light leading-snug text-muted sm:mt-1 sm:text-base">
                 {role}
               </p>
             </div>
@@ -89,7 +89,7 @@ export function TeamMemberCard({
             !flipped && 'motion-reduce:hidden',
           )}
         >
-          <p className="line-clamp-[10] font-sans text-xs leading-relaxed text-paper sm:line-clamp-[12] sm:text-[0.9375rem] sm:leading-[1.55]">
+          <p className="line-clamp-[7] font-sans text-xs leading-relaxed text-paper sm:line-clamp-[12] sm:text-[0.9375rem] sm:leading-[1.55]">
             {description}
           </p>
           <div className="flex justify-end pt-3 sm:pt-4">

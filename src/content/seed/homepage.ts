@@ -5,7 +5,7 @@ export const homepage: HomepageConfig = {
   heroEyebrow: 'BK School of Research',
   heroTitle: 'Shaping Evidence-Based Policy for a Changing Global Landscape',
   heroSubtitle: 'A Heaven for Inquisitive Minds.',
-  heroImageUrl: '/media/prototype/bksr-hero-seminar.jpg',
+  heroImageUrl: null,
   heroCtas: [
     { label: 'Explore Research', href: '/research', variant: 'primary' },
     { label: 'View Publications', href: '/publications', variant: 'secondary' },

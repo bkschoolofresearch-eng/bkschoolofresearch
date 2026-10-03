@@ -96,22 +96,6 @@ export default async function HomePage() {
   const opinionPublications = await getPublications({ type: 'opinion' });
   const mediaCoverage = await getMediaClippings();
 
-  const archiveVisuals = [
-    ...mediaCoverage
-      .map((item) => item.coverImageUrl)
-      .filter((url): url is string => Boolean(url)),
-    ...opinionPublications
-      .map((item) => item.coverImageUrl)
-      .filter((url): url is string => Boolean(url)),
-    brandPhotos.fieldResearchCommunity,
-    brandPhotos.classroomSeminar,
-    brandPhotos.academicNetworking,
-    brandPhotos.conferencePresentation,
-    brandPhotos.fieldResearchRural,
-    brandPhotos.communityEngagement,
-    brandPhotos.awardCeremony,
-  ];
-
   const verifiedStats = [...homepage.stats]
     .filter((stat) => stat.verified)
     .sort((a, b) => a.order - b.order);
@@ -170,25 +154,23 @@ export default async function HomePage() {
 
   const eventItems = live.events;
 
-  const noticeSlides = live.notices.map((item, index) => ({
+  const noticeSlides = live.notices.map((item) => ({
     id: item.id,
     href: `/notices/${item.slug}`,
     title: item.title,
     summary: item.summary,
     imageUrl:
       item.featuredImageUrl ??
-      archiveVisuals[index] ??
       brandPhotos.classroomSeminar,
   }));
 
-  const eventSlides = live.events.map((item, index) => ({
+  const eventSlides = live.events.map((item) => ({
     id: item.id,
     href: `/events/${item.slug}`,
     title: item.title,
     summary: item.summary,
     imageUrl:
       item.featuredImageUrl ??
-      archiveVisuals[index] ??
       brandPhotos.academicNetworking,
   }));
 
@@ -200,7 +182,6 @@ export default async function HomePage() {
         'Training workshops, fellowships and grants, and mentorship across career stages.',
       imageSrc:
         activities.find((item) => item.type === 'capacity-building')?.imageUrl ??
-        archiveVisuals[0] ??
         brandPhotos.classroomSeminar,
     },
     {
@@ -210,7 +191,6 @@ export default async function HomePage() {
         'Policy dialogues, evidence briefings, seminars, and academic partnerships.',
       imageSrc:
         activities.find((item) => item.type === 'research-talk')?.imageUrl ??
-        archiveVisuals[1] ??
         brandPhotos.conferencePresentation,
     },
     {
@@ -221,22 +201,20 @@ export default async function HomePage() {
       imageSrc:
         activities.find((item) => item.type === 'awareness-campaign')
           ?.imageUrl ??
-        archiveVisuals[2] ??
         brandPhotos.communityEngagement,
     },
   ];
 
   const homeAreas = live.areas;
   const homeMedia = live.media;
-  const opinionSlides = live.opinions.map((item, index) => ({
+  const opinionSlides = live.opinions.map((item) => ({
     id: item.id,
     href: `/publications/${item.slug}`,
     title: item.title,
     summary: publicationCardSupportingLine(item) ?? undefined,
     imageUrl:
       item.coverImageUrl ??
-      archiveVisuals[index] ??
-      archiveVisuals[0],
+      brandPhotos.conferencePresentation,
   }));
 
   const primaryCta =
@@ -246,10 +224,14 @@ export default async function HomePage() {
     homepage.heroCtas.find((cta) => cta.variant === 'secondary') ??
     homepage.heroCtas[1];
 
-  const heroImage = homepage.heroImageUrl ?? heroSlides[0].src;
+  const heroImage =
+    homepage.heroImageUrl?.startsWith('/media/prototype/')
+      ? null
+      : homepage.heroImageUrl;
+  const validHero = heroImage ?? heroSlides[0].src;
   const slides = [
-    { src: heroImage, alt: heroSlides[0].alt },
-    ...heroSlides.filter((slide) => slide.src !== heroImage),
+    { src: validHero, alt: heroSlides[0].alt },
+    ...heroSlides.filter((slide) => slide.src !== validHero),
   ];
 
   return (
@@ -304,9 +286,7 @@ export default async function HomePage() {
               motto="Turning evidence into policy, and policy into change."
               tagline=""
               identity={ABOUT_OVERVIEW_IDENTITY}
-              featureImageSrc={
-                archiveVisuals[0] ?? brandPhotos.fieldResearchCommunity
-              }
+              featureImageSrc={brandPhotos.fieldResearchCommunity}
               featureImageAlt="BKSR research and academic work"
               pillars={WHAT_WE_DO_PILLARS.map((pillar) => ({
                 id: pillar.id,
@@ -481,8 +461,7 @@ export default async function HomePage() {
                           item.featuredImageUrl?.startsWith('http') ||
                           item.featuredImageUrl?.startsWith('/')
                             ? item.featuredImageUrl
-                            : (archiveVisuals[index] ??
-                              brandPhotos.classroomSeminar)
+                            : brandPhotos.classroomSeminar
                         }
                         alt=""
                         aspect="video"

@@ -7,6 +7,8 @@ import { getMediaClippings } from '@/lib/content/queries';
 import { brandPhotos } from '@/lib/content/prototype-media';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = buildPageMetadata(
   'BKSR in Media',
   'Where BK School of Research appears across newspapers, television, and digital outlets.',
