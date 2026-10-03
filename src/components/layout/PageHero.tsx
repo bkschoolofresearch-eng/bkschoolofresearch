@@ -3,7 +3,7 @@ import { Container } from '@/components/ui/Container';
 import { EditorialHeading } from '@/components/ui/EditorialHeading';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Breadcrumb, type BreadcrumbItem } from '@/components/ui/Breadcrumb';
-import { prototypeMedia } from '@/lib/content/prototype-media';
+import { brandPhotos } from '@/lib/content/prototype-media';
 import { cn } from '@/lib/utils';
 
 type PageHeroProps = {
@@ -24,7 +24,7 @@ type PageHeroProps = {
   className?: string;
 };
 
-const DEFAULT_HERO_IMAGE = prototypeMedia.heroSlideSeminar.url;
+const DEFAULT_HERO_IMAGE = brandPhotos.fieldResearchCommunity;
 
 /**
  * Inner-page masthead aligned to the homepage hero language:

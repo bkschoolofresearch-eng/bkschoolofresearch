@@ -149,25 +149,41 @@ export const prototypeMedia = {
   },
 } as const;
 
-/** Homepage hero photo slides (prototype — replace with authentic photography). */
+/** Homepage hero photo slides — authentic BKSR photography. */
 export const heroSlides = [
   {
-    src: prototypeMedia.heroSlideSeminar.url,
-    alt: prototypeMedia.heroSlideSeminar.alt,
+    src: '/brand/photos/conference-panel-nepal-2026.jpeg',
+    alt: 'BKSR at the Quest International Conference on Business, Technology, and Hospitality, Nepal 2026',
   },
   {
-    src: prototypeMedia.heroSlideField.url,
-    alt: prototypeMedia.heroSlideField.alt,
+    src: '/brand/photos/field-mentoring-discussion.jpg',
+    alt: 'BKSR field mentoring — researchers in discussion with students during data collection',
   },
   {
-    src: prototypeMedia.heroSlideArchive.url,
-    alt: prototypeMedia.heroSlideArchive.alt,
+    src: '/brand/photos/caice-2023-conference-stage.jpg',
+    alt: 'BKSR presenting at CAICE-2023, CEDECON Annual International Conference in Economics, Tribhuvan University, Nepal',
   },
   {
-    src: prototypeMedia.heroSlideWebinar.url,
-    alt: prototypeMedia.heroSlideWebinar.alt,
+    src: '/brand/photos/climate-migration-seminar.jpeg',
+    alt: 'Research talk on Climate Migration at a BKSR seminar',
   },
 ] as const;
+
+/** Authentic BKSR photos for homepage sections and page heroes. */
+export const brandPhotos = {
+  fieldResearchCommunity: '/brand/photos/field-research-community.jpeg',
+  classroomSeminar: '/brand/photos/classroom-seminar-training.jpeg',
+  conferencePresentation: '/brand/photos/conference-presentation-research.jpg',
+  communityEngagement: '/brand/photos/community-engagement-fieldwork.jpeg',
+  academicNetworking: '/brand/photos/academic-networking-conference.jpg',
+  fieldResearchRural: '/brand/photos/field-research-rural.jpeg',
+  awardCeremony: '/brand/photos/award-ceremony-conference.jpeg',
+  pressCoverage: '/brand/photos/press-coverage-collage.jpg',
+  awardCaice: '/brand/photos/award-caice-conference.jpg',
+  bksrOffice: '/brand/photos/bksr-office-executive.jpg',
+  questConferenceGroup: '/brand/photos/quest-conference-group.jpeg',
+  icbeScholarsGroup: '/brand/photos/icbe-scholars-group.jpeg',
+} as const;
 
 /** Real cover only — null when none is set (use typographic placeholder in UI). */
 export function getPublicationCoverUrl(

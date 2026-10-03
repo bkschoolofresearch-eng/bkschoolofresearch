@@ -4,7 +4,7 @@ import { Container } from '@/components/ui/Container';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Section } from '@/components/ui/Section';
 import { getMediaClippings } from '@/lib/content/queries';
-import { prototypeMedia } from '@/lib/content/prototype-media';
+import { brandPhotos } from '@/lib/content/prototype-media';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = buildPageMetadata(
@@ -22,7 +22,7 @@ export default async function Page() {
         eyebrow="Press"
         title="BKSR in Media"
         description="Where BK School of Research appears across newspapers, television, and digital outlets."
-        imageSrc={prototypeMedia.mediaSpotlight.url}
+        imageSrc={brandPhotos.pressCoverage}
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'BKSR in Media' }]}
       />
       <Section tone="white">

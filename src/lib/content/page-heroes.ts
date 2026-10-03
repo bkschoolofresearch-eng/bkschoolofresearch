@@ -1,18 +1,18 @@
-import { prototypeMedia } from '@/lib/content/prototype-media';
+import { brandPhotos } from '@/lib/content/prototype-media';
 
 /** Shared photographic planes for inner-page heroes (homepage language). */
 export const pageHeroMedia = {
-  about: prototypeMedia.heroSlideSeminar.url,
-  people: prototypeMedia.directorPortrait.url,
-  research: prototypeMedia.researchField.url,
-  publications: prototypeMedia.knowledgeArchive.url,
-  activities: prototypeMedia.activityWorkshop.url,
-  events: prototypeMedia.eventSeminar.url,
-  newsEvents: prototypeMedia.eventSeminar.url,
-  news: prototypeMedia.heroSlideWebinar.url,
-  notices: prototypeMedia.heroSlideArchive.url,
-  contact: prototypeMedia.heroSlideField.url,
-  resources: prototypeMedia.knowledgeArchive.url,
-  gallery: prototypeMedia.heroSlideSeminar.url,
-  default: prototypeMedia.heroSlideSeminar.url,
+  about: brandPhotos.fieldResearchCommunity,
+  people: brandPhotos.icbeScholarsGroup,
+  research: brandPhotos.fieldResearchRural,
+  publications: brandPhotos.conferencePresentation,
+  activities: brandPhotos.awardCeremony,
+  events: brandPhotos.academicNetworking,
+  newsEvents: brandPhotos.academicNetworking,
+  news: brandPhotos.classroomSeminar,
+  notices: brandPhotos.awardCaice,
+  contact: brandPhotos.communityEngagement,
+  resources: brandPhotos.conferencePresentation,
+  gallery: brandPhotos.questConferenceGroup,
+  default: brandPhotos.fieldResearchCommunity,
 } as const;

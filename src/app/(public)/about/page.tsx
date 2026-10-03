@@ -1,7 +1,7 @@
 import { PageHero } from '@/components/layout/PageHero';
 import { AboutHub } from '@/components/public/AboutHub';
 import { pageHeroMedia } from '@/lib/content/page-heroes';
-import { prototypeMedia } from '@/lib/content/prototype-media';
+import { brandPhotos } from '@/lib/content/prototype-media';
 import {
   getHomepageConfig,
   getPersonById,
@@ -20,27 +20,27 @@ const LINK_DEFS = [
     label: 'Who We Are',
     excerpt:
       'Evidence-based knowledge, shaping policy, and lasting social impact across 26 countries.',
-    imageSrc: prototypeMedia.heroSlideSeminar.url,
+    imageSrc: brandPhotos.fieldResearchCommunity,
   },
   {
     href: '/about/what-we-do',
     label: 'What We Do',
     excerpt:
       'Research and publications, capacity building, policy engagement, and community impact.',
-    imageSrc: prototypeMedia.activityWorkshop.url,
+    imageSrc: brandPhotos.classroomSeminar,
   },
   {
     href: '/about/governance',
     label: 'Governance',
     excerpt:
       'Board oversight, executive leadership, standing committees, and public accountability.',
-    imageSrc: prototypeMedia.heroSlideWebinar.url,
+    imageSrc: brandPhotos.questConferenceGroup,
   },
   {
     href: '/about/policies',
     label: 'Our Policies',
     excerpt: 'Institutional policies will be published here.',
-    imageSrc: prototypeMedia.knowledgeArchive.url,
+    imageSrc: brandPhotos.conferencePresentation,
   },
 ] as const;
 
@@ -68,7 +68,7 @@ export default async function AboutPage() {
       <AboutHub
         director={director ?? null}
         links={links}
-        storyImage={prototypeMedia.researchField.url}
+        storyImage={brandPhotos.fieldResearchRural}
       />
     </>
   );

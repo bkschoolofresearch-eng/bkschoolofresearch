@@ -34,7 +34,7 @@ import {
 import { uploadedPersonPhoto } from '@/lib/content/person-photo';
 import {
   heroSlides,
-  prototypeMedia,
+  brandPhotos,
 } from '@/lib/content/prototype-media';
 import {
   ABOUT_HEADLINE,
@@ -103,13 +103,13 @@ export default async function HomePage() {
     ...opinionPublications
       .map((item) => item.coverImageUrl)
       .filter((url): url is string => Boolean(url)),
-    prototypeMedia.researchField.url,
-    prototypeMedia.activityWorkshop.url,
-    prototypeMedia.eventSeminar.url,
-    prototypeMedia.knowledgeArchive.url,
-    prototypeMedia.heroSlideField.url,
-    prototypeMedia.heroSlideArchive.url,
-    prototypeMedia.heroSlideWebinar.url,
+    brandPhotos.fieldResearchCommunity,
+    brandPhotos.classroomSeminar,
+    brandPhotos.academicNetworking,
+    brandPhotos.conferencePresentation,
+    brandPhotos.fieldResearchRural,
+    brandPhotos.communityEngagement,
+    brandPhotos.awardCeremony,
   ];
 
   const verifiedStats = [...homepage.stats]
@@ -178,7 +178,7 @@ export default async function HomePage() {
     imageUrl:
       item.featuredImageUrl ??
       archiveVisuals[index] ??
-      prototypeMedia.heroSeminar.url,
+      brandPhotos.classroomSeminar,
   }));
 
   const eventSlides = live.events.map((item, index) => ({
@@ -189,7 +189,7 @@ export default async function HomePage() {
     imageUrl:
       item.featuredImageUrl ??
       archiveVisuals[index] ??
-      prototypeMedia.eventSeminar.url,
+      brandPhotos.academicNetworking,
   }));
 
   const programItems = [
@@ -201,7 +201,7 @@ export default async function HomePage() {
       imageSrc:
         activities.find((item) => item.type === 'capacity-building')?.imageUrl ??
         archiveVisuals[0] ??
-        prototypeMedia.activityWorkshop.url,
+        brandPhotos.classroomSeminar,
     },
     {
       href: '/activities/research-talks',
@@ -211,7 +211,7 @@ export default async function HomePage() {
       imageSrc:
         activities.find((item) => item.type === 'research-talk')?.imageUrl ??
         archiveVisuals[1] ??
-        prototypeMedia.eventSeminar.url,
+        brandPhotos.conferencePresentation,
     },
     {
       href: '/activities/awareness-campaigns',
@@ -222,7 +222,7 @@ export default async function HomePage() {
         activities.find((item) => item.type === 'awareness-campaign')
           ?.imageUrl ??
         archiveVisuals[2] ??
-        prototypeMedia.activityWorkshop.url,
+        brandPhotos.communityEngagement,
     },
   ];
 
@@ -246,9 +246,9 @@ export default async function HomePage() {
     homepage.heroCtas.find((cta) => cta.variant === 'secondary') ??
     homepage.heroCtas[1];
 
-  const heroImage = homepage.heroImageUrl ?? prototypeMedia.heroSeminar.url;
+  const heroImage = homepage.heroImageUrl ?? heroSlides[0].src;
   const slides = [
-    { src: heroImage, alt: prototypeMedia.heroSeminar.alt },
+    { src: heroImage, alt: heroSlides[0].alt },
     ...heroSlides.filter((slide) => slide.src !== heroImage),
   ];
 
@@ -305,7 +305,7 @@ export default async function HomePage() {
               tagline=""
               identity={ABOUT_OVERVIEW_IDENTITY}
               featureImageSrc={
-                archiveVisuals[0] ?? prototypeMedia.researchField.url
+                archiveVisuals[0] ?? brandPhotos.fieldResearchCommunity
               }
               featureImageAlt="BKSR research and academic work"
               pillars={WHAT_WE_DO_PILLARS.map((pillar) => ({
@@ -383,7 +383,7 @@ export default async function HomePage() {
               <NoticesAndEvents
                 notices={noticeSlides}
                 events={eventSlides}
-                fallbackImage={prototypeMedia.heroSeminar.url}
+                fallbackImage={brandPhotos.classroomSeminar}
               />
             </div>
           </Container>
@@ -482,7 +482,7 @@ export default async function HomePage() {
                           item.featuredImageUrl?.startsWith('/')
                             ? item.featuredImageUrl
                             : (archiveVisuals[index] ??
-                              prototypeMedia.activityWorkshop.url)
+                              brandPhotos.classroomSeminar)
                         }
                         alt=""
                         aspect="video"
@@ -514,7 +514,7 @@ export default async function HomePage() {
           <div className="mt-8 sm:mt-10">
             <NoticesNewsCarousel
               slides={opinionSlides}
-              fallbackImage={prototypeMedia.heroSeminar.url}
+              fallbackImage={brandPhotos.classroomSeminar}
             />
           </div>
         </Container>
@@ -555,7 +555,7 @@ export default async function HomePage() {
                 title: 'Open to new partnerships',
                 description:
                   'BKSR remains open to new institutional partnerships that advance research for good.',
-                imageSrc: prototypeMedia.collabComputerScience.url,
+                imageSrc: brandPhotos.academicNetworking,
               },
             ]}
           />
