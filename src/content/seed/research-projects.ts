@@ -28,7 +28,6 @@ export const ongoingProjects: ResearchProject[] = [
     leadAuthorNames: [],
     startYear: 2024,
     year: 2024,
-    featuredImageUrl: '/media/prototype/bksr-research-field.jpg',
     featuredOnResearchPage: true,
   },
   {
@@ -87,7 +86,6 @@ export const completedProjects: ResearchProject[] = [
     year: 2026,
     endYear: 2026,
     publicationIds: ['pub-kumar-remittances-rural-development-2026'],
-    featuredImageUrl: '/media/prototype/bksr-pub-cover-remittances.jpg',
     featuredOnResearchPage: true,
   },
   {
@@ -142,7 +140,6 @@ export const completedProjects: ResearchProject[] = [
     year: 2026,
     endYear: 2026,
     publicationIds: ['pub-kumar-climate-women-pwd-2026'],
-    featuredImageUrl: '/media/prototype/bksr-pub-cover-climate.jpg',
   },
   {
     ...ts,
@@ -326,7 +323,6 @@ export const completedProjects: ResearchProject[] = [
     publicationIds: [
       'pub-islam-kumar-social-network-loneliness-2019',
     ],
-    featuredImageUrl: '/media/prototype/bksr-knowledge-archive.jpg',
   },
   {
     ...ts,
@@ -352,7 +348,6 @@ export const completedProjects: ResearchProject[] = [
     publicationIds: [
       'pub-kumar-climate-perception-2019',
     ],
-    featuredImageUrl: '/media/prototype/bksr-pub-cover-climate.jpg',
   },
   {
     ...ts,
@@ -371,7 +366,6 @@ export const completedProjects: ResearchProject[] = [
     year: 2019,
     endYear: 2019,
     publicationIds: ['pub-kumar-remittances-poverty-alleviation-2019'],
-    featuredImageUrl: '/media/prototype/bksr-pub-cover-remittances.jpg',
   },
   {
     ...ts,

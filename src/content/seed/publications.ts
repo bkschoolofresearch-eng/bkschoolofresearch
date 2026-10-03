@@ -27,7 +27,6 @@ const scholarlyPublications: Publication[] = [
       'Kumar, B. (2026). Remittances as a pathway to rural development: micro-level evidence on household well-being and poverty reduction in Bangladesh. SN Business and Economics, 6:328.',
     abstract:
       'Micro-level evidence on how remittances shape household well-being and poverty reduction in rural Bangladesh.',
-    coverImageUrl: '/media/prototype/bksr-pub-cover-remittances.jpg',
     areaIds: ['area-economics-sustainability', 'area-migration-diaspora'],
     projectId: 'project-remittances-rural-development-2026',
   },
@@ -80,7 +79,6 @@ const scholarlyPublications: Publication[] = [
       'Kumar, B., Mimi, M. B., Ko, J., Ridwan, M., Banik, P., Rani, D., & Lee, H. F. (2026). Climate Change Impacts and Coping Mechanisms among Women and Persons with Disabilities: Insights from Climate-Induced Migrant Communities. Environment, Innovation and Management, 2, 2650011.',
     abstract:
       'Documents climate impacts and coping among women and persons with disabilities in climate-induced migrant communities.',
-    coverImageUrl: '/media/prototype/bksr-pub-cover-climate.jpg',
     areaIds: [
       'area-environment-climate',
       'area-gender-development',
@@ -284,7 +282,6 @@ const scholarlyPublications: Publication[] = [
     pages: '25-47',
     citation:
       'Islam, M. A. and Kumar, B. (2019). The Relationship between Social Network, Social Media Use, Loneliness and Academic Performance: A Study among University Students in Bangladesh. World of Media Journal of Russian Media and Journalism Studies, 2019(4): 25-47.',
-    coverImageUrl: '/media/prototype/bksr-knowledge-archive.jpg',
     abstract:
       'Examined relationships among social networks, social media use, loneliness, and academic performance for Bangladeshi university students.',
     areaIds: ['area-media-communication', 'area-education-culture'],
@@ -311,7 +308,6 @@ const scholarlyPublications: Publication[] = [
     pages: '17-22',
     citation:
       'Kumar, B., Asad, A. I., Chandraaroy, B. and Banik, P. (2019). Perception and Knowledge on Climate Change: A Case Study on University Students in Bangladesh. Journal of Atmospheric Science Research, 2(3): 17-22.',
-    coverImageUrl: '/media/prototype/bksr-pub-cover-climate.jpg',
     abstract:
       'Case study of climate change perception and knowledge among university students in Bangladesh.',
     areaIds: ['area-environment-climate', 'area-education-culture'],
@@ -333,7 +329,6 @@ const scholarlyPublications: Publication[] = [
     pages: '67-86',
     citation:
       'Kumar, B. (2019). The Impact of International Remittances on Poverty Alleviation in Bangladesh. Remittances Review, 4(1): 67-86.',
-    coverImageUrl: '/media/prototype/bksr-pub-cover-remittances.jpg',
     abstract:
       'Analyzed the impact of international remittances on poverty alleviation in Bangladesh.',
     areaIds: ['area-economics-sustainability', 'area-migration-diaspora'],

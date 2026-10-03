@@ -169,104 +169,18 @@ export const heroSlides = [
   },
 ] as const;
 
-/** Cover thumbs for selected publication IDs (prototype only). */
-export const publicationCoverById: Record<string, string> = {
-  'pub-kumar-remittances-poverty-alleviation-2019':
-    prototypeMedia.publicationCoverRemittances.url,
-  'pub-kumar-climate-perception-2019':
-    prototypeMedia.publicationCoverClimate.url,
-  'pub-islam-kumar-social-network-loneliness-2019':
-    prototypeMedia.knowledgeArchive.url,
-  'pub-kumar-utilization-remittances-2018':
-    prototypeMedia.publicationCoverRemittances.url,
-};
-
-/** Atmosphere visuals for newspaper / media appearances (prototype only). */
-export const mediaAppearanceVisualById: Record<string, string> = {
-  'press-tbs-bk-school-curiosity-2023': prototypeMedia.mediaSpotlight.url,
-  'press-deshrupantor-beautiful-future-research-2023':
-    prototypeMedia.mediaBroadsheet.url,
-  'press-jamuna-cfep-mou-2025': prototypeMedia.mediaBroadcast.url,
-  'press-deshrupantor-research-as-career-2026':
-    prototypeMedia.mediaDigitalNews.url,
-  'press-ajker-patrika-research-for-students-2023':
-    prototypeMedia.mediaNewspaperDesk.url,
-  'press-protidiner-bksr-cfep-2025': prototypeMedia.mediaClippings.url,
-  'press-dhaka-tribune-joy-bangla-2022': prototypeMedia.mediaSpotlight.url,
-  'press-tbs-joy-bangla-inspirational-2022':
-    prototypeMedia.mediaDigitalNews.url,
-  'press-risingbd-youth-award-2023': prototypeMedia.mediaBroadsheet.url,
-  'press-youtube-maasranga-bezon-2023': prototypeMedia.mediaBroadcast.url,
-  'press-dbangla71-clipping-2022': prototypeMedia.mediaClippings.url,
-  'press-bdnews24-rohingya-covid-2022': prototypeMedia.mediaNewspaperDesk.url,
-  'press-amadershomoy-unicef-feature-2022':
-    prototypeMedia.mediaDigitalNews.url,
-  'pub-kumar-varendra-university-asian-age-2019':
-    prototypeMedia.mediaNewspaperDesk.url,
-  'pub-kumar-probashi-aay-alokito-vor-2018':
-    prototypeMedia.mediaBroadsheet.url,
-  'pub-kumar-factors-remittance-inflows-2018':
-    prototypeMedia.mediaDigitalNews.url,
-  'pub-kumar-nordhaus-romer-nobel-2018': prototypeMedia.mediaClippings.url,
-  'pub-kumar-international-remittances-development-2018':
-    prototypeMedia.mediaBroadcast.url,
-  'pub-kumar-nobel-2017-asian-age': prototypeMedia.mediaNewspaperDesk.url,
-  'pub-kumar-bangabandhu-7-march-asian-age-2017':
-    prototypeMedia.mediaBroadsheet.url,
-  'pub-kumar-climate-bangladesh-asian-age-2017':
-    prototypeMedia.mediaDigitalNews.url,
-  'pub-kumar-remittance-mechanism-asian-age-2017':
-    prototypeMedia.mediaClippings.url,
-};
-
-export const mediaAppearanceFallbacks = [
-  prototypeMedia.mediaNewspaperDesk.url,
-  prototypeMedia.mediaDigitalNews.url,
-  prototypeMedia.mediaBroadcast.url,
-  prototypeMedia.mediaClippings.url,
-  prototypeMedia.mediaBroadsheet.url,
-] as const;
-
+/** Real cover only — null when none is set (use typographic placeholder in UI). */
 export function getPublicationCoverUrl(
   publication: { id: string; coverImageUrl?: string | null },
 ): string | null {
-  return (
-    publication.coverImageUrl ?? publicationCoverById[publication.id] ?? null
-  );
+  return publication.coverImageUrl?.trim() || null;
 }
 
-export function getMediaAppearanceVisualUrl(
+/** Real cover only — null when none is set (use typographic placeholder in UI). */
+export function getMediaAppearanceCoverUrl(
   publication: { id: string; coverImageUrl?: string | null },
-  fallbackIndex = 0,
-): string {
-  return (
-    publication.coverImageUrl ??
-    mediaAppearanceVisualById[publication.id] ??
-    mediaAppearanceFallbacks[
-      fallbackIndex % mediaAppearanceFallbacks.length
-    ] ??
-    prototypeMedia.mediaNewspaperDesk.url
-  );
-}
-
-/** Atmosphere visuals for research project cards when no featured image exists. */
-export const researchProjectVisualFallbacks = [
-  prototypeMedia.researchField.url,
-  prototypeMedia.heroSlideField.url,
-  prototypeMedia.knowledgeArchive.url,
-  prototypeMedia.heroSlideArchive.url,
-  prototypeMedia.activityWorkshop.url,
-  prototypeMedia.eventSeminar.url,
-  prototypeMedia.heroSlideSeminar.url,
-  prototypeMedia.heroSlideWebinar.url,
-] as const;
-
-/** @deprecated Prefer getResearchProjectCoverUrl — never invent stock photos. */
-export function getResearchProjectVisualUrl(
-  project: { featuredImageUrl?: string | null },
-  _fallbackIndex = 0,
 ): string | null {
-  return getResearchProjectCoverUrl(project);
+  return publication.coverImageUrl?.trim() || null;
 }
 
 /** Real cover only — null when none is set (use typographic placeholder in UI). */
