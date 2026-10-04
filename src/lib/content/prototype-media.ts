@@ -167,6 +167,14 @@ export const heroSlides = [
     src: '/brand/photos/climate-migration-seminar.jpeg',
     alt: 'Research talk on Climate Migration at a BKSR seminar',
   },
+  {
+    src: '/brand/photos/icbe-scholars-group.jpeg',
+    alt: 'BKSR scholars at the International Conference on Business and Economics',
+  },
+  {
+    src: '/brand/photos/quest-conference-group.jpeg',
+    alt: 'BKSR team at the Quest International Conference, Nepal',
+  },
 ] as const;
 
 /** Authentic BKSR photos for homepage sections and page heroes. */
