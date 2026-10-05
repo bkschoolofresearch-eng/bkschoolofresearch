@@ -16,7 +16,7 @@ export const activities: Activity[] = [
     type: 'capacity-building',
     summary:
       'Training workshops, fellowships and grants, and structured mentorship that strengthen research skills across career stages.',
-    imageUrl: '/media/prototype/bksr-activity-workshop.jpg',
+    imageUrl: null,
     description: `BK School of Research offers training workshops on research methodology and data analysis to strengthen technical and analytical skills, alongside fellowships and grants that support early-career researchers in pursuing independent and collaborative research.
 
 To bridge experience across career stages, we pair senior faculty with junior researchers through structured mentorship, fostering the transfer of expertise and the growth of a new generation of scholars.`,
