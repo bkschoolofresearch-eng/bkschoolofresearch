@@ -1,13 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
-import {
-  searchContent,
-  type SearchCategory,
-} from '@/lib/cms/search';
+import type { SearchCategory } from '@/lib/cms/search';
+import { usePublicSearch } from '@/components/search/use-public-search';
 import { cn } from '@/lib/utils';
 
 const CATEGORIES: { label: string; value: SearchCategory }[] = [
@@ -40,10 +38,7 @@ export function SearchPanel({
       : 'all') as SearchCategory,
   );
 
-  const results = useMemo(() => {
-    if (!query.trim()) return [];
-    return searchContent(query, category, { useSeed: true });
-  }, [query, category]);
+  const { items: results, loading } = usePublicSearch(query, category, 20);
 
   function syncUrl(nextQuery: string, nextCategory: SearchCategory) {
     const params = new URLSearchParams();
@@ -104,6 +99,8 @@ export function SearchPanel({
           <p className="text-base text-muted">
             Enter a keyword to search the public archive.
           </p>
+        ) : loading && results.length === 0 ? (
+          <p className="text-base text-muted">Searching…</p>
         ) : results.length === 0 ? (
           <p className="text-base text-muted">
             No results for “{query.trim()}”.

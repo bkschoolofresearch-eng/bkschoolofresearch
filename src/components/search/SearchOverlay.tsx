@@ -1,14 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, X } from 'lucide-react';
-import {
-  getSearchIndex,
-  searchContent,
-  type SearchCategory,
-  type SearchResult,
-} from '@/lib/cms/search';
+import type { SearchCategory } from '@/lib/cms/search';
+import { usePublicSearch } from '@/components/search/use-public-search';
 import { cn } from '@/lib/utils';
 
 type SearchOverlayProps = {
@@ -41,20 +38,23 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<SearchCategory>('all');
+  const [active, setActive] = useState(0);
+  const { items: results, loading } = usePublicSearch(query, category, 8);
 
-  const searchIndex = useMemo(() => getSearchIndex({ useSeed: true }), []);
+  useEffect(() => {
+    setActive(0);
+  }, [query, category, results]);
 
-  const results: SearchResult[] = useMemo(() => {
-    if (!query.trim()) {
-      return searchIndex
-        .filter((item) => category === 'all' || item.category === category)
-        .slice(0, 8);
-    }
-    return searchContent(query, category, { useSeed: true }).slice(0, 24);
-  }, [category, query, searchIndex]);
+  useEffect(() => {
+    listRef.current
+      ?.querySelector('[aria-selected="true"]')
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [active, results]);
 
   useEffect(() => {
     if (!open) return;
@@ -69,7 +69,7 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
 
   useEffect(() => {
     if (!open) return;
-    function onKeyDown(event: KeyboardEvent) {
+    function onKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key === 'Escape') onClose();
     }
     window.addEventListener('keydown', onKeyDown);
@@ -82,6 +82,32 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
       setCategory('all');
     }
   }, [open]);
+
+  function openResult(href: string) {
+    onClose();
+    if (href.startsWith('http')) {
+      window.open(href, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    router.push(href);
+  }
+
+  function onInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActive((index) => Math.min(results.length - 1, index + 1));
+      return;
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActive((index) => Math.max(0, index - 1));
+      return;
+    }
+    if (event.key === 'Enter' && results[active]) {
+      event.preventDefault();
+      openResult(results[active].href);
+    }
+  }
 
   if (!open) return null;
 
@@ -110,6 +136,12 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
               placeholder="Search the archive…"
               className="w-full bg-transparent font-sans text-sm text-ink outline-none placeholder:text-muted/75 sm:text-[0.9375rem]"
               aria-label="Search query"
+              aria-autocomplete="list"
+              aria-controls="site-search-suggestions"
+              aria-activedescendant={
+                results[active] ? `site-search-option-${results[active].id}` : undefined
+              }
+              onKeyDown={onInputKeyDown}
             />
             {query ? (
               <button
@@ -161,25 +193,44 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps) {
         </div>
 
         <ul
+          id="site-search-suggestions"
+          ref={listRef}
+          role="listbox"
           data-lenis-prevent
           className="mt-2 max-h-[min(22rem,48vh)] overflow-y-auto overscroll-contain px-2 pb-2 sm:mt-3 sm:max-h-[min(24rem,50vh)] sm:px-3 sm:pb-3 [scrollbar-gutter:stable] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-ink/20"
         >
-          {results.length === 0 ? (
+          {!query.trim() ? (
+            <li className="px-3 py-10 text-center font-instrument text-sm text-muted sm:py-12">
+              Start typing to see suggestions.
+            </li>
+          ) : loading && results.length === 0 ? (
+            <li className="px-3 py-10 text-center font-instrument text-sm text-muted sm:py-12">
+              Searching…
+            </li>
+          ) : results.length === 0 ? (
             <li className="px-3 py-10 text-center font-instrument text-sm text-muted sm:py-12">
               No matches for “{query}”.
             </li>
           ) : (
-            results.map((result) => {
+            results.map((result, index) => {
               const opensOutlet = result.href.startsWith('http');
+              const selected = index === active;
               return (
-              <li key={`${result.category}-${result.id}`}>
+              <li key={`${result.category}-${result.id}`} role="presentation">
                 <Link
+                  id={`site-search-option-${result.id}`}
+                  role="option"
+                  aria-selected={selected}
                   href={result.href}
+                  onMouseEnter={() => setActive(index)}
                   onClick={onClose}
                   {...(opensOutlet
                     ? { target: '_blank', rel: 'noopener noreferrer' }
                     : {})}
-                  className="group block rounded-[1rem] px-3 py-3 transition-colors hover:bg-surface-subtle sm:rounded-[1.15rem] sm:px-3.5 sm:py-3.5"
+                  className={cn(
+                    'group block rounded-[1rem] px-3 py-3 transition-colors sm:rounded-[1.15rem] sm:px-3.5 sm:py-3.5',
+                    selected ? 'bg-surface-subtle' : 'hover:bg-surface-subtle',
+                  )}
                 >
                   <span className="font-sans text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-muted">
                     {CATEGORY_LABELS[result.category] ?? result.category}
