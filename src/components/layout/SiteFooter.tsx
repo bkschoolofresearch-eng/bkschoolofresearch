@@ -39,7 +39,7 @@ const researchLinks = [
 ] as const;
 
 const instituteLinks = [
-  { id: 'in-career', label: 'Career at BKSR', href: '/people/career' },
+  { id: 'in-career', label: 'Vacancy at BKSR', href: '/people/career' },
   { id: 'in-join', label: 'Apply to join', href: '/join' },
   { id: 'in-policies', label: 'Our policies', href: '/about/policies' },
   { id: 'in-governance', label: 'Governance', href: '/about/governance' },
@@ -220,10 +220,15 @@ export function SiteFooter({
             </div>
           </div>
 
-          <div className="mt-8 flex flex-col gap-1 border-t border-ink/10 pt-5 sm:mt-9 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-            <p className="font-sans text-xs font-medium text-ink/80 sm:text-sm">
-              {settings.copyright}
-            </p>
+          <div className="mt-8 flex flex-col gap-2 border-t border-ink/10 pt-5 sm:mt-9 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+            <div className="min-w-0">
+              <p className="font-sans text-xs font-medium text-ink/80 sm:text-sm">
+                {settings.copyright}
+              </p>
+              <p className="mt-1 font-sans text-[0.6875rem] leading-snug text-ink/60 sm:text-xs">
+                Website developed by রাতুল সাহালয়
+              </p>
+            </div>
             <p className="font-instrument text-xs text-ink/70 sm:text-sm">
               Founded {settings.foundedYear} · {settings.organizationShortName}
             </p>

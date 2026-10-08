@@ -15,7 +15,7 @@ import { buildPageMetadata } from '@/lib/seo/metadata';
 import { formatDate } from '@/lib/utils';
 
 export const metadata = buildPageMetadata(
-  'Career at BKSR',
+  'Vacancy at BKSR',
   'Vacancies and opportunities to work with BK School of Research.',
   '/people/career',
 );
@@ -31,13 +31,13 @@ export default async function CareerPage() {
     <>
       <PageHero
         eyebrow="People"
-        title="Career at BKSR"
+        title="Vacancy at BKSR"
         description="Open calls and vacancy notices for research and programme roles at BK School of Research."
         imageSrc={pageHeroMedia.people}
         breadcrumbs={[
           { label: 'Home', href: '/' },
           { label: 'People', href: '/people' },
-          { label: 'Career at BKSR' },
+          { label: 'Vacancy at BKSR' },
         ]}
       />
       <Section tone="white">

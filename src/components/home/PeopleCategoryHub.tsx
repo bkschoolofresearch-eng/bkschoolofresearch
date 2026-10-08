@@ -121,7 +121,7 @@ export function PeopleCategoryHub({
                 People directory
               </Button>
               <Button href="/people/career" variant="onInkSecondary" size="lg">
-                Career at BKSR
+                Vacancy at BKSR
               </Button>
             </div>
             <Link

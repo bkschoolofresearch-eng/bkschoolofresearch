@@ -98,12 +98,18 @@ function ensurePeopleNav(
     const custom = customSectionAssignments(sections).filter(
       (section) => !children.some((child) => child.href === section.href),
     );
-    const withoutRetired = children.filter(
-      (child) =>
-        child.href !== '/people/distinguished-fellows' &&
-        child.href !== '/people/research-team' &&
-        child.href !== '/people/administrative-team',
-    );
+    const withoutRetired = children
+      .filter(
+        (child) =>
+          child.href !== '/people/distinguished-fellows' &&
+          child.href !== '/people/research-team' &&
+          child.href !== '/people/administrative-team',
+      )
+      .map((child) =>
+        child.href === '/people/career'
+          ? { ...child, label: 'Vacancy at BKSR' }
+          : child,
+      );
     if (!custom.length) return { ...item, children: withoutRetired };
 
     const insertAt = withoutRetired.findIndex(

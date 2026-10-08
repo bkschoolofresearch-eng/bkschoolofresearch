@@ -73,7 +73,7 @@ export const mainNavigation: NavigationItem[] = [
       },
       {
         id: 'nav-people-career',
-        label: 'Career at BKSR',
+        label: 'Vacancy at BKSR',
         href: '/people/career',
         order: 7,
       },
