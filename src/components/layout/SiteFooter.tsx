@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 import { SocialGlyph } from '@/components/ui/SocialGlyph';
 import type { NavigationItem, SiteSettings } from '@/types/content';
@@ -225,13 +226,18 @@ export function SiteFooter({
               <p className="font-sans text-xs font-medium text-ink/80 sm:text-sm">
                 {settings.copyright}
               </p>
-              <p className="mt-1 font-sans text-[0.6875rem] leading-snug text-ink/60 sm:text-xs">
-                Website developed by রাতুল সাহালয়
+              <p className="mt-1 font-instrument text-xs text-ink/70 sm:text-sm">
+                Founded {settings.foundedYear} · {settings.organizationShortName}
               </p>
             </div>
-            <p className="font-instrument text-xs text-ink/70 sm:text-sm">
-              Founded {settings.foundedYear} · {settings.organizationShortName}
-            </p>
+            <Link
+              href="/people/ratul-saha-roy"
+              className="inline-flex items-center gap-1 font-sans text-[0.6875rem] leading-snug text-ink/65 transition-colors hover:text-ink sm:text-xs"
+            >
+              Website developed by{' '}
+              <span className="font-semibold text-ink">Ratul Saha Roy</span>
+              <ArrowUpRight className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+            </Link>
           </div>
         </div>
       </Container>
